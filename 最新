@@ -1,1 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐶 Alverse | Ultimate Edition</title>
+    <style>
+        :root { --header-brown: #2d1b15; --body-beige: #f5f5dc; --card-white: #fffdf0; --btn-yellow: #f0e68c; --text-main: #333; --accent: #ffab00; }
+        body.dark-mode { --body-beige: #121212; --card-white: #1e1e1e; --text-main: #e0e0e0; --header-brown: #000; }
+        body { margin: 0; background: var(--body-beige); color: var(--text-main); font-family: sans-serif; min-height: 100vh; display: flex; flex-direction: column; transition: 0.3s; overflow-x: hidden; }
 
+        header { background: var(--header-brown); padding: 0 25px; display: grid; grid-template-columns: 180px 1fr 220px; align-items: center; position: sticky; top: 0; z-index: 1000; height: 65px; }
+        .logo { color: var(--btn-yellow); font-size: 24px; font-weight: 900; cursor: pointer; }
+
+        .header-center { display: flex; justify-content: center; }
+        .search-bar { background: transparent; border: 1px solid rgba(255,255,255,0.4); border-radius: 10px; padding: 6px 15px; width: 250px; display: flex; }
+        .search-bar input { border: none; width: 100%; outline: none; background: transparent; color: white; font-size: 14px; }
+
+        .header-right { display: flex; justify-content: flex-end; gap: 8px; }
+        .nav-btn { background: var(--btn-yellow); border: none; width: 42px; height: 42px; border-radius: 10px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 #c2b545; }
+        .nav-btn:active { transform: translateY(2px); box-shadow: none; }
+
+        .dropdown { position: relative; }
+        .dropdown-content { display: none; position: absolute; right: 0; top: 55px; background: #1a1a1a; min-width: 200px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 5000; }
+        .dropdown.active .dropdown-content { display: block; }
+        .dropdown-content div { color: #eee; padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #333; font-size: 14px; transition: 0.2s; }
+        .dropdown-content div:hover { background: #333; }
+
+        main { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 25px; flex: 1; }
+        .post-card { background: var(--card-white); border-radius: 18px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); position: relative; }
+        .post-card img { width: 100%; height: 180px; object-fit: cover; }
+        .post-content { padding: 15px; }
+        .badge { font-size: 10px; background: var(--btn-yellow); padding: 2px 8px; border-radius: 5px; color: #555; font-weight: bold; }
+
+        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); }
+        .modal-content { background: var(--card-white); margin: 5vh auto; padding: 25px; width: 90%; max-width: 550px; border-radius: 20px; color: var(--text-main); max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #333; box-sizing: border-box; }
+        .close-modal-btn { background: #888; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; margin-top: 10px; }
+
+        footer { background: var(--header-brown); color: #888; text-align: center; padding: 30px 20px; font-size: 13px; }
+        footer a { color: var(--btn-yellow); text-decoration: none; margin: 0 10px; }
+        .footer-line { border-top: 1px solid rgba(255,255,255,0.1); margin: 15px auto; width: 80%; }
+        
+        .pl-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(0,0,0,0.1); font-size: 14px; }
+        .track-name-input { border: none; background: transparent; width: 70%; font-weight: bold; }
+    </style>
+</head>
+<body onclick="closeAllPopups(event)">
+
+<header>
+    <div class="logo" onclick="location.reload()">🐶 Alverse</div>
+    <div class="header-center"><div class="search-bar"><input type="text" placeholder="アーカイブを検索..."></div></div>
+    <div class="header-right">
+        <button class="nav-btn" onclick="openModal('catModal')">😸</button>
+        <button class="nav-btn" onclick="openModal('galModal')">🖼️</button>
+        <button class="nav-btn" onmousedown="startL()" onmouseup="stopL()" ontouchstart="startL()" ontouchend="stopL()" onclick="toggleDarkMode()">🌛</button>
+        <div class="dropdown" id="gearMenu">
+            <button class="nav-btn" onclick="toggleGear(event)">⚙️</button>
+            <div class="dropdown-content">
+                <div onclick="openModal('bgmModal')">🎸 BGM</div>
+                <div onclick="alert('言語切替: 準備中')">🌐 言語</div>
+                <div onclick="openModal('memoModal')">📝 メモ</div>
+                <div onclick="openModal('secretModal')">🥸 秘密機能</div>
+                <div onclick="openModal('adminModal')" id="adminLink" style="display:none; color:var(--accent); font-weight:bold;">🛠 管理パネル</div>
+                <div onclick="logout()" id="logoutBtn" style="display:none; color:red;">🔓 ログアウト</div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main id="mainGrid"></main>
+
+<div id="catModal" class="modal"><div class="modal-content">
+    <h2>😸 猫の知恵袋</h2>
+    <input type="text" id="bTitle" placeholder="タイトルを入力">
+    <textarea id="bBody" placeholder="内容（愚痴、知恵、悩み事なんでも...）" rows="4"></textarea>
+    <button class="nav-btn" style="width:100%;" onclick="addBoard()">投稿する</button>
+    <div id="boardFeed" style="margin-top:20px; border-top:2px solid var(--btn-yellow);"></div>
+    <button class="close-modal-btn" onclick="closeModal('catModal')">閉じる</button>
+</div></div>
+
+<div id="galModal" class="modal"><div class="modal-content">
+    <h2>🖼️ ギャラリー</h2>
+    <input type="file" id="fileInput" onchange="upImg(this)" style="background:transparent; border:none;">
+    <div id="galGrid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:15px;"></div>
+    <button class="close-modal-btn" onclick="closeModal('galModal')">閉じる</button>
+</div></div>
+
+<div id="bgmModal" class="modal"><div class="modal-content">
+    <h2>🎸 BGM プレイリスト</h2>
+    <div style="background:#000; border-radius:15px; overflow:hidden; margin-bottom:10px;">
+        <div style="position:relative; padding-bottom:56.25%;"><div id="y-player" style="position:absolute; width:100%; height:100%;"></div></div>
+    </div>
+    <input type="text" id="ytU" placeholder="YouTube URLを追加">
+    <button class="nav-btn" style="width:100%;" onclick="addTrack()">自動追加</button>
+    <div id="playlist" style="margin-top:10px; max-height:200px; overflow-y:auto;"></div>
+    <button class="close-modal-btn" onclick="closeModal('bgmModal')">閉じる</button>
+</div></div>
+
+<div id="adminModal" class="modal"><div class="modal-content">
+    <h2>🛠 管理者機能：記事投稿</h2>
+    <input type="text" id="pTitle" placeholder="タイトル">
+    <input type="text" id="pCat" placeholder="カテゴリー">
+    <input type="text" id="pImg" placeholder="画像URL (任意)">
+    <textarea id="pBody" placeholder="本文を入力..."></textarea>
+    <select id="pStatus"><option value="public">公開</option><option value="private">下書き</option></select>
+    <button class="nav-btn" style="width:100%;" onclick="savePost()">記事を作成</button>
+    <button class="close-modal-btn" onclick="closeModal('adminModal')">閉じる</button>
+</div></div>
+
+<div id="secretModal" class="modal"><div class="modal-content">
+    <h2>🥸 秘密機能</h2>
+    <p>ここに多数の秘密機能を追加予定...</p>
+    <button class="close-modal-btn" onclick="closeModal('secretModal')">閉じる</button>
+</div></div>
+
+<footer>
+    <a href="javascript:void(0)" onclick="alert('プライバシーポリシー：当サイトはクッキーを使用します。')">プライバシーポリシー</a> |
+    <a href="javascript:void(0)" onclick="alert('お問い合わせはYouTubeチャンネルまで')">お問い合わせ</a> |
+    <a href="https://www.youtube.com/@kenya896" target="_blank">📺 YouTube: ねこちゃんねる</a>
+    <div class="footer-line"></div>
+    <p>当サイトはGoogle AdSenseを利用して広告を表示しています。</p>
+</footer>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+    let db = JSON.parse(localStorage.getItem('alverse_v_final')) || { posts:[], board:[], tracks:[], imgs:[], isAdmin:false };
+    let player, timer, currentTrackIdx = 0;
+
+    function save() { localStorage.setItem('alverse_v_final', JSON.stringify(db)); render(); }
+    function openModal(id) { document.getElementById(id).style.display='block'; }
+    function closeModal(id) { document.getElementById(id).style.display='none'; }
+    function toggleGear(e) { e.stopPropagation(); document.getElementById('gearMenu').classList.toggle('active'); }
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+    function closeAllPopups(e) { if(!e.target.closest('.dropdown')) document.getElementById('gearMenu').classList.remove('active'); }
+
+    function startL() { timer = setTimeout(() => { if(prompt("Pass:")==="nekosuke101"){ db.isAdmin=true; save(); alert("管理者ログイン成功！"); } else { alert("失敗しました"); } }, 2000); }
+    function stopL() { clearTimeout(timer); }
+    function logout() { db.isAdmin=false; save(); location.reload(); }
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('y-player', { videoId: '', playerVars: { 'autoplay': 1, 'playsinline': 1 },
+            events: { 'onStateChange': (e) => { if(e.data === YT.PlayerState.ENDED) playNext(); } }
+        });
+    }
+    function playNext() { if (db.tracks.length > 0) { currentTrackIdx = (currentTrackIdx + 1) % db.tracks.length; player.loadVideoById(db.tracks[currentTrackIdx].id); } }
+    function addTrack() {
+        const url = document.getElementById('ytU').value;
+        const vid = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+        if(vid) { db.tracks.push({id: vid[1], n: "New Track " + (db.tracks.length + 1)}); document.getElementById('ytU').value = ""; save(); if(db.tracks.length === 1) player.loadVideoById(vid[1]); }
+    }
+
+    function savePost() {
+        const p = { id:Date.now(), title:document.getElementById('pTitle').value, cat:document.getElementById('pCat').value, img:document.getElementById('pImg').value || 'https://via.placeholder.com/300', body:document.getElementById('pBody').value, status:document.getElementById('pStatus').value };
+        if(!p.title || !p.body) return alert("タイトルと本文を入力してください");
+        db.posts.unshift(p); save(); closeModal('adminModal');
+    }
+    function addBoard() {
+        const t = document.getElementById('bTitle').value; const b = document.getElementById('bBody').value;
+        if(t && b) { db.board.unshift({t:t, b:b, d:new Date().toLocaleString()}); document.getElementById('bTitle').value=""; document.getElementById('bBody').value=""; save(); }
+    }
+    function upImg(input) { const r=new FileReader(); r.onload=e=>{db.imgs.unshift({id:Date.now(), src:e.target.result}); save();}; r.readAsDataURL(input.files[0]); }
+    function delImg(id) { db.imgs = db.imgs.filter(i=>i.id!==id); save(); }
+    function delPost(id) { if(confirm("削除しますか？")){ db.posts = db.posts.filter(p=>p.id!==id); save(); } }
+
+    function render() {
+        const grid = document.getElementById('mainGrid');
+        grid.innerHTML = db.posts.filter(p => p.status === 'public' || db.isAdmin).map(p => `
+            <div class="post-card">
+                <img src="${p.img}">
+                <div class="post-content">
+                    <span class="badge">${p.cat} ${p.status === 'private' ? '(下書き)' : ''}</span>
+                    <h4>${p.title}</h4>
+                    <p style="font-size:13px; color:var(--text-main);">${p.body}</p>
+                    ${db.isAdmin ? `<button onclick="delPost(${p.id})" style="color:red; background:none; border:none; cursor:pointer;">削除</button>` : ''}
+                </div>
+            </div>`).join('');
+
+        document.getElementById('playlist').innerHTML = db.tracks.map((t,i)=>`
+            <div class="pl-item">
+                <input class="track-name-input" value="${t.n}" onchange="db.tracks[${i}].n=this.value; save();">
+                <span onclick="player.loadVideoById('${t.id}'); currentTrackIdx=${i};" style="cursor:pointer;">▶️</span>
+                <span onclick="db.tracks.splice(${i},1); save();" style="color:red; cursor:pointer;">🗑️</span>
+            </div>`).join('');
+
+        document.getElementById('boardFeed').innerHTML = db.board.map(b=>`
+            <div style="background:rgba(0,0,0,0.05); padding:10px; margin-bottom:10px; border-radius:10px;">
+                <div style="font-weight:bold; color:var(--accent);">【${b.t}】</div>
+                <div style="font-size:14px; margin:5px 0;">${b.b}</div>
+                <div style="font-size:11px; color:#999;">${b.d}</div>
+            </div>`).join('');
+
+        document.getElementById('galGrid').innerHTML = db.imgs.map(i=>`
+            <div style="position:relative;"><img src="${i.src}" style="width:100%; height:80px; object-fit:cover; border-radius:5px;">
+            <div onclick="delImg(${i.id})" style="position:absolute; top:2px; right:2px; background:red; color:white; border-radius:50%; width:15px; height:15px; font-size:10px; text-align:center; line-height:15px; cursor:pointer;">×</div></div>`).join('');
+
+        document.getElementById('adminLink').style.display = db.isAdmin ? 'block' : 'none';
+        document.getElementById('logoutBtn').style.display = db.isAdmin ? 'block' : 'none';
+    }
+    window.onload = render;
+</script>
+</body>
+</html>
