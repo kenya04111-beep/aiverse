@@ -536,13 +536,90 @@ if (session_status() === PHP_SESSION_NONE) {
             cursor: pointer;
         }
 
-        #photo-modal img {
-            max-width: 70vw !important;
-            max-height: 70vh !important;
-            object-fit: contain !important;
-            transition: none !important;
-            pointer-events: none; /* 画像を透かして背景クリックを有効にする */
-        }
+#photo-modal img {
+    max-width: 70vw !important;
+    max-height: 70vh !important;
+    object-fit: contain !important;
+    transition: none !important;
+    /* pointer-events: none; は、画像だけを透かしたい場合のみ残してください */
+    display: block;
+    margin: 0 auto;
+}
+
+/* 1. 秘密ボタンのレイアウト保持用 */
+.secret-container {
+    position: absolute;
+    top: 15px;
+    right: 55px;
+    z-index: 10001; /* 他のUIやモーダルよりも常に最前面へ */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 2. 👽秘密ボタン：デザインと基本アニメーション */
+.secret-btn {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    filter: drop-shadow(0 0 2px rgba(0, 255, 0, 0.3));
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    padding: 5px;
+    line-height: 1;
+    user-select: none;
+}
+
+/* ホバー時の「見つけた感」を強調 */
+.secret-btn:hover {
+    transform: scale(1.4) rotate(15deg);
+    filter: drop-shadow(0 0 12px #00ff00);
+}
+
+/* クリックした瞬間の手応え */
+.secret-btn:active {
+    transform: scale(0.9) rotate(-10deg);
+    filter: brightness(1.5);
+}
+
+/* 3. 秘密モード時のテキストエリア（デジタル漢方薬・ダーク） */
+.memo-secret-mode {
+    background-color: #0d0d0d !important; /* 漆黒 */
+    color: #00ff00 !important;           /* ネオン・グリーン */
+    border: 2px solid #00ff00 !important;
+    box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.2), 0 0 10px rgba(0, 255, 0, 0.1) !important;
+    font-family: 'Courier New', Courier, monospace; /* ハッカー・知的ツール風 */
+    letter-spacing: 0.05em;
+    caret-color: #00ff00; /* カーソルの色も統一 */
+}
+
+/* 4. 通常モードのテキストエリア微調整（知的・哲学的な黄色テーマを尊重） */
+#memo-textarea {
+    transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+}
+
+/* 5. 保存中・同期中のステータスアニメーション */
+@keyframes saving-pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.98); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.saving {
+    animation: saving-pulse 1.2s ease-in-out infinite;
+    color: #ffcc00 !important; /* 保存中は知的な黄色で強調 */
+    font-weight: bold;
+}
+
+/* メモ帳を開いた時のフェードイン（オプション） */
+.modal-content {
+    animation: memo-open 0.3s ease-out;
+}
+
+@keyframes memo-open {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 </style>
 </head>
 <body>
@@ -671,14 +748,32 @@ if (session_status() === PHP_SESSION_NONE) {
 </div>
 
 <div id="memo-modal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="position: relative; overflow: hidden;">
+        <!-- 右上の閉じるボタン -->
         <button class="modal-close" onclick="closeModal('memo-modal')">×</button>
-        <h2 style="margin-top:0;">📝 マイ・スピードメモ</h2>
-        <p style="font-size:0.85rem; color:#8c827a;">入力した内容は、ブラウザを閉じても、クッキーを削除してもリアルタイムで自動的に保存されます。</p>
-        <textarea id="memo-textarea" oninput="saveMemo()" style="width:100%; height:250px; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-color); resize:none; outline:none; font-size:1rem;" placeholder="ここに自由にアイデアやメモを書き残してください..."></textarea>
+
+        <!-- ヘッダー部分：タイトルと👽秘密ボタン -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <h2 id="memo-title" style="margin: 0; font-size: 1.5rem;">📝 マイ・スピードメモ</h2>
+            <button id="secret-alien-btn" class="secret-btn" onclick="toggleSecretMode()" title="👽秘密の共有">👽</button>
+        </div>
+
+        <!-- 説明文 -->
+        <p id="memo-status" style="font-size: 0.85rem; color: #8c827a; margin-bottom: 12px;">
+            クラウドと同期中...（クッキーを消しても残ります）
+        </p>
+
+        <!-- メモ帳本体 -->
+        <textarea id="memo-textarea" 
+            placeholder="ここに自由にアイデアを書き残してください..."
+            style="width: 100%; height: 280px; padding: 15px; border-radius: 12px; border: 2px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-family: inherit; line-height: 1.6; resize: none; transition: all 0.3s ease; box-sizing: border-box;"></textarea>
+
+        <!-- 下部の操作案内 -->
+        <div id="memo-footer" style="margin-top: 10px; text-align: right; font-size: 0.75rem; color: #bbb;">
+            <span id="save-indicator">✅ 保存済み</span>
+        </div>
     </div>
 </div>
-
 <div id="bgm-modal" class="modal">
     <div class="modal-content">
         <button class="modal-close" onclick="closeModal('bgm-modal')">×</button>
@@ -1952,81 +2047,95 @@ window.onload = () => {
 
     setupDraftSystem(); // 📝 執筆支援
 };
+</script>
+<!-- PHPの条件分岐などがすべて終了したあと -->
+
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, onChildAdded, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    // 1. Firebaseの読み込み（一本化）
+    import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// KenyaさんのFirebase Config
-const firebaseConfig = {
-    apiKey: "AIzaSyDbw7xkeplmYAE80JcrTIf1qKRpZsDTwXM",
-    authDomain: "alverse-project.firebaseapp.com",
-    databaseURL: "https://alverse-project-default-rtdb.firebaseio.com",
-    projectId: "alverse-project",
-    storageBucket: "alverse-project.firebasestorage.app",
-    messagingSenderId: "870564638397",
-    appId: "1:870564638397:web:d372f90b2b150e095791d4"
-};
+    // 2. Firebaseの設定
+    const firebaseConfig = {
+        apiKey: "AIzaSyDbw7xkeplmYAE80JcrTIf1qkRpZsDTwXM",
+        authDomain: "alverse-project.firebaseapp.com",
+        databaseURL: "https://alverse-project-default-rtdb.firebaseio.com",
+        projectId: "alverse-project",
+        storageBucket: "alverse-project.firebasestorage.app",
+        messagingSenderId: "870564638397",
+        appId: "1:870564638397:web:d372f90b2b150e095791d4"
+    };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const dbRef = ref(db, "chiebukuro/posts");
+    // 3. 重複起動防止を施した初期化
+    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    const db = getDatabase(app);
+    const dbRef = ref(db, "chiebukuro/posts");
 
-// 送信関数（windowに登録してHTMLから呼べるようにする）
-window.submitBoardPost = () => {
-    const titleInput = document.getElementById('board-title-input');
-    const bodyInput = document.getElementById('board-body-input');
+    // 4. 送信関数：バリデーションとUXの強化
+    window.submitBoardPost = () => {
+        const titleInput = document.getElementById('board-title-input');
+        const bodyInput = document.getElementById('board-body-input');
 
-    const title = titleInput.value.trim() || "無題の知恵";
-    const body = bodyInput.value.trim();
+        if (!bodyInput) return;
 
-    if (body === "") {
-        alert("本文を入力してくださいにゃ！");
-        return;
-    }
+        const title = titleInput.value.trim() || "無題の知恵";
+        const body = bodyInput.value.trim();
 
-    push(dbRef, {
-        title: title,
-        text: body,
-        user: "Kenya", // または取得したユーザー名
-        timestamp: serverTimestamp()
-    }).then(() => {
-        titleInput.value = "";
-        bodyInput.value = "";
-    }).catch((error) => {
-        console.error("送信エラー:", error);
+        if (body === "") {
+            alert("本文を入力してくださいにゃ！");
+            return;
+        }
+
+        // 送信中はボタンを無効化するなどの処理を入れるとより安全です
+        push(dbRef, {
+            title: title,
+            text: body,
+            user: "Kenya",
+            timestamp: serverTimestamp()
+        }).then(() => {
+            if (titleInput) titleInput.value = "";
+            bodyInput.value = "";
+            console.log("知恵を共有しました！");
+        }).catch((error) => {
+            console.error("送信エラー:", error);
+            alert("送信に失敗しました。通信状況を確認してくださいにゃ。");
+        });
+    };
+
+    // 5. リアルタイム受信：モーダル内のコンテナだけに流し込む
+    onChildAdded(dbRef, (data) => {
+        const post = data.val();
+        // モーダル内の記事コンテナ（本来の場所）
+        const container = document.getElementById('board-posts-container');
+
+        if (container) {
+            const article = document.createElement('article');
+            article.className = 'board-post';
+
+            // XSS対策：ユーザー入力を安全にエスケープ
+            const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const safeText = (post.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "今さっき";
+
+            article.innerHTML = `
+                <div class="board-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:5px;">
+                    <span class="board-title" style="font-weight:bold; color:#3e2723;">📌 ${safeTitle}</span>
+                    <span style="font-size:0.7rem; color:#aaa;">${date}</span>
+                </div>
+                <div class="board-body" style="padding: 12px 0; color: #444; line-height:1.6; white-space: pre-wrap;">${safeText}</div>
+            `;
+
+            container.prepend(article);
+        }
     });
-};
 
-// リアルタイム受信
-onChildAdded(dbRef, (data) => {
-    const post = data.val();
-    const container = document.getElementById('board-posts-container');
-
-    if (container) {
-        const article = document.createElement('article');
-        article.className = 'board-post'; // 以前定義したスタイルを適用
-
-        const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "今さっき";
-
-        article.innerHTML = `
-            <div class="board-header">
-                <span class="board-title">📌 ${post.title}</span>
-                <span style="font-size:0.75rem; color:#aaa;">${date}</span>
-            </div>
-            <div class="board-body" style="padding: 10px 0; color: #444;">${post.text}</div>
-        `;
-
-        container.prepend(article); // 最新投稿を一番上へ
-    }
-});
-    </script>
-
-    <script>
-        // 既存のスクリプト
-        window.onload = () => {
-            setupDraftSystem(); // 📝 執筆支援
-        };
-    </script>
+    // 既存の執筆支援などの初期化
+    window.addEventListener('load', () => {
+        if (typeof setupDraftSystem === 'function') {
+            setupDraftSystem();
+        }
+    });
+</script>
 </body>
 </html>
 
