@@ -682,15 +682,35 @@ if (session_status() === PHP_SESSION_NONE) {
     font-weight: bold;
 }
 
-/* メモ帳を開いた時のフェードイン（オプション） */
-.modal-content {
-    animation: memo-open 0.3s ease-out;
-}
+/* --- ✨ アニメーション定義 --- */
+        /* 下からふわっと浮かび上がる共通の動き */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-@keyframes memo-open {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+        /* --- 📝 メモ帳・モーダルの設定 --- */
+        .modal-content {
+            animation: fadeIn 0.3s ease-out; /* memo-openと共通なのでfadeInに統合可能です */
+        }
+
+        /* --- 🐾 掲示板（猫の知恵袋）の設定 --- */
+        .board-post {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            /* 投稿が読み込まれた時に fadeIn を適用 */
+            animation: fadeIn 0.4s ease forwards;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        /* ホバー時に少しだけ浮き上がり、背景を少し明るくする演出 */
+        .board-post:hover {
+            transform: scale(1.01);
+            background: rgba(255, 255, 255, 0.05);
+        }
 </style>
 </head>
 <body>
@@ -1254,117 +1274,144 @@ selector.onchange = function() {
     });
 
 // --- 🐾 猫の知恵袋 (世界規模・自由同期システム) ---
+// --- ⚙️ 設定: Firebase BBSパス ---
+const BBS_ENDPOINT = 'https://alverse-project-default-rtdb.firebaseio.com/bulletin_board.json';
 
-// サーバーへ掲示板データを保存
-async function syncBoardToServer() {
-    try {
-        await fetch('api.php?type=bbs', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(db.board)
-        });
-        console.log("掲示板を世界に共有しました");
-    } catch (e) {
-        console.error("掲示板同期失敗:", e);
-    }
-}
-
-// サーバーから掲示板データを読み込み
+/**
+ * 🔄 サーバーからデータを取得して描画
+ * loadBoardFromServer を Firebase 対応にアップグレード
+ */
 async function loadBoardFromServer() {
     try {
-        const response = await fetch('api.php?type=bbs');
-        if (response.ok) {
-            const data = await response.json();
-            if (data && Array.isArray(data)) {
-                db.board = data;
-                renderBoard();
-            }
-        }
+        const response = await fetch(BBS_ENDPOINT);
+        if (!response.ok) throw new Error("取得失敗");
+        
+        const data = await response.json();
+        
+        // FirebaseのObject形式を配列に変換し、最新順にソート
+        db.board = data ? Object.keys(data).map(key => ({
+            ...data[key],
+            fbKey: key // 編集・削除用にキーを保持
+        })).sort((a, b) => b.timestamp - a.timestamp) : [];
+
+        renderBoard();
+        console.log("🐾 最新の知恵を同期しました");
     } catch (e) {
-        console.log("掲示板データの取得に失敗しました。");
+        console.error("掲示板取得失敗:", e);
     }
 }
 
+/**
+ * 🎨 掲示板のレンダリング
+ */
 function renderBoard() {
     const container = document.getElementById('board-posts-container');
     if (!container) return;
 
     container.innerHTML = '';
-    if (!db.board || db.board.length === 0) {
-        container.innerHTML = `<p style="text-align:center; color:#8c827a;">まだ投稿がありません🐾 自由に書き込んでください！</p>`;
+    if (db.board.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:#8c827a; padding:20px;">まだ知恵がありません🐾<br>最初の投稿をお待ちしています！</p>`;
         return;
     }
 
     db.board.forEach((item, index) => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'board-post';
+        itemDiv.style.animation = `fadeIn 0.4s ease forwards ${index * 0.05}s`;
 
-        // 管理者のみ編集・削除ボタンを表示
+        // 管理者のみボタンを表示 (db.isAdmin を参照)
         const adminControls = db.isAdmin ? `
-            <div style="display:flex; gap:8px; margin-top:8px; border-top:1px dashed #555; padding-top:8px;">
-                <button onclick="editBoardEntry(${index})" style="background:#4dabf7; color:white; border:none; border-radius:4px; cursor:pointer; font-size:0.7rem; padding:4px 10px;">📝 編集</button>
-                <button onclick="deleteBoardEntry(${index})" style="background:#ff4d4d; color:white; border:none; border-radius:4px; cursor:pointer; font-size:0.7rem; padding:4px 10px;">🗑️ 削除</button>
+            <div class="admin-controls" style="display:flex; gap:8px; margin-top:10px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:10px;">
+                <button onclick="editBoardEntry('${item.fbKey}')" style="background:#4dabf7; color:white; border:none; border-radius:4px; cursor:pointer; font-size:0.7rem; padding:4px 12px; transition:0.2s;">📝 編集</button>
+                <button onclick="deleteBoardEntry('${item.fbKey}')" style="background:#ff4d4d; color:white; border:none; border-radius:4px; cursor:pointer; font-size:0.7rem; padding:4px 12px; transition:0.2s;">🗑️ 削除</button>
             </div>` : '';
 
         itemDiv.innerHTML = `
-            <div class="board-header">
+            <div class="board-header" style="display:flex; justify-content:space-between; font-size:0.75rem; color:#8c827a; margin-bottom:5px;">
                 <span>No.${db.board.length - index} 名無しにゃんこ</span>
                 <span>${item.date}</span>
             </div>
-            <div class="board-title">🐾 ${item.title}</div>
-            <div class="board-body">${item.body}</div>
+            <div class="board-title" style="font-weight:bold; color:var(--accent-color); margin-bottom:8px; font-size:1rem;">🐾 ${item.title}</div>
+            <div class="board-body" style="line-height:1.6; font-size:0.9rem; white-space:pre-wrap;">${item.body}</div>
             ${adminControls}
         `;
         container.appendChild(itemDiv);
     });
 }
 
-function submitBoardPost() {
-    const titleVal = document.getElementById('board-title-input').value.trim();
-    const bodyVal = document.getElementById('board-body-input').value.trim();
-    if (!titleVal || !bodyVal) return alert("タイトルと本文を入力してください。");
+/**
+ * 📮 新規投稿（POST）
+ */
+async function submitBoardPost() {
+    const titleIn = document.getElementById('board-title-input');
+    const bodyIn = document.getElementById('board-body-input');
+    
+    const titleVal = titleIn.value.trim();
+    const bodyVal = bodyIn.value.trim();
+    
+    if (!titleVal || !bodyVal) return alert("タイトルと本文を入力してくださいにゃ。");
 
     const newPost = {
-        id: Date.now(),
         title: titleVal,
         body: bodyVal,
-        date: new Date().toLocaleString('ja-JP')
+        date: new Date().toLocaleString('ja-JP'),
+        timestamp: Date.now() // ソート用
     };
 
-    if (!db.board) db.board = [];
-    db.board.unshift(newPost); // 新しい投稿を一番上に
+    try {
+        const response = await fetch(BBS_ENDPOINT, {
+            method: 'POST',
+            body: JSON.stringify(newPost)
+        });
 
-    renderBoard();
-    saveToLocalStorage(); // ローカル予備保存
-    syncBoardToServer();  // 🔥 サーバーへ送信（世界中に公開）
-
-    document.getElementById('board-title-input').value = '';
-    document.getElementById('board-body-input').value = '';
-    alert("投稿しました！🐾");
+        if (response.ok) {
+            titleIn.value = '';
+            bodyIn.value = '';
+            // 投稿後、即座にサーバーから最新状態を取得
+            await loadBoardFromServer();
+            alert("投稿しました！🐾");
+        }
+    } catch (e) {
+        alert("送信に失敗しました。にゃんとも申し訳ない。");
+    }
 }
 
-// --- 管理用関数も同期対応 ---
-function editBoardEntry(index) {
-    const entry = db.board[index];
-    const newTitle = prompt("タイトルを編集:", entry.title);
-    if (newTitle === null) return;
-    const newBody = prompt("本文を編集:", entry.body);
-    if (newBody === null) return;
+/**
+ * 📝 編集（PUT）
+ */
+async function editBoardEntry(fbKey) {
+    const item = db.board.find(it => it.fbKey === fbKey);
+    if (!item) return;
 
-    db.board[index].title = newTitle;
-    db.board[index].body = newBody;
+    const newTitle = prompt("タイトルを編集:", item.title);
+    if (!newTitle) return;
+    const newBody = prompt("本文を編集:", item.body);
+    if (!newBody) return;
 
-    renderBoard();
-    saveToLocalStorage();
-    syncBoardToServer(); // 修正を反映
+    try {
+        await fetch(`https://alverse-project-default-rtdb.firebaseio.com/bulletin_board/${fbKey}.json`, {
+            method: 'PATCH',
+            body: JSON.stringify({ title: newTitle, body: newBody })
+        });
+        await loadBoardFromServer();
+    } catch (e) {
+        alert("修正失敗");
+    }
 }
 
-function deleteBoardEntry(index) {
-    if (confirm("この書き込みを削除しますか？")) {
-        db.board.splice(index, 1);
-        renderBoard();
-        saveToLocalStorage();
-        syncBoardToServer(); // 削除を反映
+/**
+ * 🗑️ 削除（DELETE）
+ */
+async function deleteBoardEntry(fbKey) {
+    if (!confirm("この知恵を消去しますか？")) return;
+
+    try {
+        await fetch(`https://alverse-project-default-rtdb.firebaseio.com/bulletin_board/${fbKey}.json`, {
+            method: 'DELETE'
+        });
+        await loadBoardFromServer();
+    } catch (e) {
+        alert("削除失敗");
     }
 }
 // ----------------------------- 🖼️ フォトギャラリー (同期・自動更新版) -----------------------------
