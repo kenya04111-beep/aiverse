@@ -72,56 +72,95 @@ if (session_status() === PHP_SESSION_NONE) {
             gap: 6px;
         }
 
-        /* 🔍 中央検索バー (美化・透明背景) */
-        .search-container {
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            max-width: 420px;
-            margin: 0 20px;
-        }
-        #search-bar {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1.5px solid rgba(255, 255, 255, 0.25);
-            border-radius: 24px;
-            padding: 8px 18px;
-            color: #ffffff;
-            outline: none;
-            font-size: 0.95rem;
-            transition: all 0.25s ease;
-        }
-        #search-bar::placeholder { color: rgba(255, 255, 255, 0.65); }
-        #search-bar:focus {
-            background: rgba(255, 255, 255, 0.22);
-            border-color: var(--accent-color);
-            box-shadow: 0 0 8px rgba(255, 223, 122, 0.4);
-        }
+/* --- 🔍 検索コンテナ：シンプル＆ワイド --- */
+.search-container {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    max-width: 320px; /* タブレット標準幅 */
+    margin: 0 20px;
+    transition: max-width 0.3s ease;
+}
 
-        /* 🧭 ナビゲーションアイコン */
-        .nav-icons {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        .nav-icons button {
-            background: none;
-            border: none;
-            font-size: 1.25rem;
-            color: inherit;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            transition: background 0.2s, transform 0.1s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .nav-icons button:hover {
-            background: rgba(255, 255, 255, 0.12);
-            transform: scale(1.05);
-        }
+/* ⌨️ 検索入力欄：アイコンなしのミニマルデザイン */
+#search-bar {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    padding: 10px 20px; /* 左右均等な余白に修正 */
+    color: #ffffff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
 
+/* 💡 フォーカス時の発光をより上品に */
+#search-bar:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 223, 122, 0.6);
+    box-shadow: 0 0 12px rgba(255, 223, 122, 0.2);
+}
+
+/* --- 💻 PC版 (1024px以上) --- */
+@media (min-width: 1024px) {
+    .search-container {
+        max-width: 600px; /* 広々と使わせる */
+    }
+}
+
+/* --- 📱 iPhone版 (768px以下) --- */
+@media (max-width: 768px) {
+    .search-container {
+        max-width: 200px; /* スマホでも十分な幅を確保 */
+        margin: 0 10px;
+    }
+
+    #search-bar {
+        font-size: 0.85rem;
+        padding: 8px 15px;
+    }
+}
+/* 🧭 ナビゲーションアイコン */
+.nav-icons {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* 間隔を少し詰め、密度を調整 */
+}
+
+/* 🔘 ナビゲーションボタン共通設定 */
+.nav-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.3rem; /* アイコンを少し大きく */
+    color: #ffffff;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ✨ ホバー時：背景をふわっと浮かせる */
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px); /* 上に少し浮く */
+}
+
+/* 👆 クリック時（アクティブ）の反応 */
+.nav-btn:active {
+    transform: scale(0.92);
+}
+
+/* ⚙️ ギアボタン専用：ホバーで回転する遊び心 */
+.gear-btn:hover {
+    transform: rotate(45deg);
+}
         /* ⚙️ ドロップダウンメニューの固定制御 */
         .dropdown { position: relative; }
         .dropdown-content {
@@ -172,58 +211,89 @@ if (session_status() === PHP_SESSION_NONE) {
             gap: 20px;
         }
 
-        .post-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-        .post-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 28px rgba(92, 64, 51, 0.12);
-        }
-        .post-card img {
-            width: 100%;
-            aspect-ratio: 16 / 10;
-            object-fit: cover;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .post-content {
-            padding: 16px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .post-category {
-            font-size: 0.75rem;
-            color: #a26d46;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-bottom: 6px;
-            letter-spacing: 0.5px;
-        }
-        .post-title {
-            font-size: 1.05rem;
-            font-weight: 700;
-            margin: 0 0 12px 0;
-            line-height: 1.45;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .post-date {
-            font-size: 0.75rem;
-            color: #8c827a;
-            margin-top: auto;
-        }
+/* 🧱 記事カード全体（ホバーアニメーションの準備） */
+.post-card {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #eaeaea);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    /* 浮き上がりと影の滑らかな変化を定義 */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; 
+    cursor: pointer;
+}
 
+/* 🖱️ ホバー時の浮き上がり効果 */
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(92, 64, 51, 0.12);
+}
+
+/* 🖼️ サムネイル画像 */
+.post-card img {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border-bottom: 1px solid var(--border-color, #eaeaea);
+    /* ホバー時の微拡大アニメーションの準備 */
+    transition: transform 0.4s ease; 
+}
+
+/* 🌟 追加：ホバー時に画像を少しだけズームさせてリッチ感を演出 */
+.post-card:hover img {
+    transform: scale(1.03); 
+}
+
+/* 📝 コンテンツエリア */
+.post-content {
+    padding: 16px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--card-bg, #ffffff);
+    z-index: 1; /* 画像ズーム時に背景を守る */
+}
+
+/* 🏷️ カテゴリーラベル（絵文字・日本語対応版） */
+.post-category {
+    display: inline-block;
+    font-size: 0.8rem;
+    color: #ff9800; /* 先ほどモーダルと統一したAIverseのテーマカラー */
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+    /* text-transform: uppercase; は絵文字と日本語が化けるため削除！ */
+}
+
+/* 🖋️ 記事タイトル（2行制限を維持しつつ行間最適化） */
+.post-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-color, #333333);
+    margin: 0 0 12px 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 0.2s ease;
+}
+
+/* 🌟 追加：ホバー時にタイトルもテーマカラーにうっすら変化 */
+.post-card:hover .post-title {
+    color: #ff9800; 
+}
+
+/* 📅 日付（常に最下部に固定） */
+.post-date {
+    font-size: 0.75rem;
+    color: #8c827a;
+    margin-top: auto; /* 余白を自動計算し、一番下にピタッとくっつける魔法 */
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
         /* 📱 スマホ環境（スクロール＆見やすさ最適化） */
         @media (max-width: 900px) {
             #mainGrid { grid-template-columns: repeat(2, 1fr); }
@@ -625,32 +695,51 @@ if (session_status() === PHP_SESSION_NONE) {
 <body>
 
 <header>
-    <div class="logo" onclick="location.reload()">🐶 Alverse</div>
-    <div class="search-container">
-        <input type="text" id="search-bar" placeholder="記事を瞬時に検索..." oninput="onSearchChange()">
+    <!-- ロゴ：クリックでリロード、ホバー時に少し動く -->
+    <div class="logo" onclick="location.reload()" title="AIverse ホームへ">
+        <span class="logo-icon">🐶</span> Alverse
     </div>
+
+    <!-- 検索バー：中央配置で視認性を向上 -->
+    <div class="search-container">
+        <div class="search-wrapper">
+            <input type="text" id="search-bar" placeholder="記事を瞬時に検索..." oninput="onSearchChange()">
+        </div>
+    </div>
+
+    <!-- ナビゲーション：各ボタンに適切な役割を付与 -->
     <div class="nav-icons">
-        <button onclick="openModal('board-modal')" title="猫の知恵袋">😸</button>
-        <button onclick="openModal('gallery-modal')" title="ギャラリー">🖼️</button>
-        <button id="dark-mode-btn" title="ダークモード切替 (長押しで管理者ログイン)">🌛</button>
+        <button class="nav-btn" onclick="openModal('board-modal')" title="猫の知恵袋">😸</button>
+        <button class="nav-btn" onclick="openModal('gallery-modal')" title="ギャラリー">🖼️</button>
+        <button class="nav-btn" id="dark-mode-btn" title="ダークモード切替 (長押しで管理者ログイン)">🌛</button>
+
+        <!-- 設定・管理メニュー -->
         <div class="dropdown">
-            <button onclick="toggleGearMenu(event)" title="メニュー">⚙️</button>
+            <button class="nav-btn gear-btn" onclick="toggleGearMenu(event)" title="メニュー">⚙️</button>
             <div id="gear-menu" class="dropdown-content">
+                <!-- 閉じるボタン（スマホ操作用） -->
                 <button class="close-menu-btn" onclick="toggleGearMenu(event)">&times;</button>
 
-                <a href="javascript:void(0)" id="admin-new-post-menu" style="display:none; color: #ff9800; font-weight: bold; border-bottom: 1px solid #eee;" onclick="openNewPost()">📝 新規投稿</a>
+                <div class="menu-group admin-only-group" id="admin-menu-section" style="display:none;">
+                    <p class="menu-label">ADMIN</p>
+                    <a href="javascript:void(0)" id="admin-new-post-menu" onclick="openNewPost()">📝 新規投稿</a>
+                </div>
 
-                <a onclick="openModal('bgm-modal')">🎸 BGMステーション</a>
-                <a onclick="toggleLanguage()">🌐 自動翻訳切替</a>
-                <a onclick="openModal('memo-modal')">📝 クラウドメモ</a>
-                <a onclick="openModal('secret-modal')">🥸 秘密機能</a>
+                <div class="menu-group">
 
-                <a href="javascript:void(0)" id="admin-logout-menu" style="display:none; color: #ff4d4d; border-top: 1px solid #eee;" onclick="logoutAdmin()">🚪 ログアウト</a>
+                   <a onclick="openModal('bgm-modal')">🎸 BGMステーション</a>
+                    <a onclick="toggleLanguage()">🌐 自動翻訳切替</a>
+                    <a onclick="openModal('memo-modal')">📝 クラウドメモ</a>
+                    <a onclick="openModal('secret-modal')">🥸 秘密機能</a>
+                </div>
+
+                <div class="menu-group admin-only-group" id="admin-logout-section" style="display:none;">
+                    <a href="javascript:void(0)" id="admin-logout-menu" class="logout-link" onclick="logoutAdmin()">🚪 ログアウト</a>
+                </div>
             </div>
         </div>
     </div>
 </header>
-
 <main>
     <div id="mainGrid"></div>
     <div id="pagination" class="pagination"></div>
