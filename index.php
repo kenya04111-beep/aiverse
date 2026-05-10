@@ -587,6 +587,7 @@ if (session_status() === PHP_SESSION_NONE) {
    #category-select {
     display: none !important;
 }
+
 /* --- ✨ ここから追加：モーダル表示中の震えとバーを物理的に消す --- */
         body.modal-open {
             overflow: hidden !important; /* スクロールを根本から禁止 */
@@ -728,37 +729,38 @@ if (session_status() === PHP_SESSION_NONE) {
     </div>
 
     <!-- ナビゲーション：各ボタンに適切な役割を付与 -->
-    <div class="nav-icons">
-        <button class="nav-btn" onclick="openModal('board-modal')" title="猫の知恵袋">😸</button>
-        <button class="nav-btn" onclick="openModal('gallery-modal')" title="ギャラリー">🖼️</button>
-        <button class="nav-btn" id="dark-mode-btn" title="ダークモード切替 (長押しで管理者ログイン)">🌛</button>
+<div class="nav-icons">
+    <button class="nav-btn" onclick="openModal('board-modal')" title="猫の知恵袋">😸</button>
+    <button class="nav-btn" onclick="openModal('gallery-modal')" title="ギャラリー">🖼️</button>
+    <button class="nav-btn" id="dark-mode-btn" title="ダークモード切替 (長押しで管理者ログイン)">🌜</button>
 
-        <!-- 設定・管理メニュー -->
-        <div class="dropdown">
-            <button class="nav-btn gear-btn" onclick="toggleGearMenu(event)" title="メニュー">⚙️</button>
-            <div id="gear-menu" class="dropdown-content">
-                <!-- 閉じるボタン（スマホ操作用） -->
-                <button class="close-menu-btn" onclick="toggleGearMenu(event)">&times;</button>
+    <div class="dropdown">
+        <button class="nav-btn gear-btn" onclick="toggleGearMenu(event)" title="メニュー">⚙️</button>
+        <div id="gear-menu" class="dropdown-content">
+            <button class="close-menu-btn" onclick="toggleGearMenu(event)">&times;</button>
 
-                <div class="menu-group admin-only-group" id="admin-menu-section" style="display:none;">
-                    <p class="menu-label">ADMIN</p>
-                    <a href="javascript:void(0)" id="admin-new-post-menu" onclick="openNewPost()">📝 新規投稿</a>
-                </div>
+<div class="menu-group admin-only-group" id="admin-menu-section" style="display:none;">
+    <p class="menu-label">ADMIN</p>
+    <a href="javascript:void(0)" onclick="openNewPost()">📝 新規記事投稿</a>
+    <a href="javascript:void(0)" onclick="exportData('posts')">💾 記事バックアップ</a>
 
-                <div class="menu-group">
+    <div style="border-top:1px solid rgba(0,0,0,0.1); margin-top:8px; padding-top:8px;">
+        <a href="javascript:void(0)" onclick="logoutAdmin()" style="color:#fa5252; font-weight:bold;">🔓 管理ログアウト</a>
+    </div>
+</div>
+            <div class="menu-group">
+                <a onclick="openModal('bgm-modal')">🎸 BGM</a>
+                <a onclick="toggleLanguage()">🌐 自動翻訳切替</a>
+                <a onclick="openModal('memo-modal')">📝 クラウドメモ</a>
+                <a onclick="openModal('secret-modal')">🥸 秘密機能</a>
+            </div>
 
-                   <a onclick="openModal('bgm-modal')">🎸 BGMステーション</a>
-                    <a onclick="toggleLanguage()">🌐 自動翻訳切替</a>
-                    <a onclick="openModal('memo-modal')">📝 クラウドメモ</a>
-                    <a onclick="openModal('secret-modal')">🥸 秘密機能</a>
-                </div>
-
-                <div class="menu-group admin-only-group" id="admin-logout-section" style="display:none;">
-                    <a href="javascript:void(0)" id="admin-logout-menu" class="logout-link" onclick="logoutAdmin()">🚪 ログアウト</a>
-                </div>
+            <div class="menu-group admin-only-group" id="admin-logout-section" style="display:none;">
+                <a href="javascript:void(0)" id="admin-logout-menu" class="logout-link" onclick="logoutAdmin()" style="color:#fa5252;">🔓 ログアウト</a>
             </div>
         </div>
     </div>
+</div>
 </header>
 <main>
     <div id="mainGrid"></div>
@@ -778,7 +780,7 @@ if (session_status() === PHP_SESSION_NONE) {
 <div id="board-modal" class="modal">
     <div class="modal-content">
         <button class="modal-close" onclick="closeModal('board-modal')">×</button>
-        <h2 style="margin-top:0;">😸 猫の知恵袋掲示板</h2>
+        <h2 style="margin-top:0;">😸 猫の知恵袋</h2>
         <p style="font-size:0.85rem; color:#8c827a; margin-bottom:15px;">
             生活の知恵から、リアルでは吐き出せない日常の愚痴、ちょっとした悩みまで。
         </p>
@@ -862,24 +864,23 @@ if (session_status() === PHP_SESSION_NONE) {
         <button class="modal-close" onclick="closeModal('memo-modal')">×</button>
 
         <!-- ヘッダー部分：タイトルと👽秘密ボタン -->
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-            <h2 id="memo-title" style="margin: 0; font-size: 1.5rem;">📝 マイ・スピードメモ</h2>
-            <button id="secret-alien-btn" class="secret-btn" onclick="toggleSecretMode()" title="👽秘密の共有">👽</button>
-        </div>
-
+<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+    <h2 id="memo-title" style="margin: 0; font-size: 1.5rem;">📝 マイ・スピードメモ</h2>
+    <button id="secret-alien-btn" class="secret-btn" onclick="openModal('secret-modal')" title="👽秘密の共有" style="padding: 0; background: none; border: none; font-size: 1.5rem; cursor: pointer; line-height: 1;">👽</button>
+</div>
         <!-- 説明文 -->
         <p id="memo-status" style="font-size: 0.85rem; color: #8c827a; margin-bottom: 12px;">
-            クラウドと同期中...（クッキーを消しても残ります）
+
         </p>
 
         <!-- メモ帳本体 -->
-        <textarea id="memo-textarea" 
+        <textarea id="memo-textarea"
             placeholder="ここに自由にアイデアを書き残してください..."
             style="width: 100%; height: 280px; padding: 15px; border-radius: 12px; border: 2px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-family: inherit; line-height: 1.6; resize: none; transition: all 0.3s ease; box-sizing: border-box;"></textarea>
 
         <!-- 下部の操作案内 -->
         <div id="memo-footer" style="margin-top: 10px; text-align: right; font-size: 0.75rem; color: #bbb;">
-            <span id="save-indicator">✅ 保存済み</span>
+            <span id="save-indicator"></span>
         </div>
     </div>
 </div>
@@ -1031,7 +1032,8 @@ if (session_status() === PHP_SESSION_NONE) {
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-    // ----------------------------- 🗄️ データ構造 (初期値) -----------------------------
+
+   // ----------------------------- 🗄️ データ構造 (初期値) -----------------------------
     const INITIAL_ALVERSE_DB = {
         isAdmin: false,
         theme: 'light',
@@ -1229,20 +1231,27 @@ selector.onchange = function() {
   }
 }
 
-    // ----------------------------- ⚙️ ドロップダウン＆タップ閉じ (現状維持) -----------------------------
-     function toggleGearMenu(e) {
-        e.stopPropagation();
-        const menu = document.getElementById('gear-menu');
-        menu.classList.toggle('show');
+// ⚙️ ドロップダウン制御：絶対に動く安全版
+function toggleGearMenu(e) {
+    if (e) e.stopPropagation();
+    const menu = document.getElementById('gear-menu');
+    if (!menu) {
+        console.error("gear-menuが見つかりません。HTMLのIDを確認してください。");
+        return;
     }
+    menu.classList.toggle('show');
+}
 
-    document.addEventListener('click', function(e) {
-        const menu = document.getElementById('gear-menu');
-        if (menu && menu.classList.contains('show')) {
-            if (!menu.contains(e.target)) { menu.classList.remove('show'); }
+// 画面外クリックで閉じる処理
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('gear-menu');
+    if (menu && menu.classList.contains('show')) {
+        // クリックされたのがメニュー自体やボタンでない場合のみ閉じる
+        if (!menu.contains(e.target)) {
+            menu.classList.remove('show');
         }
-    });
-
+    }
+});
     // ----------------------------- 🌛 ダークモード＆管理者長押し (現状維持) -----------------------------
     let pressTimer;
     const dmBtn = document.getElementById('dark-mode-btn');
@@ -1272,147 +1281,162 @@ selector.onchange = function() {
         saveToLocalStorage();
     });
 
-// --- 🐾 猫の知恵袋 (世界規模・自由同期システム) ---
 // --- ⚙️ 設定: Firebase BBSパス ---
-const BBS_ENDPOINT = 'https://alverse-project-default-rtdb.firebaseio.com/bulletin_board.json';
+const BBS_ENDPOINT = 'https://alverse-project-default-rtdb.firebaseio.com/chiebukuro/posts.json';
 
-/**
- * 🔄 サーバーからデータを取得して描画
- * loadBoardFromServer を Firebase 対応にアップグレード
- */
-async function loadBoardFromServer() {
-    try {
-        const response = await fetch(BBS_ENDPOINT);
-        if (!response.ok) throw new Error("取得失敗");
-        
-        const data = await response.json();
-        
-        // FirebaseのObject形式を配列に変換し、最新順にソート
-        db.board = data ? Object.keys(data).map(key => ({
-            ...data[key],
-            fbKey: key // 編集・削除用にキーを保持
-        })).sort((a, b) => b.timestamp - a.timestamp) : [];
+// --- 🛡️ セキュリティ & ユーティリティ ---
+function escapeHTML(str) {
+    if (!str) return '';
+    return str.replace(/[&<>'"]/g, m => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[m]));
+}
 
-        renderBoard();
-        console.log("🐾 最新の知恵を同期しました");
-    } catch (e) {
-        console.error("掲示板取得失敗:", e);
-    }
+function linkify(text) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlRegex, url => `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:#4dabf7; text-decoration:underline;">${url}</a>`);
 }
 
 /**
- * 🎨 掲示板のレンダリング
+ * 🔄 データの取得（Firebaseから最新の記事を読み込む）
+ */
+async function loadBoardFromServer() {
+    const container = document.getElementById('board-posts-container');
+    try {
+        const response = await fetch(BBS_ENDPOINT);
+        if (!response.ok) throw new Error(`status: ${response.status}`);
+        const data = await response.json();
+
+        // データを配列に変換し、最新順に並べ替える
+        db.board = data ? Object.keys(data).map(key => ({
+            ...data[key],
+            fbKey: key
+        })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)) : [];
+
+        renderBoard(); // 画面に描画
+        console.log("🐾 掲示板データを同期しました");
+    } catch (e) {
+        console.error("取得失敗:", e);
+        if (container) container.innerHTML = `<div style="text-align:center; color:#fa5252; padding:20px;">知恵の読み込みに失敗しました😿</div>`;
+    }
+}
+/**
+ * 🎨 掲示板のレンダリング（見た目を作る）
  */
 function renderBoard() {
     const container = document.getElementById('board-posts-container');
     if (!container) return;
-
     container.innerHTML = '';
+
     if (db.board.length === 0) {
-        container.innerHTML = `<p style="text-align:center; color:#8c827a; padding:20px;">まだ知恵がありません🐾<br>最初の投稿をお待ちしています！</p>`;
+        container.innerHTML = `<div style="text-align:center; color:#8c827a; padding:40px; border:1px dashed #444; border-radius:12px;">まだ知恵がありません🐾</div>`;
         return;
     }
 
+    const fragment = document.createDocumentFragment();
     db.board.forEach((item, index) => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'board-post';
-        itemDiv.style.animation = `fadeIn 0.4s ease forwards ${index * 0.05}s`;
 
-        // 管理者のみボタンを表示 (db.isAdmin を参照)
-        const adminControls = db.isAdmin ? `
-            <div class="admin-controls" style="display:flex; gap:8px; margin-top:10px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:10px;">
-                <button onclick="editBoardEntry('${item.fbKey}')" style="background:#4dabf7; color:white; border:none; border-radius:4px; cursor:pointer; font-size:0.7rem; padding:4px 12px; transition:0.2s;">📝 編集</button>
-                <button onclick="deleteBoardEntry('${item.fbKey}')" style="background:#ff4d4d; color:white; border:none; border-radius:4px; cursor:pointer; font-size:0.7rem; padding:4px 12px; transition:0.2s;">🗑️ 削除</button>
-            </div>` : '';
+        const safeTitle = escapeHTML(item.title);
+        const safeBody = linkify(escapeHTML(item.body));
 
+        // 管理者用のボタン（isAdminがtrueの時だけ表示）
+const adminControls = db.isAdmin ? `
+    <div style="display:flex; gap:10px; margin-top:12px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
+        <button onclick="editBoardEntry('${item.fbKey}')" style="background:#228be6; color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer; font-size:0.75rem;">📝 編集</button>
+        <button onclick="deleteBoardEntry('${item.fbKey}')" style="background:#fa5252; color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer; font-size:0.75rem;">🗑️ 削除</button>
+    </div>` : '';
         itemDiv.innerHTML = `
-            <div class="board-header" style="display:flex; justify-content:space-between; font-size:0.75rem; color:#8c827a; margin-bottom:5px;">
-                <span>No.${db.board.length - index} 名無しにゃんこ</span>
-                <span>${item.date}</span>
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#8c827a; margin-bottom:8px;">
+                <span>No.${db.board.length - index} <strong>名無しにゃんこ</strong></span>
+                <span>${item.date || ''}</span>
             </div>
-            <div class="board-title" style="font-weight:bold; color:var(--accent-color); margin-bottom:8px; font-size:1rem;">🐾 ${item.title}</div>
-            <div class="board-body" style="line-height:1.6; font-size:0.9rem; white-space:pre-wrap;">${item.body}</div>
+            <div style="font-weight:bold; color:#ffcc33; margin-bottom:10px; font-size:1.1rem;">🐾 ${safeTitle}</div>
+            <div style="line-height:1.7; font-size:0.95rem; white-space:pre-wrap; color:var(--text-color, #444); word-break:break-word;">${safeBody}</div>
             ${adminControls}
         `;
-        container.appendChild(itemDiv);
+        fragment.appendChild(itemDiv);
     });
+    container.appendChild(fragment);
 }
 
 /**
- * 📮 新規投稿（POST）
+ * 📮 新規投稿（ボタンが押せるように修正）
  */
 async function submitBoardPost() {
     const titleIn = document.getElementById('board-title-input');
     const bodyIn = document.getElementById('board-body-input');
-    
+    const submitBtn = document.querySelector('.board-submit-btn');
+
+    if (!titleIn || !bodyIn) return;
+
     const titleVal = titleIn.value.trim();
     const bodyVal = bodyIn.value.trim();
-    
-    if (!titleVal || !bodyVal) return alert("タイトルと本文を入力してくださいにゃ。");
+
+    if (titleVal.length < 1 || bodyVal.length < 1) return alert("内容を入力してくださいにゃ。");
+
+    if (submitBtn) { 
+        submitBtn.disabled = true; 
+        submitBtn.innerText = "🐾 送信中..."; 
+    }
 
     const newPost = {
         title: titleVal,
         body: bodyVal,
         date: new Date().toLocaleString('ja-JP'),
-        timestamp: Date.now() // ソート用
+        timestamp: Date.now()
     };
 
     try {
-        const response = await fetch(BBS_ENDPOINT, {
+        const res = await fetch(BBS_ENDPOINT, {
             method: 'POST',
             body: JSON.stringify(newPost)
         });
+        if (!res.ok) throw new Error();
 
-        if (response.ok) {
-            titleIn.value = '';
-            bodyIn.value = '';
-            // 投稿後、即座にサーバーから最新状態を取得
-            await loadBoardFromServer();
-            alert("投稿しました！🐾");
+        titleIn.value = '';
+        bodyIn.value = '';
+        await loadBoardFromServer(); // 投稿後にデータを再取得
+        alert("知恵を共有しました！🐾");
+    } catch (e) {
+        alert("送信に失敗しました😿 サーバーの状態を確認してください。");
+    } finally {
+        if (submitBtn) { 
+            submitBtn.disabled = false; 
+            submitBtn.innerText = "知恵を共有する (送信)"; 
         }
-    } catch (e) {
-        alert("送信に失敗しました。にゃんとも申し訳ない。");
     }
 }
 
 /**
- * 📝 編集（PUT）
+ * 🔓 ログアウト（ボタンが動くように追加）
  */
-async function editBoardEntry(fbKey) {
-    const item = db.board.find(it => it.fbKey === fbKey);
-    if (!item) return;
-
-    const newTitle = prompt("タイトルを編集:", item.title);
-    if (!newTitle) return;
-    const newBody = prompt("本文を編集:", item.body);
-    if (!newBody) return;
-
-    try {
-        await fetch(`https://alverse-project-default-rtdb.firebaseio.com/bulletin_board/${fbKey}.json`, {
-            method: 'PATCH',
-            body: JSON.stringify({ title: newTitle, body: newBody })
-        });
-        await loadBoardFromServer();
-    } catch (e) {
-        alert("修正失敗");
-    }
+function logoutAdmin() {
+    if (!confirm("管理者モードを終了しますか？🐾")) return;
+    db.isAdmin = false;
+    renderBoard();
+    alert("ログアウトしました。");
 }
 
 /**
- * 🗑️ 削除（DELETE）
+ * 🕶️ パスワード入力（既存のボタンと紐付け）
  */
-async function deleteBoardEntry(fbKey) {
-    if (!confirm("この知恵を消去しますか？")) return;
-
-    try {
-        await fetch(`https://alverse-project-default-rtdb.firebaseio.com/bulletin_board/${fbKey}.json`, {
-            method: 'DELETE'
-        });
-        await loadBoardFromServer();
-    } catch (e) {
-        alert("削除失敗");
+function toggleSecretMode() {
+    const pass = prompt("パスワードを入力してください🐾");
+    if (pass === "nekosuke101") { // パスワード
+        db.isAdmin = true;
+        renderBoard();
+        alert("管理者ログインに成功しました！");
+    } else {
+        alert("パスワードが違います。");
     }
 }
+
 // ----------------------------- 🖼️ フォトギャラリー (同期・自動更新版) -----------------------------
 
 // 1. サーバーから画像リストを取得（キャッシュ対策済み）
@@ -1429,6 +1453,7 @@ async function loadServerGallery() {
         console.error("ギャラリーの読み込み失敗:", e);
     }
 }
+
     // 2. ギャラリーの描画
     function renderGallery() {
         const container = document.getElementById('gallery-container');
@@ -1475,6 +1500,7 @@ function closeGalleryZoom() {
         document.body.style.overflow = ''; // スクロール復帰
     }
 }
+
     // 4. アップロード機能 (サーバー保存版)
     async function uploadImage(input) {
         const file = input.files[0];
@@ -1506,6 +1532,7 @@ function closeGalleryZoom() {
 async function removeGalleryImage(index) {
     if (confirm("サーバーからこの画像を完全に削除しますか？")) {
         try {
+
             // サーバー側の削除用プログラム(PHP)にインデックスを送る
             const response = await fetch('delete_gallery.php', {
                 method: 'POST',
@@ -1516,6 +1543,7 @@ async function removeGalleryImage(index) {
             const result = await response.json();
 
             if (result.success) {
+
                 // サーバーで消せたら、最新のリストを再取得して表示を更新
                 await loadServerGallery();
                 console.log("サーバー上のデータを更新しました");
@@ -1530,6 +1558,7 @@ async function removeGalleryImage(index) {
 }
     // 最後に：ページ読み込み時に実行
     loadServerGallery();
+
     // ----------------------------- 📝 自動保存メモ帳 (現状維持) -----------------------------
     function saveMemo() {
         db.memo = document.getElementById('memo-textarea').value;
@@ -1673,6 +1702,7 @@ async function removeGalleryImage(index) {
         db.activePlaylistIdx = parseInt(document.getElementById('playlist-selector').value);
         saveToLocalStorage(); renderBgmTracks();
     }
+
     // ----------------------------- 🥸 秘密機能 (現状維持) -----------------------------
     function executeStabilizerScan() {
         const logBox = document.getElementById('stabilizer-log');
@@ -1757,7 +1787,6 @@ function updateAdminUI() {
         console.log("管理者メニューを有効化しました 😸");
     }
 }
-
 // ページ読み込み完了時に実行して、ログイン状態を復元する
 window.addEventListener('load', updateAdminUI);
   function editArticle(id) {
@@ -1770,7 +1799,6 @@ window.addEventListener('load', updateAdminUI);
     if(document.getElementById('admin-public')) document.getElementById('admin-public').checked = p.public;
     openModal('admin-modal');
 }
-
   function deleteArticle(id) {
     if (confirm("この記事を削除しますか？")) {
         db.posts = db.posts.filter(p => p.id !== id);
@@ -1798,10 +1826,31 @@ window.addEventListener('load', updateAdminUI);
     console.log("フォームを安全にリセットしました");
 }
 
+// 🌌 画面のどこかをクリックした時の処理（1830行目付近）
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('gear-menu');
+    const gearBtn = document.querySelector('.gear-btn');
+
+    if (!menu || !gearBtn) return;
+
+    // もしクリックされたのが「モーダルの背景や中身」だったら、
+    // ドロップダウンメニューの判定をスキップする
+    if (e.target.closest('.modal') || e.target.closest('.modal-content')) {
+        return;
+    }
+
+    if (menu.classList.contains('show') || menu.style.display === 'block') {
+        if (!menu.contains(e.target) && !gearBtn.contains(e.target)) {
+            menu.classList.remove('show');
+            menu.style.display = 'none';
+        }
+    }
+});
   // ----------------------------- 言語アシスタント -----------------------------
   function toggleLanguage() {
     alert("Alverseは標準ブラウザ翻訳に対応する「多言語アシスト仕様」で組まれています。日本語・英語以外のデバイスからも美しく表示されます。");
 }
+
 // ----------------------------- モーダル開閉 (完全版) -----------------------------
 function openModal(id) {
     const modal = document.getElementById(id);
@@ -1822,7 +1871,6 @@ function closeModal(id) {
         modal.style.display = 'none';
         // 🚀 固定を解除
         document.body.classList.remove('modal-open');
-
         // ✨ 拡大画像(photo-modal)を閉じたらギャラリーへ戻る
         if (id === 'photo-modal') {
             const gallery = document.getElementById('gallery-modal');
@@ -1850,167 +1898,549 @@ function escapeHTML(str) {
         '"': '&quot;'
     }[m]));
 }
-// --- 💾 分割バックアップ ＆ 🌐 世界共有システム ---
-function exportData(type) {
+/**
+ * ⚙️ 歯車メニューの切り替え
+ */
+function toggleGearMenu(e) {
+    if (e) e.stopPropagation(); // 画面クリックで閉じる処理との衝突を防ぐ
+
+    const menu = document.getElementById('gear-menu');
+    if (menu) {
+        // CSSの .show クラスを付け外しする
+        menu.classList.toggle('show');
+        console.log("Menu Toggle: ", menu.classList.contains('show'));
+    } else {
+        console.error("エラー: gear-menu が見つかりません");
+    }
+}
+
+/**
+ * 🗑️ 掲示板（猫の知恵袋）の投稿削除機能
+ */
+async function deleteBoardEntry(fbKey) {
+    if (!confirm("この知恵を消去してもよろしいですか？🐾")) return;
+
     try {
+        // ★修正ポイント：URLを正しく結合しました
+        const deleteUrl = 'https://alverse-project-default-rtdb.firebaseio.com/chiebukuro/posts/' + fbKey + '.json';
+        const res = await fetch(deleteUrl, { method: 'DELETE' });
+
+        if (!res.ok) throw new Error("削除リクエストに失敗しました");
+
+        alert("消去完了しました 🐱");
+        if (typeof loadBoardFromServer === 'function') {
+            await loadBoardFromServer(); // 画面を更新
+        } else {
+            location.reload(); // 関数がない場合はリロード
+        }
+    } catch (e) {
+        console.error("削除エラー:", e);
+        alert("消去に失敗しました😿：" + e.message);
+    }
+}
+// =========================================================
+// 💾 バックアップ ＆ 🌐 サーバー共有システム
+// =========================================================
+
+async function exportData(type = 'posts') {
+
+    try {
+
+        const currentData =
+            (typeof db !== 'undefined' && db)
+                ? db
+                : {};
+
         let exportObj = {};
         let filename = "";
 
-        if (type === 'posts') {
-            // 記事データのみを抽出
-            exportObj = { posts: db.posts };
-            filename = `alverse_articles_${new Date().toISOString().split('T')[0]}.json`;
-        } else {
-            // 記事以外（テーマ、メモ、その他設定）を抽出
-            const { posts, ...config } = db;
-            exportObj = config;
-            filename = `alverse_config_${new Date().toISOString().split('T')[0]}.json`;
+        const dateStr =
+            new Date()
+            .toISOString()
+            .replace(/[:.]/g, '-');
+
+        // -------------------------------------------------
+        // 📦 データ振り分け
+        // -------------------------------------------------
+
+        switch (type) {
+
+            case 'posts':
+
+                exportObj = {
+                    posts: currentData.posts || [],
+                    exportedAt: new Date().toISOString(),
+                    version: "AIverse-Backup-v2"
+                };
+
+                filename =
+                    `aiverse_articles_${dateStr}.json`;
+
+                break;
+
+            case 'config':
+
+                for (const key in currentData) {
+
+                    if (
+                        currentData.hasOwnProperty(key) &&
+                        key !== 'posts'
+                    ) {
+                        exportObj[key] = currentData[key];
+                    }
+                }
+
+                exportObj.exportedAt =
+                    new Date().toISOString();
+
+                exportObj.version =
+                    "AIverse-Config-v2";
+
+                filename =
+                    `aiverse_config_${dateStr}.json`;
+
+                break;
+
+            default:
+
+                throw new Error("未知のエクスポート形式");
         }
 
-        // --- 📥 1. 自分のPCにバックアップ（これまで通り） ---
-        const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        // -------------------------------------------------
+        // 💾 JSON生成
+        // -------------------------------------------------
+
+        const json =
+            JSON.stringify(exportObj, null, 2);
+
+        const blob =
+            new Blob(
+                [json],
+                { type: 'application/json' }
+            );
+
+        const url =
+            URL.createObjectURL(blob);
+
+        const a =
+            document.createElement('a');
+
         a.href = url;
         a.download = filename;
+
+        document.body.appendChild(a);
+
         a.click();
+
+        document.body.removeChild(a);
+
         URL.revokeObjectURL(url);
 
-        // --- 🌐 2. サーバー（世界中）に公開・同期 ---
-        // ここで先ほど作成した save_data.php を呼び出します
-        syncWithServer(type === 'posts' ? 'articles' : 'config', exportObj);
+        // -------------------------------------------------
+        // 🌐 サーバー同期
+        // -------------------------------------------------
 
-        alert(`✅ ${type === 'posts' ? '記事データ' : '設定データ'}を保存し、世界へ公開しました！`);
+        if (typeof syncWithServer === 'function') {
+
+            const syncType =
+                (type === 'posts')
+                    ? 'articles'
+                    : 'config';
+
+            await syncWithServer(
+                syncType,
+                exportObj
+            );
+
+            showToast(
+                '✅ サーバー同期完了'
+            );
+        } else {
+
+            console.warn(
+                'syncWithServer が存在しません'
+            );
+        }
 
     } catch (e) {
-        alert("保存・公開に失敗しました：" + e);
+
+        console.error(
+            'Export Error:',
+            e
+        );
+
+        alert(
+            '保存失敗: ' + e.message
+        );
     }
 }
-function importData(type) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = e => {
-        const reader = new FileReader();
-        reader.onload = async event => { // 💡 asyncを追加（サーバー同期を待つため）
-            try {
-                const parsed = JSON.parse(event.target.result);
-                const targetName = (type === 'posts' ? '記事' : '設定');
 
-                if (confirm(`⚠️ ${targetName}データのみを上書き復元し、世界中に公開しますか？`)) {
-                    if (type === 'posts') {
-                        db.posts = parsed.posts || parsed;
-                    } else {
-                        const currentPosts = db.posts;
-                        db = { ...parsed, posts: currentPosts };
-                    }
+// ---------------------------------------------------------
+// ⚙️ 歯車ドロップダウン制御（ID: gear-menu 専用）
+// ---------------------------------------------------------
 
-                    // 1. 自分のブラウザに保存
-                    saveToLocalStorage();
-
-                    // 2. 🌍 世界中（サーバー）に同期・公開
-                    // typeに応じて送信する中身を出し分けます
-                    const syncType = (type === 'posts' ? 'articles' : 'config');
-                    const syncContent = (type === 'posts' ? { posts: db.posts } : (({posts, ...c}) => c)(db));
-
-                    await syncWithServer(syncType, syncContent);
-
-                    alert(`📤 ${targetName}の復元と世界公開が完了しました。`);
-
-                    // 3. 画面を更新して反映
-                    location.reload();
-                }
-            } catch (err) {
-                alert("エラー：無効なファイルです。" + err);
-            }
-        };
-        reader.readAsText(e.target.files[0]);
-    };
-    input.click();
-}
-// 管理者画面のカテゴリー操作をメインに反映させる
-function updateMainCategory(val) {
-    // 1. 自分のブラウザに保存
-    db.currentCategory = val;
-    saveToLocalStorage();
-
-    // 2. メイン画面のUIを同期
-    const mainSelect = document.getElementById('category-select');
-    if (mainSelect) {
-        mainSelect.value = val;
+function toggleGearMenu(event = null) {
+    if (event) {
+        event.stopPropagation(); // 画面クリックイベントとの衝突防止
     }
 
-    // --- 🌐 追加：世界中へ「今のカテゴリー」を共有 ---
-    // 設定データ（posts以外）を抽出してサーバーへ送信
-    const { posts, ...config } = db;
-    syncWithServer('config', config);
+    // HTMLで設定した <div id="gear-menu" ...> を探す
+    const menu = document.getElementById('gear-menu');
 
-    // 3. 表示を更新
-    renderArticlesGrid();
+    if (!menu) {
+        console.error("ID 'gear-menu' が見つかりません。HTMLを確認してください。");
+        return;
+    }
+
+    // 現在の状態をチェック
+    const isShowing = menu.classList.contains('show');
+
+    if (!isShowing) {
+        // メニューを開く
+        menu.classList.add('show');
+        menu.style.display = 'block'; // 強制表示
+    } else {
+        // メニューを閉じる
+        menu.classList.remove('show');
+        menu.style.display = 'none';
+    }
 }
-// 管理者センターを閉じる関数
-function closeModal(id) {
-    const modal = document.getElementById(id);
-    if (modal) {
-        modal.style.display = 'none';
+// 🌌 画面のどこかをクリックした時の処理
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('gear-menu');
+    const gearBtn = document.querySelector('.gear-btn');
 
-        // 🌐 追加：管理操作が終わったので、最新の設定を世界に共有
-        if (id === 'admin-modal') {
-            const { posts, ...config } = db;
-            syncWithServer('config', config);
+    // メニューが開いている時だけ判定
+    if (menu && (menu.classList.contains('show') || menu.style.display === 'block')) {
+
+        // クリックされた場所が「メニュー自体」でも「歯車ボタン」でもない場合
+        if (!menu.contains(e.target) && !gearBtn.contains(e.target)) {
+            menu.classList.remove('show');
+            menu.style.display = 'none';
+            console.log("Menu closed by outside click");
         }
-    }
-}
-
-// 画面のどこかをクリックした時の処理
-window.addEventListener('click', (event) => {
-    const adminModal = document.getElementById('admin-modal');
-    // もしクリックした場所が「管理者画面の外枠」だったら閉じる
-    if (event.target === adminModal) {
-        closeModal('admin-modal');
     }
 });
 // ---------------------------------------------------------
-// モーダル制御（管理者用を含む）
+// 🌌 モーダル制御
 // ---------------------------------------------------------
 
-// モーダルを閉じる関数（震え対策・ギャラリー復帰対応）
+function openModal(id) {
+
+    const modal =
+        document.getElementById(id);
+
+    if (!modal) {
+        console.warn(
+            'Modal not found:',
+            id
+        );
+        return;
+    }
+
+    modal.style.display = 'flex';
+
+    document.documentElement
+        .classList.add('modal-open');
+
+    document.body
+        .classList.add('modal-open');
+}
+
 function closeModal(id) {
-    const modal = document.getElementById(id);
-    if (modal) {
-        modal.style.display = 'none'; // 画面から消す
 
-        // 🚀 固定ロックを解除
-        document.documentElement.classList.remove('modal-open');
-        document.body.classList.remove('modal-open');
+    const modal =
+        document.getElementById(id);
 
-        // ✨ フォトギャラリー復帰処理
-        if (id === 'photo-modal') {
-            const gallery = document.getElementById('gallery-modal');
-            if (gallery) {
-                gallery.style.display = 'flex';
-                document.body.classList.add('modal-open');
-            }
+    if (!modal) return;
+
+    modal.style.display = 'none';
+
+    document.documentElement
+        .classList.remove('modal-open');
+
+    document.body
+        .classList.remove('modal-open');
+}
+
+// =========================================================
+// 🕶️ 管理者メニュー注入
+// =========================================================
+
+function injectAdminMenu() {
+
+    const menuList =
+        document.querySelector(
+            '.settings-dropdown'
+        );
+
+    if (!menuList) return;
+
+    // 重複防止
+    if (
+        document.getElementById(
+            'admin-added-post'
+        )
+    ) {
+        return;
+    }
+
+    // -------------------------------------------------
+    // ✍️ 管理投稿
+    // -------------------------------------------------
+
+    const postLi =
+        document.createElement('li');
+
+    postLi.id =
+        'admin-added-post';
+
+    postLi.innerHTML = `
+        <a href="#"
+           onclick="
+               toggleGearMenu();
+               openModal('admin-modal');
+               return false;
+           ">
+           ✍️ 管理投稿
+        </a>
+    `;
+
+    // -------------------------------------------------
+    // 💾 バックアップ
+    // -------------------------------------------------
+
+    const backupLi =
+        document.createElement('li');
+
+    backupLi.id =
+        'admin-added-backup';
+
+    backupLi.innerHTML = `
+        <a href="#"
+           onclick="
+               exportData('posts');
+               return false;
+           ">
+           💾 記事バックアップ
+        </a>
+    `;
+
+    // -------------------------------------------------
+    // 🚪 ログアウト
+    // -------------------------------------------------
+
+    const logoutLi =
+        document.createElement('li');
+
+    logoutLi.id =
+        'admin-added-logout';
+
+    logoutLi.innerHTML = `
+        <a href="#"
+           onclick="
+               logoutAdmin();
+               return false;
+           "
+           style="
+               color:#fa5252;
+               font-weight:bold;
+           ">
+           🚪 ログアウト
+        </a>
+    `;
+
+    menuList.appendChild(postLi);
+    menuList.appendChild(backupLi);
+    menuList.appendChild(logoutLi);
+}
+
+// =========================================================
+// 🔐 管理者モード
+// =========================================================
+
+function toggleSecretMode() {
+
+    const pass =
+        prompt(
+            "管理者パスワードを入力してください🐾"
+        );
+
+    if (pass === null) {
+        return;
+    }
+
+    // -------------------------------------------------
+    // 🔑 認証
+    // -------------------------------------------------
+
+    if (pass === "nekosuke101") {
+
+        if (typeof db !== 'undefined') {
+
+            db.isAdmin = true;
+
+            // 永続化
+            localStorage.setItem(
+                'aiverse_admin',
+                'true'
+            );
         }
+
+        injectAdminMenu();
+
+        showToast(
+            "🐱 管理者モード ON"
+        );
+
+    } else {
+
+        showToast(
+            "❌ パスワードが違います"
+        );
     }
 }
 
-// 🚪 管理者ログアウト処理
+// =========================================================
+// 🚪 ログアウト
+// =========================================================
+
 function logoutAdmin() {
-    db.isAdmin = false;
-    saveToLocalStorage();
 
-    const newPostMenu = document.getElementById('admin-new-post-menu');
-    const logoutMenu = document.getElementById('admin-logout-menu');
+    const ok =
+        confirm(
+            "管理者モードを終了しますか？🐾"
+        );
 
-    if (newPostMenu) newPostMenu.style.display = 'none';
-    if (logoutMenu) logoutMenu.style.display = 'none';
+    if (!ok) return;
 
-    closeModal('admin-modal');
+    if (typeof db !== 'undefined') {
 
-    alert("ログアウトしました 🚪");
-    location.reload();
+        db.isAdmin = false;
+    }
+
+    localStorage.removeItem(
+        'aiverse_admin'
+    );
+
+    showToast(
+        "🚪 ログアウトしました"
+    );
+
+    setTimeout(() => {
+
+        location.reload();
+
+    }, 400);
 }
+
+// =========================================================
+// 🍞 トースト通知
+// =========================================================
+
+function showToast(message = "") {
+
+    let toast =
+        document.getElementById(
+            'aiverse-toast'
+        );
+
+    if (!toast) {
+
+        toast =
+            document.createElement('div');
+
+        toast.id =
+            'aiverse-toast';
+
+        toast.style.cssText = `
+            position:fixed;
+            bottom:20px;
+            left:50%;
+            transform:translateX(-50%);
+            background:#111;
+            color:white;
+            padding:12px 18px;
+            border-radius:12px;
+            z-index:999999;
+            font-size:0.9rem;
+            box-shadow:0 8px 24px rgba(0,0,0,0.35);
+            opacity:0;
+            transition:0.25s;
+            pointer-events:none;
+        `;
+
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+
+    toast.style.opacity = '1';
+
+    clearTimeout(
+        window.__toastTimer
+    );
+
+    window.__toastTimer =
+        setTimeout(() => {
+
+            toast.style.opacity = '0';
+
+        }, 2200);
+}
+
+// =========================================================
+// 🖱️ 外側クリックで閉じる
+// =========================================================
+
+document.addEventListener(
+    'click',
+    function(event) {
+
+        const menu =
+            document.querySelector(
+                '.settings-dropdown'
+            );
+
+        const gear =
+            document.querySelector(
+                '.gear-btn'
+            );
+
+        if (
+            menu &&
+            !menu.contains(event.target) &&
+            gear &&
+            !gear.contains(event.target)
+        ) {
+            menu.classList.remove('open');
+            menu.style.display = 'none';
+        }
+    }
+);
+
+// =========================================================
+// 🚀 自動復元
+// =========================================================
+
+window.addEventListener(
+    'load',
+    () => {
+
+        if (
+            localStorage.getItem(
+                'aiverse_admin'
+            ) === 'true'
+        ) {
+
+            if (typeof db !== 'undefined') {
+                db.isAdmin = true;
+            }
+
+            injectAdminMenu();
+        }
+    }
+);
 // --- ここから追加：カテゴリーマスターリスト ---
 const AIVERSE_CATEGORIES = [
     { id: "news", label: "📢 ニュース" },
@@ -2054,6 +2484,7 @@ function initCategorySelect() {
         ).join('');
     }
 }
+
 // 💾 自動保存 ＆ プレビュー連動システム
 function setupDraftSystem() {
     const titleInp = document.getElementById('admin-title-input');
@@ -2061,17 +2492,14 @@ function setupDraftSystem() {
     const categoryInp = document.getElementById('admin-category-input');
 
     if (!titleInp || !bodyInp || !categoryInp) return;
-
     // 入力・変更があったら実行
     const handleInput = () => {
         updateAdminPreview(); // プレビュー更新
         saveDraft();          // 下書き保存
     };
-
     titleInp.addEventListener('input', handleInput);
     bodyInp.addEventListener('input', handleInput);
     categoryInp.addEventListener('change', handleInput);
-
     // ページ読み込み時に下書きがあれば復元
     loadDraft();
 }
@@ -2081,13 +2509,11 @@ function updateAdminPreview() {
     const body = document.getElementById('admin-body-input').value || "本文を執筆中...";
     const categoryId = document.getElementById('admin-category-input').value;
     const previewArea = document.getElementById('admin-preview-area');
-
     // ✨ 画像URLを取得。空ならデフォルト（宇宙の画像）を表示
     const customImg = document.getElementById('admin-image-input').value;
     const imageUrl = customImg || "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=300&auto=format&fit=crop";
 
     if (!previewArea) return;
-
     // カテゴリーマスターからラベルを取得
     const categoryObj = AIVERSE_CATEGORIES.find(c => c.id === categoryId) || { label: "📄 その他" };
     const categoryLabel = categoryObj.label;
@@ -2122,7 +2548,6 @@ function loadDraft() {
     const saved = localStorage.getItem('aiverse_post_draft');
     if (!saved) return;
     const data = JSON.parse(saved);
-
     // 2時間以内の下書きなら復元
     if (new Date().getTime() - data.updated < 7200000) {
         document.getElementById('admin-title-input').value = data.title;
@@ -2150,7 +2575,6 @@ window.onload = () => {
             });
         }
     });
-
     // 3. 震え対策CSSの適用
     const fixStyle = document.createElement('style');
     fixStyle.textContent = `
@@ -2190,7 +2614,6 @@ window.onload = () => {
     // 1. Firebaseの読み込み（一本化）
     import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, push, onChildAdded, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
     // 2. Firebaseの設定
     const firebaseConfig = {
         apiKey: "AIzaSyDbw7xkeplmYAE80JcrTIf1qkRpZsDTwXM",
@@ -2201,12 +2624,10 @@ window.onload = () => {
         messagingSenderId: "870564638397",
         appId: "1:870564638397:web:d372f90b2b150e095791d4"
     };
-
     // 3. 重複起動防止を施した初期化
     const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     const db = getDatabase(app);
     const dbRef = ref(db, "chiebukuro/posts");
-
     // 4. 送信関数：バリデーションとUXの強化
     window.submitBoardPost = () => {
         const titleInput = document.getElementById('board-title-input');
@@ -2221,7 +2642,6 @@ window.onload = () => {
             alert("本文を入力してくださいにゃ！");
             return;
         }
-
         // 送信中はボタンを無効化するなどの処理を入れるとより安全です
         push(dbRef, {
             title: title,
@@ -2237,7 +2657,6 @@ window.onload = () => {
             alert("送信に失敗しました。通信状況を確認してくださいにゃ。");
         });
     };
-
     // 5. リアルタイム受信：モーダル内のコンテナだけに流し込む
     onChildAdded(dbRef, (data) => {
         const post = data.val();
@@ -2247,7 +2666,6 @@ window.onload = () => {
         if (container) {
             const article = document.createElement('article');
             article.className = 'board-post';
-
             // XSS対策：ユーザー入力を安全にエスケープ
             const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             const safeText = (post.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -2264,7 +2682,6 @@ window.onload = () => {
             container.prepend(article);
         }
     });
-
     // 既存の執筆支援などの初期化
     window.addEventListener('load', () => {
         if (typeof setupDraftSystem === 'function') {
@@ -2274,4 +2691,3 @@ window.onload = () => {
 </script>
 </body>
 </html>
-
