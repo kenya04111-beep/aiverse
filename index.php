@@ -682,7 +682,7 @@ if (session_status() === PHP_SESSION_NONE) {
     font-weight: bold;
 }
 
-/* --- ✨ アニメーション定義 --- */
+        /* --- ✨ アニメーション定義 --- */
         /* 下からふわっと浮かび上がる共通の動き */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -2697,7 +2697,6 @@ window.onload = () => {
         `;
         container.prepend(article);
     });
-</script>
 </script>
 </body>
 </html>
