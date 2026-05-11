@@ -220,7 +220,7 @@ if (session_status() === PHP_SESSION_NONE) {
     display: flex;
     flex-direction: column;
     /* 浮き上がりと影の滑らかな変化を定義 */
-    transition: transform 0.3s ease, box-shadow 0.3s ease; 
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
 }
 
@@ -237,12 +237,12 @@ if (session_status() === PHP_SESSION_NONE) {
     object-fit: cover;
     border-bottom: 1px solid var(--border-color, #eaeaea);
     /* ホバー時の微拡大アニメーションの準備 */
-    transition: transform 0.4s ease; 
+    transition: transform 0.4s ease;
 }
 
 /* 🌟 追加：ホバー時に画像を少しだけズームさせてリッチ感を演出 */
 .post-card:hover img {
-    transform: scale(1.03); 
+    transform: scale(1.03);
 }
 
 /* 📝 コンテンツエリア */
@@ -282,7 +282,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 /* 🌟 追加：ホバー時にタイトルもテーマカラーにうっすら変化 */
 .post-card:hover .post-title {
-    color: #ff9800; 
+    color: #ff9800;
 }
 
 /* 📅 日付（常に最下部に固定） */
@@ -850,13 +850,6 @@ if (session_status() === PHP_SESSION_NONE) {
         <button class="simple-x-btn" onclick="closeGalleryZoom(event)">×</button>
     </div>
 </div>
-<div id="gallery-zoom-modal" class="custom-zoom-overlay" onclick="closeGalleryZoom(event)">
-    <div class="zoom-card" onclick="event.stopPropagation()">
-        <img id="zoomed-image" src="" alt="拡大画像">
-
-        <button class="simple-x-btn" onclick="closeGalleryZoom(event)">×</button>
-    </div>
-</div>
 
 <div id="memo-modal" class="modal">
     <div class="modal-content" style="position: relative; overflow: hidden;">
@@ -966,7 +959,6 @@ if (session_status() === PHP_SESSION_NONE) {
         <div style="background: #fff4e6; padding: 15px; border-radius: 10px; border: 1px solid #ffd8a8; margin-bottom: 20px;">
             <p style="font-size: 0.8rem; font-weight: bold; color: #d9480f; margin: 0 0 10px 0;">CONTENTS (記事投稿・編集)</p>
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-    <p style="font-size: 0.8rem; font-weight: bold; color: #d9480f; margin: 0;">CONTENTS (記事投稿・編集)</p>
     <button onclick="clearAdminForm(); document.getElementById('admin-post-id-input').value='';"
             style="padding: 5px 10px; background: #4dabf7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.7rem;">
         🆕 新規作成モード
@@ -1003,10 +995,10 @@ if (session_status() === PHP_SESSION_NONE) {
 
         <div style="background: #f1f3f5; padding: 15px; border-radius: 10px; border: 1px solid #dee2e6;">
             <p style="font-size: 0.8rem; font-weight: bold; color: #495057; margin: 0 0 10px 0;">SYSTEM CONFIG (設定・メモ)</p>
-            <textarea id="memo-textarea" style="width:100%; height:60px; margin-bottom:10px; font-family:monospace; padding:8px; box-sizing:border-box;" placeholder="設定用メモ..."></textarea>
+            <textarea id="admin-memo-textarea" style="width:100%; height:60px; margin-bottom:10px; font-family:monospace; padding:8px; box-sizing:border-box;" placeholder="設定用メモ..."></textarea>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                <button onclick="db.memo = document.getElementById('memo-textarea').value; saveToLocalStorage(); alert('設定を保存しました');" style="padding:8px; background:white; border:1px solid #adb5bd; border-radius:5px; cursor:pointer;">💾 設定を保存</button>
-                <button onclick="document.getElementById('memo-textarea').value = '';" style="padding:8px; background:white; border:1px solid #adb5bd; border-radius:5px; cursor:pointer;">🗑️ メモ消去</button>
+<button onclick="db.memo = document.getElementById('admin-memo-textarea').value; saveToLocalStorage(); alert('設定を保存しました');" style="padding:8px; background:white; border:1px solid #adb5bd; border-radius:5px; cursor:pointer;">💾 設定を保存</button>
+<button onclick="document.getElementById('admin-memo-textarea').value = '';" style="padding:8px; background:white; border:1px solid #adb5bd; border-radius:5px; cursor:pointer;">🗑️ メモ消去</button>
             </div>
         </div>
     </div>
@@ -1380,9 +1372,9 @@ async function submitBoardPost() {
 
     if (titleVal.length < 1 || bodyVal.length < 1) return alert("内容を入力してくださいにゃ。");
 
-    if (submitBtn) { 
-        submitBtn.disabled = true; 
-        submitBtn.innerText = "🐾 送信中..."; 
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "🐾 送信中...";
     }
 
     const newPost = {
@@ -1406,9 +1398,9 @@ async function submitBoardPost() {
     } catch (e) {
         alert("送信に失敗しました😿 サーバーの状態を確認してください。");
     } finally {
-        if (submitBtn) { 
-            submitBtn.disabled = false; 
-            submitBtn.innerText = "知恵を共有する (送信)"; 
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "知恵を共有する (送信)";
         }
     }
 }
@@ -1493,41 +1485,35 @@ function openGalleryZoom(src) {
 }
 
 // 拡大専用の閉じる関数（これに差し替え）
+// 1488行目〜1494行目：共通の closeModal を使う形に統合
 function closeGalleryZoom() {
-    const modal = document.getElementById('gallery-zoom-modal');
-    if (modal) {
-        modal.style.display = 'none'; // 強制非表示
-        document.body.style.overflow = ''; // スクロール復帰
-    }
+    closeModal('gallery-zoom-modal');
 }
 
-    // 4. アップロード機能 (サーバー保存版)
-    async function uploadImage(input) {
-        const file = input.files[0];
-        if (!file) return;
+// 1496行目〜1521行目：アップロード機能（構造は維持しつつインデントを整理）
+async function uploadImage(input) {
+    const file = input.files[0];
+    if (!file) return;
 
-        const formData = new FormData();
-        formData.append('image', file);
+    const formData = new FormData();
+    formData.append('image', file);
 
-        try {
-            const response = await fetch('upload.php', {
-                method: 'POST',
-                body: formData
-            });
+    try {
+        const response = await fetch('upload.php', {
+            method: 'POST',
+            body: formData
+        });
 
-            if (!response.ok) throw new Error('アップロード失敗');
+        if (!response.ok) throw new Error('アップロード失敗');
 
-            const data = await response.json();
+        // サーバーのリストを再取得して最新状態にする
+        await loadServerGallery();
 
-            // サーバーのリストを再取得して最新状態にする
-            await loadServerGallery();
-
-        } catch (error) {
-            console.error(error);
-            alert("保存に失敗しました。PHPと権限設定を確認してください。");
-        }
+    } catch (error) {
+        console.error(error);
+        alert("保存に失敗しました。PHPの権限設定を確認してください。");
     }
-
+}
 // 5. 削除機能（サーバー同期版）
 async function removeGalleryImage(index) {
     if (confirm("サーバーからこの画像を完全に削除しますか？")) {
@@ -1827,22 +1813,29 @@ window.addEventListener('load', updateAdminUI);
 }
 
 // 🌌 画面のどこかをクリックした時の処理（1830行目付近）
+// 1817行目付近：画面クリック時のメニュー閉鎖処理
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('gear-menu');
     const gearBtn = document.querySelector('.gear-btn');
 
+    // 🚩 鉄壁のガード1：要素がどちらか一つでもなければ何もしない
     if (!menu || !gearBtn) return;
 
-    // もしクリックされたのが「モーダルの背景や中身」だったら、
-    // ドロップダウンメニューの判定をスキップする
-    if (e.target.closest('.modal') || e.target.closest('.modal-content')) {
-        return;
-    }
+    // 🚩 鉄壁のガード2：モーダル操作中は無視する
+    if (e.target.closest('.modal') || e.target.closest('.modal-content')) return;
 
-    if (menu.classList.contains('show') || menu.style.display === 'block') {
+    // 🚩 鉄壁のガード3：オプショナルチェーン (?.) を使い、nullなら即座に false を返す
+    // これにより、1822行目や1827行目のエラーは二度と発生しません
+    const isVisible = menu?.classList.contains('show') || menu?.style?.display === 'block';
+
+    if (isVisible) {
+        // メニューの外側、かつギアボタンの外側をクリックした場合のみ閉じる
         if (!menu.contains(e.target) && !gearBtn.contains(e.target)) {
             menu.classList.remove('show');
-            menu.style.display = 'none';
+            if (menu.style) {
+                menu.style.display = 'none';
+            }
+            console.log("Admin menu closed safely. 🐾");
         }
     }
 });
@@ -2420,27 +2413,34 @@ document.addEventListener(
 );
 
 // =========================================================
-// 🚀 自動復元
+// 🚀 ログイン状態の自動反映（安全版）
 // =========================================================
+window.addEventListener('load', () => {
+    // 判定：aiverse_admin が 'true' の時だけ管理者とする
+    const isAdmin = localStorage.getItem('aiverse_admin') === 'true';
+    const adminSection = document.getElementById('admin-menu-section');
 
-window.addEventListener(
-    'load',
-    () => {
-
-        if (
-            localStorage.getItem(
-                'aiverse_admin'
-            ) === 'true'
-        ) {
-
-            if (typeof db !== 'undefined') {
-                db.isAdmin = true;
-            }
-
+    if (isAdmin) {
+        // 管理者の場合
+        if (typeof db !== 'undefined') {
+            db.isAdmin = true;
+        }
+        if (typeof injectAdminMenu === 'function') {
             injectAdminMenu();
         }
+        // メニューを表示
+        if (adminSection) adminSection.style.display = 'block';
+        console.log("😸 管理者ログイン状態を復元しました");
+    } else {
+        // 一般ユーザーの場合（ここを追加！）
+        if (typeof db !== 'undefined') {
+            db.isAdmin = false;
+        }
+        // メニューを確実に隠す
+        if (adminSection) adminSection.style.display = 'none';
+        console.log("👤 一般ユーザーとして表示しています");
     }
-);
+});
 // --- ここから追加：カテゴリーマスターリスト ---
 const AIVERSE_CATEGORIES = [
     { id: "news", label: "📢 ニュース" },
@@ -2605,16 +2605,25 @@ window.onload = () => {
     // 🎸 管理者設定のBGMを共有
     loadBgmFromServer();
 
-    setupDraftSystem(); // 📝 執筆支援
-};
+    // 2601行目のすぐ後ろ
+    setupDraftSystem();
+
+    // 🚩 ログイン状態の最終判定（2706行目から移動）
+    const isAdminFinal = localStorage.getItem('aiverse_admin') === 'true' || localStorage.getItem('admin_status') === 'true';
+    const adminSection = document.getElementById('admin-menu-section');
+    if (adminSection) {
+        // !important相当の強度を持たせるため、直接styleプロパティを操作
+        adminSection.style.setProperty('display', isAdminFinal ? 'block' : 'none', 'important');
+    }
+}; // 2602行目の閉じ
 </script>
 <!-- PHPの条件分岐などがすべて終了したあと -->
 
 <script type="module">
-    // 1. Firebaseの読み込み（一本化）
+    // 1. Firebaseの読み込み（必要な機能をすべてインポート）
     import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-    // 2. Firebaseの設定
+    import { getDatabase, ref, push, onChildAdded, remove, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
     const firebaseConfig = {
         apiKey: "AIzaSyDbw7xkeplmYAE80JcrTIf1qkRpZsDTwXM",
         authDomain: "alverse-project.firebaseapp.com",
@@ -2624,70 +2633,71 @@ window.onload = () => {
         messagingSenderId: "870564638397",
         appId: "1:870564638397:web:d372f90b2b150e095791d4"
     };
-    // 3. 重複起動防止を施した初期化
+
     const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     const db = getDatabase(app);
     const dbRef = ref(db, "chiebukuro/posts");
-    // 4. 送信関数：バリデーションとUXの強化
-    window.submitBoardPost = () => {
-        const titleInput = document.getElementById('board-title-input');
-        const bodyInput = document.getElementById('board-body-input');
 
-        if (!bodyInput) return;
-
-        const title = titleInput.value.trim() || "無題の知恵";
-        const body = bodyInput.value.trim();
-
-        if (body === "") {
-            alert("本文を入力してくださいにゃ！");
-            return;
-        }
-        // 送信中はボタンを無効化するなどの処理を入れるとより安全です
-        push(dbRef, {
-            title: title,
-            text: body,
-            user: "Kenya",
-            timestamp: serverTimestamp()
-        }).then(() => {
-            if (titleInput) titleInput.value = "";
-            bodyInput.value = "";
-            console.log("知恵を共有しました！");
-        }).catch((error) => {
-            console.error("送信エラー:", error);
-            alert("送信に失敗しました。通信状況を確認してくださいにゃ。");
-        });
+    // 🚩 削除機能（グローバル公開）
+    window.deleteBoardPost = (key) => {
+        if (!confirm("この投稿を削除しますか？🐾")) return;
+        remove(ref(db, `chiebukuro/posts/${key}`))
+            .then(() => { alert("削除しました"); location.reload(); })
+            .catch(err => console.error("削除失敗:", err));
     };
-    // 5. リアルタイム受信：モーダル内のコンテナだけに流し込む
+
+    // 🚩 編集機能（グローバル公開）
+    window.editBoardPost = (key) => {
+        const newText = prompt("新しい本文を入力してください:");
+        if (!newText || newText.trim() === "") return;
+        update(ref(db, `chiebukuro/posts/${key}`), { text: newText })
+            .then(() => { alert("更新完了！🐾"); location.reload(); })
+            .catch(err => console.error("更新失敗:", err));
+    };
+
+    // 🚩 ログアウト機能
+    window.logoutAdmin = function() {
+        if (!confirm("管理者モードを終了しますか？🐾")) return;
+        localStorage.removeItem('aiverse_admin');
+        localStorage.removeItem('admin_status');
+        const adminSection = document.getElementById('admin-menu-section');
+        if (adminSection) adminSection.style.display = 'none';
+        alert("ログアウトしました。またにゃ！🐾");
+        location.reload();
+    };
+
+    // 🚩 Firebase受信（猫の知恵袋）
     onChildAdded(dbRef, (data) => {
         const post = data.val();
-        // モーダル内の記事コンテナ（本来の場所）
         const container = document.getElementById('board-posts-container');
+        if (!container) return;
 
-        if (container) {
-            const article = document.createElement('article');
-            article.className = 'board-post';
-            // XSS対策：ユーザー入力を安全にエスケープ
-            const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            const safeText = (post.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "今さっき";
+        const isAdmin = localStorage.getItem('aiverse_admin') === 'true' || localStorage.getItem('admin_status') === 'true';
+        const article = document.createElement('article');
+        article.className = 'board-post';
 
-            article.innerHTML = `
-                <div class="board-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:5px;">
-                    <span class="board-title" style="font-weight:bold; color:#3e2723;">📌 ${safeTitle}</span>
-                    <span style="font-size:0.7rem; color:#aaa;">${date}</span>
+        const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeText = (post.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "以前の投稿";
+
+        article.innerHTML = `
+            <div class="board-card" style="background: rgba(128,128,128,0.1); border: 1px solid rgba(128,128,128,0.2); border-radius: 8px; padding: 15px; margin-bottom: 10px; position: relative;">
+                <div class="board-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(128,128,128,0.3); padding-bottom:8px; margin-bottom:10px;">
+                    <span class="board-title" style="font-weight:bold; color:#d4a017; font-size:1.1rem;"> ${safeTitle}</span>
+                    <span style="font-size:0.75rem; color:#888;">${date}</span>
                 </div>
-                <div class="board-body" style="padding: 12px 0; color: #444; line-height:1.6; white-space: pre-wrap;">${safeText}</div>
-            `;
-
-            container.prepend(article);
-        }
+                <div class="board-body" style="color: var(--text-color, #333); line-height:1.8; white-space: pre-wrap; font-size:0.95rem; margin-bottom: 10px;">${safeText}</div>
+                ${isAdmin ? `
+                <div class="admin-controls" style="display: flex; gap: 8px; justify-content: flex-end; border-top: 1px dashed rgba(128,128,128,0.2); padding-top: 8px;">
+                    <button onclick="window.editBoardPost('${data.key}')" style="background: #2196F3; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; cursor: pointer;">編集</button>
+                    <button onclick="window.deleteBoardPost('${data.key}')" style="background: #f44336; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; cursor: pointer;">削除</button>
+                </div>
+                ` : ''}
+            </div>
+        `;
+        container.prepend(article);
     });
-    // 既存の執筆支援などの初期化
-    window.addEventListener('load', () => {
-        if (typeof setupDraftSystem === 'function') {
-            setupDraftSystem();
-        }
-    });
+</script>
 </script>
 </body>
 </html>
