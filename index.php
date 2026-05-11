@@ -255,17 +255,29 @@ if (session_status() === PHP_SESSION_NONE) {
     z-index: 1; /* 画像ズーム時に背景を守る */
 }
 
-/* 🏷️ カテゴリーラベル（絵文字・日本語対応版） */
-.post-category {
-    display: inline-block;
-    font-size: 0.8rem;
-    color: #ff9800; /* 先ほどモーダルと統一したAIverseのテーマカラー */
-    font-weight: 700;
-    margin-bottom: 8px;
-    letter-spacing: 0.5px;
-    /* text-transform: uppercase; は絵文字と日本語が化けるため削除！ */
+/* 🚩 記事カードや詳細画面の「バッジ」は完全に消す */
+.post-category,
+.modal-category,
+.post-detail-category {
+    display: none !important;
 }
 
+/* 🚩 編集用セレクトボックスの基本設定 */
+#detail-category-selector {
+    display: none; /* 基本は隠しておく */
+    width: 100%;
+    background: #222;
+    color: #d4a017;
+    border: 1px solid #444;
+    padding: 5px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+/* 🚩 管理者モードの時だけ、セレクトボックスを表示する */
+body.admin-mode #detail-category-selector {
+    display: block !important;
+}
 /* 🖋️ 記事タイトル（2行制限を維持しつつ行間最適化） */
 .post-title {
     font-size: 1.1rem;
@@ -958,30 +970,32 @@ if (session_status() === PHP_SESSION_NONE) {
 
         <div style="background: #fff4e6; padding: 15px; border-radius: 10px; border: 1px solid #ffd8a8; margin-bottom: 20px;">
             <p style="font-size: 0.8rem; font-weight: bold; color: #d9480f; margin: 0 0 10px 0;">CONTENTS (記事投稿・編集)</p>
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-    <button onclick="clearAdminForm(); document.getElementById('admin-post-id-input').value='';"
-            style="padding: 5px 10px; background: #4dabf7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.7rem;">
-        🆕 新規作成モード
-    </button>
-</div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <button onclick="clearAdminForm(); document.getElementById('admin-post-id-input').value='';"
+                        style="padding: 5px 10px; background: #4dabf7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.7rem;">
+                    🆕 新規作成モード
+                </button>
+            </div>
+
             <input type="hidden" id="admin-post-id-input">
-<div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed #ced4da;">
-    <p style="font-size: 0.7rem; font-weight: bold; color: #868e96; margin: 0 0 8px 0; text-align: center;">LIVE PREVIEW</p>
-    <div id="admin-preview-area" style="display: flex; justify-content: center; transform: scale(0.85); margin: -20px 0;">
-        </div>
-</div>
 
-<input type="text" id="admin-image-input" placeholder="画像URLを入力 (空欄でデフォルト)"
-       style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
-<input type="text" id="admin-title-input" placeholder="タイトルを入力" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+            <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed #ced4da;">
+                <p style="font-size: 0.7rem; font-weight: bold; color: #868e96; margin: 0 0 8px 0; text-align: center;">LIVE PREVIEW</p>
+                <div id="admin-preview-area" style="display: flex; justify-content: center; transform: scale(0.85); margin: -20px 0;"></div>
+            </div>
 
-            <select id="admin-category-input" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px;">
-                <option value="news">📢 ニュース</option>
-                <option value="update">🆙 更新情報</option>
-                <option value="diary">🐾 日記</option>
-            </select>
+            <input type="text" id="admin-image-input" placeholder="画像URLを入力 (空欄でデフォルト)"
+                   style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
 
-            <textarea id="admin-body-input" placeholder="本文を入力" style="width:100%; height:150px; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;"></textarea>
+            <input type="text" id="admin-title-input" placeholder="タイトルを入力"
+                   style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+
+            <select id="admin-category-input" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; background: white; cursor: pointer;">
+                </select>
+
+            <textarea id="admin-body-input" placeholder="本文を入力"
+                      style="width:100%; height:150px; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;"></textarea>
 
             <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem; margin-bottom:15px; cursor:pointer;">
                 <input type="checkbox" id="admin-public" checked> 記事を「公開」にする
@@ -995,12 +1009,14 @@ if (session_status() === PHP_SESSION_NONE) {
 
         <div style="background: #f1f3f5; padding: 15px; border-radius: 10px; border: 1px solid #dee2e6;">
             <p style="font-size: 0.8rem; font-weight: bold; color: #495057; margin: 0 0 10px 0;">SYSTEM CONFIG (設定・メモ)</p>
-            <textarea id="admin-memo-textarea" style="width:100%; height:60px; margin-bottom:10px; font-family:monospace; padding:8px; box-sizing:border-box;" placeholder="設定用メモ..."></textarea>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-<button onclick="db.memo = document.getElementById('admin-memo-textarea').value; saveToLocalStorage(); alert('設定を保存しました');" style="padding:8px; background:white; border:1px solid #adb5bd; border-radius:5px; cursor:pointer;">💾 設定を保存</button>
-<button onclick="document.getElementById('admin-memo-textarea').value = '';" style="padding:8px; background:white; border:1px solid #adb5bd; border-radius:5px; cursor:pointer;">🗑️ メモ消去</button>
+            <textarea id="admin-system-memo" placeholder="設定用メモ..."
+                      style="width:100%; height:80px; padding:10px; border:1px solid #ced4da; border-radius:5px; box-sizing:border-box; margin-bottom:10px; font-size: 0.85rem;"></textarea>
+            <div style="display:flex; gap:10px;">
+                <button onclick="saveSystemConfig()" style="flex:1; padding:8px; background:#6741d9; color:white; border:none; border-radius:4px; cursor:pointer; font-size: 0.8rem; font-weight: bold;">💾 設定を保存</button>
+                <button onclick="clearSystemMemo()" style="padding:8px; background:#adb5bd; color:white; border:none; border-radius:4px; cursor:pointer; font-size: 0.8rem;">🗑️ メモ消去</button>
             </div>
         </div>
+
     </div>
 </div>
 
@@ -1025,26 +1041,19 @@ if (session_status() === PHP_SESSION_NONE) {
 
 <script>
 
-   // ----------------------------- 🗄️ データ構造 (初期値) -----------------------------
-    const INITIAL_ALVERSE_DB = {
-        isAdmin: false,
-        theme: 'light',
-        posts: [
-            { id: 1, title: "埃を極限まで吸い寄せるナノデバイス", category: "発明王への道", body: "超電磁マトリクスを空間に形成し、生活空間に散らばる微粒子、チリ、埃をミリ秒単位で一箇所に安全に集めるためのクリーン技術です。アレルギーに苦しむ人たちのために作られました。", image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=600&q=80", date: "2026-05-01", public: true },
-            { id: 2, title: "くぐるだけで免疫が再起動する量子ドーム", category: "発明王への道", body: "微弱なヘルツ共鳴波を発生させる特殊なゲート。通るだけで、人間の基礎体温と細胞の自己回復能力を心地よく覚醒させる未来型ヘルスケアシステム。ねこの温もりを科学的に応用しています。", image: "https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=600&q=80", date: "2026-05-02", public: true },
-            { id: 3, title: "太陽光を120%増幅させるレンズパネル", category: "グリーンエネルギー", body: "窓に貼り付けるだけで、外部から入る昼光の明るさを全方位に反射・倍加させ、暗い部屋を一瞬でぽかぽかの快適空間に変える省エネフィルム技術。", image: "https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=600&q=80", date: "2026-05-03", public: true }
-        ],
-        board: [
-            { id: 1, title: "Alverse掲示板へようこそ！", body: "自由にお使いいただけるBBSです！なんでも書き込んでいってくださいにゃ。😸", date: "2026-05-07 00:00" }
-        ],
-        gallery: [],
-        memo: "",
-        playlists: [
-            { name: "作業用ループ", tracks: [{ id: "dQw4w9WgXcQ", title: "Never Gonna Give You Up" }] }
-        ],
-        activePlaylistIdx: 0
-    };
-
+// ----------------------------- 🗄️ データ構造 (初期値) -----------------------------
+const INITIAL_ALVERSE_DB = {
+    isAdmin: false,
+    theme: 'light',
+    posts: [],     // 🚩 中身を空にする（Firebase等から読み込むため）
+    board: [],     // 🚩 掲示板も空に
+    gallery: [],
+    memo: "",
+    playlists: [
+        { name: "My Playlist", tracks: [] } // 最低限の枠組みだけ残す
+    ],
+    activePlaylistIdx: 0
+};
     // クッキー削除に耐えるlocalStorage保存 (現状維持)
     let db = JSON.parse(localStorage.getItem('alverse_database_engine_v3')) || INITIAL_ALVERSE_DB;
 
@@ -1066,59 +1075,126 @@ if (session_status() === PHP_SESSION_NONE) {
         renderArticlesGrid();
     }
 
-    function renderArticlesGrid() {
-        const query = document.getElementById('search-bar').value.toLowerCase().trim();
-        const grid = document.getElementById('mainGrid');
-        grid.innerHTML = '';
+function renderArticlesGrid() {
 
-        computedPosts = db.posts.filter(p => {
-            const matchesQuery = p.title.toLowerCase().includes(query) || p.body.toLowerCase().includes(query) || p.category.toLowerCase().includes(query);
-            return matchesQuery && (p.public || db.isAdmin);
-        });
+const searchBar = document.getElementById('search-bar');
 
-        const totalPages = Math.ceil(computedPosts.length / postsPerPage);
-        const startIndex = (currentPage - 1) * postsPerPage;
-        const endIndex = startIndex + postsPerPage;
-        const pageSelection = computedPosts.slice(startIndex, endIndex);
+const query = searchBar
+    ? searchBar.value.toLowerCase().trim()
+    : '';
 
-        if (pageSelection.length === 0) {
-            grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding: 60px 20px; color:#8c827a;">合致する記事が見つかりません。</div>`;
-            document.getElementById('pagination').innerHTML = '';
-            return;
-        }
+const grid = document.getElementById('mainGrid');
 
-        pageSelection.forEach(p => {
-            const card = document.createElement('div');
-            card.className = 'post-card';
-            card.onclick = () => showArticleDetail(p.id);
+if (!grid) {
+    console.error('mainGrid not found');
+    return;
+}
 
-            const fallbackImg = 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=600&q=80';
-            const imageUrl = p.image || fallbackImg;
+grid.innerHTML = '';
 
-            const adminPanelHTML = db.isAdmin ? `
-                <div style="display:flex; gap:4px; margin-top:8px;" onclick="event.stopPropagation();">
-                    <span style="background:${p.public ? '#28a745' : '#6c757d'}; color:white; padding:2px 6px; border-radius:4px; font-size:0.7rem;">${p.public ? '公開中' : '下書き'}</span>
-                    <button onclick="editArticle(${p.id})" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:4px; font-size:0.7rem;">編集</button>
-                    <button onclick="deleteArticle(${p.id})" style="background:#dc3545; color:white; border:none; padding:2px 6px; border-radius:4px; font-size:0.7rem;">削除</button>
-                </div>
-            ` : '';
+computedPosts = (db.posts || []).filter(p => {
 
-            card.innerHTML = `
-                <img src="${imageUrl}" alt="${p.title}" onerror="this.src='${fallbackImg}'">
-                <div class="post-content">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;">
-                        <span class="post-category">${p.category}</span>
-                    </div>
-                    <div class="post-title">${p.title}</div>
-                    ${adminPanelHTML}
-                    <div class="post-date">${p.date}</div>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
+    const title =
+        (p.title || '').toLowerCase();
 
-        buildPaginationControls(totalPages);
+    const body =
+        (p.body || '').toLowerCase();
+
+    const category =
+        (p.category || '').toLowerCase();
+
+    const matchesQuery =
+        title.includes(query) ||
+        body.includes(query) ||
+        category.includes(query);
+
+    return matchesQuery &&
+           (p.public !== false || db.isAdmin);
+
+});
+
+const totalPages =
+    Math.ceil(computedPosts.length / postsPerPage);
+
+const startIndex =
+    (currentPage - 1) * postsPerPage;
+
+const endIndex =
+    startIndex + postsPerPage;
+
+const pageSelection =
+    computedPosts.slice(startIndex, endIndex);
+
+if (pageSelection.length === 0) {
+
+    grid.innerHTML =
+        '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#8c827a;">合致する記事が見つかりません。</div>';
+
+    const pagination =
+        document.getElementById('pagination');
+
+    if (pagination) {
+        pagination.innerHTML = '';
     }
+
+    return;
+}
+
+pageSelection.forEach(p => {
+
+    const card =
+        document.createElement('div');
+
+    card.className = 'post-card';
+
+    card.onclick = () => {
+        showArticleDetail(p.id);
+    };
+
+    const fallbackImg =
+        'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=600&q=80';
+
+    const imageUrl =
+        p.image || fallbackImg;
+
+    const adminPanelHTML = db.isAdmin
+        ? '<div style="display:flex;gap:4px;margin-top:8px;" onclick="event.stopPropagation();">' +
+          '<span style="background:' +
+          (p.public ? '#28a745' : '#6c757d') +
+          ';color:white;padding:2px 6px;border-radius:4px;font-size:0.7rem;">' +
+          (p.public ? '公開中' : '下書き') +
+          '</span>' +
+          '<button onclick="editArticle(' + p.id + ')" style="background:#007bff;color:white;border:none;padding:2px 6px;border-radius:4px;font-size:0.7rem;">編集</button>' +
+          '<button onclick="deleteArticle(' + p.id + ')" style="background:#dc3545;color:white;border:none;padding:2px 6px;border-radius:4px;font-size:0.7rem;">削除</button>' +
+          '</div>'
+        : '';
+
+// 🚩 記事カードの内容を生成（カテゴリー表示を削除し、タイトルと本文を強調）
+        card.innerHTML = `
+            <img src="${imageUrl}" 
+                 alt="${p.title || ''}" 
+                 style="width:100%; height:180px; object-fit:cover; border-radius:12px 12px 0 0;">
+
+            <div style="padding:14px;">
+                <h3 style="margin:0 0 10px; font-size:1.1rem; line-height:1.4; color:var(--text-color);">
+                    ${p.title || '無題'}
+                </h3>
+
+                <p style="color:#aaa; font-size:0.9rem; line-height:1.6; margin-bottom:10px;">
+                    ${(p.body || '').substring(0, 120)}...
+                </p>
+
+                ${adminPanelHTML}
+
+                <div style="font-size:0.75rem; color:#8c827a; margin-top:8px;">
+                    ${p.date || ''}
+                </div>
+            </div>
+        `;
+
+        grid.appendChild(card);
+    }); // 🚩 ここで db.posts.forEach などのループを閉じる
+} // 🚩 ここで renderArticlesGrid 関数を終了させる
 
     function buildPaginationControls(totalPages) {
         const pagBox = document.getElementById('pagination');
@@ -1128,7 +1204,7 @@ if (session_status() === PHP_SESSION_NONE) {
         for (let i = 1; i <= totalPages; i++) {
             const btn = document.createElement('button');
             btn.innerText = i;
-            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.className = 'page-btn ' + (i === currentPage ? 'active' : '');
             btn.onclick = () => {
                 currentPage = i;
                 renderArticlesGrid();
@@ -1167,61 +1243,49 @@ function showArticleDetail(id) {
         imgEl.style.display = 'none';
     }
 
-    // 📂 2. カテゴリーのドロップダウン設定
-    const selector = document.getElementById('detail-category-selector');
+// 🚩 カテゴリー選択欄（プルダウン）の取得と初期値設定
+const selector = document.getElementById('detail-category-selector');
     if (selector) {
-        selector.innerHTML = '';
-        const allCategories = [...new Set(db.posts.map(post => post.category))].filter(Boolean);
+        // 1. 開いた記事のカテゴリーを現在の値にセット（これで「宇宙」などが表示される）
+        selector.value = p.category || "";
 
-        allCategories.forEach(cat => {
-            const opt = document.createElement('option');
-            opt.value = cat;
-            opt.innerText = cat;
-            if (cat === p.category) opt.selected = true;
-            selector.appendChild(opt);
-        });
+        // 2. プルダウンを変更した時の処理
+        selector.onchange = () => {
+            if (!db.isAdmin) return; // 管理者以外は何もしない
 
-        // 👑 【ここがポイント】管理者なら「変更可能な枠線付き」、一般ユーザーなら「ただの文字」に見せる
-        if (db.isAdmin) {
-            selector.style.border = "1px solid #555";
-            selector.style.background = "#222";
-            selector.style.pointerEvents = "auto";
-            selector.style.appearance = "auto"; // 矢印を出す
-            selector.style.padding = "4px 8px";
-            selector.style.color = "var(--accent-color)";
-        } else {
-            selector.style.border = "none";
-            selector.style.background = "transparent";
-            selector.style.pointerEvents = "none"; // クリックできないようにする
-            selector.style.appearance = "none";     // 矢印（プルダウンの三角マーク）を消す
-            selector.style.padding = "0";
-            selector.style.color = "var(--accent-color)";
-            selector.style.fontWeight = "bold";
-        }
+            const newCategory = selector.value;
+            if (confirm(`カテゴリーを「${newCategory}」に変更して保存しますか？`)) {
+                // 内部データの書き換え
+                p.category = newCategory;
 
-// カテゴリー 変更イベント（管理者がドロップダウンを変えた時だけ動作）
-selector.onchange = function() {
-    if (currentDetailArticleId) {
-        const newCategory = this.value;
-        const post = db.posts.find(item => item.id === currentDetailArticleId);
-        if (post && post.category !== newCategory) {
-            if (confirm("この 記事のカテゴリー を変更しますか？")) {
-                post.category = newCategory;
-                saveToLocalStorage();
-                renderArticlesGrid(); // メイン画面を再描画
+                // 🚩 【重要】サーバーのDBとブラウザの両方に保存を実行
+                if (typeof saveDB === 'function') saveDB();
+                if (typeof saveToLocalStorage === 'function') saveToLocalStorage();
+
+                // メイン画面のグリッドを再描画（これでカード側のデータも更新される）
+                renderArticlesGrid();
+
+                console.log("カテゴリーを更新しました: " + newCategory + " 🐾");
             } else {
-                this.value = post.category; // キャンセル時は元に戻す
+                // キャンセルした場合は表示を元に戻す
+                selector.value = p.category || "";
             }
-        }
-    }
-};
+        };
 
+
+    if (db.isAdmin) {
+        // 🚩 管理者でも表示を完全に消す設定に変更
+        selector.style.cssText = "display: none !important;";
+    } else {
+        // 一般ユーザーも同様に非表示
+        selector.style.cssText = "display: none !important;";
+    }
+} // 🚩【重要】ここで if (selector) を閉じます（これが抜けていました）
     // ✍ 3. タイトル、日付、本文の書き込み
     document.getElementById('detail-title').innerText = p.title;
     document.getElementById('detail-body').innerHTML = p.body;
     openModal('detail-modal');
-  }
-}
+} // 🚩 ここで showArticleDetail 関数を終了させる（} は1つだけ！）
 
 // ⚙️ ドロップダウン制御：絶対に動く安全版
 function toggleGearMenu(e) {
@@ -1289,10 +1353,20 @@ function escapeHTML(str) {
 }
 
 function linkify(text) {
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return text.replace(urlRegex, url => `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:#4dabf7; text-decoration:underline;">${url}</a>`);
-}
 
+const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+return text.replace(urlRegex, function(url) {
+
+    return '<a href="' +
+           url +
+           '" target="_blank" rel="noopener noreferrer" style="color:#4dabf7; text-decoration:underline;">' +
+           url +
+           '</a>';
+
+});
+
+}
 /**
  * 🔄 データの取得（Firebaseから最新の記事を読み込む）
  */
@@ -1300,7 +1374,7 @@ async function loadBoardFromServer() {
     const container = document.getElementById('board-posts-container');
     try {
         const response = await fetch(BBS_ENDPOINT);
-        if (!response.ok) throw new Error(`status: ${response.status}`);
+        if (!response.ok) throw new Error('status: ' + response.status);
         const data = await response.json();
 
         // データを配列に変換し、最新順に並べ替える
@@ -1313,7 +1387,7 @@ async function loadBoardFromServer() {
         console.log("🐾 掲示板データを同期しました");
     } catch (e) {
         console.error("取得失敗:", e);
-        if (container) container.innerHTML = `<div style="text-align:center; color:#fa5252; padding:20px;">知恵の読み込みに失敗しました😿</div>`;
+        if (container) container.innerHTML = '<div style="text-align:center; color:#fa5252; padding:20px;">知恵の読み込みに失敗しました😿</div>';
     }
 }
 /**
@@ -1325,7 +1399,7 @@ function renderBoard() {
     container.innerHTML = '';
 
     if (db.board.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:#8c827a; padding:40px; border:1px dashed #444; border-radius:12px;">まだ知恵がありません🐾</div>`;
+        container.innerHTML = '<div style="text-align:center; color:#8c827a; padding:40px; border:1px dashed #444; border-radius:12px;">まだ知恵がありません🐾</div>';
         return;
     }
 
@@ -1453,7 +1527,7 @@ async function loadServerGallery() {
         container.innerHTML = '';
 
         if (!db.gallery || db.gallery.length === 0) {
-            container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#8c827a;">画像はありません。</p>`;
+            container.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#8c827a;">画像はありません。</p>';
             return;
         }
 
@@ -1485,7 +1559,6 @@ function openGalleryZoom(src) {
 }
 
 // 拡大専用の閉じる関数（これに差し替え）
-// 1488行目〜1494行目：共通の closeModal を使う形に統合
 function closeGalleryZoom() {
     closeModal('gallery-zoom-modal');
 }
@@ -1613,7 +1686,7 @@ async function removeGalleryImage(index) {
         container.innerHTML = '';
         const pl = db.playlists[db.activePlaylistIdx];
         if (!pl || !pl.tracks || pl.tracks.length === 0) {
-            container.innerHTML = `<p style="font-size:0.85rem; color:#8c827a;">曲がありません。</p>`;
+            container.innerHTML = '<p style="font-size:0.85rem; color:#8c827a;">曲がありません。</p>';
             return;
         }
         pl.tracks.forEach((track, index) => {
@@ -1727,10 +1800,12 @@ async function removeGalleryImage(index) {
         }
     }
 
-    // ----------------------------- 管理者制御 (現状維持) -----------------------------
+// ----------------------------- 管理者制御 (完全版) -----------------------------
 function savePostFromAdmin() {
     const id = document.getElementById('admin-post-id-input')?.value;
     const titleVal = document.getElementById('admin-title-input')?.value.trim();
+    // 🚩 画像URLを取得する処理を追加
+    const imageVal = document.getElementById('admin-image-input')?.value.trim() || ""; 
     const catVal = document.getElementById('admin-category-input')?.value.trim() || '一般';
     const bodyVal = document.getElementById('admin-body-input')?.value.trim();
     const isPublic = document.getElementById('admin-public')?.checked;
@@ -1740,26 +1815,33 @@ function savePostFromAdmin() {
     if (id) {
         const post = db.posts.find(p => p.id === parseInt(id));
         if (post) {
-            post.title = titleVal; post.category = catVal; post.body = bodyVal; post.public = isPublic;
+            post.title = titleVal;
+            post.image = imageVal;    // 🚩 画像を更新
+            post.category = catVal;   // 🚩 カテゴリーを更新
+            post.body = bodyVal;
+            post.public = isPublic;
         }
     } else {
         db.posts.unshift({
             id: Date.now(),
             title: titleVal,
-            category: catVal,
+            image: imageVal,        // 🚩 新規作成時も画像を保存
+            category: catVal,       // 🚩 カテゴリーを保存
             body: bodyVal,
             public: isPublic,
             date: new Date().toISOString().split('T')[0]
         });
     }
 
+    // 🚩 重要：サーバーとブラウザ両方に保存
     saveToLocalStorage();
+    if (typeof saveDB === 'function') saveDB(); 
+
     renderArticlesGrid();
-    alert("保存が完了しました。メイン画面に戻ります。");
+    alert("保存が完了しました。メイン画面に戻ります。🐾");
     closeModal('admin-modal');
     clearAdminForm();
 }
-
 // 管理者メニューの表示状態を更新する関数
 function updateAdminUI() {
     if (db.isAdmin) {
@@ -2697,6 +2779,22 @@ window.onload = () => {
         `;
         container.prepend(article);
     });
+// --- (前回のコード) カテゴリーマスターリスト ---
+    const AIVERSE_CATEGORIES = [ ... ];
+
+    // --- (前回のコード) プルダウン生成関数 ---
+    function initAdminCategorySelect() { ... }
+
+    // --- 🚩 今回のコード：ログアウト機能 ---
+    window.logoutAdmin = function() {
+        // ... (中身)
+    };
+
+    // --- 🚩 今回のコード：Firebase受信（猫の知恵袋） ---
+    onChildAdded(dbRef, (data) => {
+        // ... (中身)
+    });
+
 </script>
 </body>
 </html>
