@@ -278,6 +278,32 @@ if (session_status() === PHP_SESSION_NONE) {
 body.admin-mode #detail-category-selector {
     display: block !important;
 }
+/* 📝 Markdownで変換された要素の調整 */
+#detail-body h1,
+#detail-body h2 {
+    color: #d4a017; /* セレクトボックスの色と統一 */
+    border-left: 4px solid #d4a017; /* 見出しっぽく左線を追加 */
+    padding-left: 10px;
+    margin-top: 25px;
+    margin-bottom: 10px;
+}
+
+#detail-body ul {
+    list-style-type: disc;
+    padding-left: 25px;
+    margin-bottom: 15px;
+}
+
+#detail-body li {
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+/* 太字の強調色 */
+#detail-body strong {
+    color: #d4a017;
+    font-weight: bold;
+}
 /* 🖋️ 記事タイトル（2行制限を維持しつつ行間最適化） */
 .post-title {
     font-size: 1.1rem;
@@ -724,6 +750,7 @@ body.admin-mode #detail-category-selector {
             background: rgba(255, 255, 255, 0.05);
         }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 
@@ -949,77 +976,90 @@ body.admin-mode #detail-category-selector {
 </div>
 
 <div id="detail-modal" class="modal">
-    <div class="modal-content" style="padding: 24px; max-width: 680px;">
-        <button class="modal-close" onclick="closeModal('detail-modal')">×</button>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px;">
-            <div id="detail-category-container" style="flex: 1;">
-                <select id="detail-category-selector" style="width: 100%; padding: 6px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); color: #a26d46; font-size: 0.8rem; font-weight: 700;"></select>
-            </div>
-            <p id="detail-date" style="font-size:0.85rem; color:#8c827a; margin: 0;"></p>
-        </div>
-        <h1 id="detail-title" style="margin:0 0 16px 0; font-size: 1.5rem; font-weight: 800; line-height: 1.35; color: var(--text-color);"></h1>
-        <hr style="border:0; border-top:1px solid var(--border-color); margin-bottom:20px;">
-        <div id="detail-body" style="line-height:1.9; font-size:1.1rem; white-space:pre-wrap; color: var(--text-color);"></div>
+    <div class="modal-content" style="max-width: 700px; padding: 30px; border-radius: 20px;">
+        <button class="modal-close" onclick="closeModal('detail-modal')">&times;</button>
+
+        <img id="detail-image" style="width:100%; border-radius:12px; margin-bottom: 25px; display:none; object-fit: cover; max-height: 400px;">
+
+        <div id="detail-category-label" style="color: #d4a017; font-weight: bold; font-size: 0.95rem; margin-bottom: 15px;"></div>
+
+        <select id="detail-category-selector" style="display:none; width:100%; padding:10px; margin-bottom:20px; border-radius: 8px; border: 1px solid #ddd;"></select>
+
+        <h2 id="detail-title" style="margin: 0 0 20px 0; font-size: 1.8rem; color: #333; line-height: 1.3;"></h2>
+
+        <div id="detail-body" style="font-size: 1.05rem; line-height: 1.8; color: #444; letter-spacing: 0.02em;"></div>
     </div>
 </div>
 
 <div id="admin-modal" class="modal">
-    <div class="modal-content" style="max-width: 600px;">
-        <button class="modal-close" onclick="closeModal('admin-modal')">&times;</button>
-        <h2 style="margin-top:0;">🔑 管理者センター</h2>
+    <div class="modal-content" style="max-width: 650px; border-radius: 15px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <button class="modal-close" onclick="closeModal('admin-modal')" style="font-size: 2rem;">&times;</button>
 
-        <div style="background: #fff4e6; padding: 15px; border-radius: 10px; border: 1px solid #ffd8a8; margin-bottom: 20px;">
-            <p style="font-size: 0.8rem; font-weight: bold; color: #d9480f; margin: 0 0 10px 0;">CONTENTS (記事投稿・編集)</p>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+            <h2 style="margin:0; font-size: 1.5rem; color: #343a40;">🔑 管理者センター</h2>
+            <span style="font-size: 0.7rem; background: #e7f5ff; color: #1971c2; padding: 2px 8px; border-radius: 10px; font-weight: bold;">System v2.0</span>
+        </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <div style="background: #fff4e6; padding: 20px; border-radius: 12px; border: 1px solid #ffd8a8; margin-bottom: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <p style="font-size: 0.85rem; font-weight: bold; color: #d9480f; margin: 0;">📰 CONTENTS (記事投稿・編集)</p>
                 <button onclick="clearAdminForm(); document.getElementById('admin-post-id-input').value='';"
-                        style="padding: 5px 10px; background: #4dabf7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.7rem;">
+                        style="padding: 6px 12px; background: #4dabf7; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold; transition: 0.2s;">
                     🆕 新規作成モード
                 </button>
             </div>
 
             <input type="hidden" id="admin-post-id-input">
 
-            <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed #ced4da;">
-                <p style="font-size: 0.7rem; font-weight: bold; color: #868e96; margin: 0 0 8px 0; text-align: center;">LIVE PREVIEW</p>
-                <div id="admin-preview-area" style="display: flex; justify-content: center; transform: scale(0.85); margin: -20px 0;"></div>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px dashed #ced4da;">
+                <p style="font-size: 0.7rem; font-weight: bold; color: #adb5bd; margin: 0 0 10px 0; text-align: center; letter-spacing: 1px;">LIVE PREVIEW</p>
+                <div id="admin-preview-area" style="display: flex; justify-content: center; transform: scale(0.9); margin: -10px 0;">
+                    </div>
             </div>
 
-            <input type="text" id="admin-image-input" placeholder="画像URLを入力 (空欄でデフォルト)"
-                   style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="admin-image-input" placeholder="🖼️ 画像URLを入力 (空欄でデフォルト)"
+                           style="flex: 1; padding:12px; border:1px solid #dee2e6; border-radius:8px; font-size:0.9rem;">
 
-            <input type="text" id="admin-title-input" placeholder="タイトルを入力"
-                   style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+                    <select id="admin-category-input" style="width: 180px; padding:12px; border:1px solid #dee2e6; border-radius:8px; background: white; cursor: pointer; font-size:0.9rem;">
+                        </select>
+                </div>
 
-            <select id="admin-category-input" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; background: white; cursor: pointer;">
-                </select>
+                <input type="text" id="admin-title-input" placeholder="📌 タイトルを入力"
+                       style="width:100%; padding:12px; border:1px solid #dee2e6; border-radius:8px; font-size:1rem; font-weight: bold;">
 
-            <textarea id="admin-body-input" placeholder="本文を入力"
-                      style="width:100%; height:150px; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;"></textarea>
+                <textarea id="admin-body-input" placeholder="🖋️ 本文を入力してください..."
+                          style="width:100%; height:180px; padding:12px; border:1px solid #dee2e6; border-radius:8px; font-size:0.9rem; line-height: 1.6; resize: vertical;"></textarea>
 
-            <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem; margin-bottom:15px; cursor:pointer;">
-                <input type="checkbox" id="admin-public" checked> 記事を「公開」にする
-            </label>
-
-            <div style="display:flex; gap:10px;">
-                <button onclick="savePostFromAdmin()" style="flex:2; padding:12px; background:#ff9800; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">🚀 記事を保存</button>
-                <button onclick="clearAdminForm()" style="flex:1; padding:12px; background:#8c827a; color:white; border:none; border-radius:5px; cursor:pointer;">リセット</button>
-            </div>
-        </div>
-
-        <div style="background: #f1f3f5; padding: 15px; border-radius: 10px; border: 1px solid #dee2e6;">
-            <p style="font-size: 0.8rem; font-weight: bold; color: #495057; margin: 0 0 10px 0;">SYSTEM CONFIG (設定・メモ)</p>
-            <textarea id="admin-system-memo" placeholder="設定用メモ..."
-                      style="width:100%; height:80px; padding:10px; border:1px solid #ced4da; border-radius:5px; box-sizing:border-box; margin-bottom:10px; font-size: 0.85rem;"></textarea>
-            <div style="display:flex; gap:10px;">
-                <button onclick="saveSystemConfig()" style="flex:1; padding:8px; background:#6741d9; color:white; border:none; border-radius:4px; cursor:pointer; font-size: 0.8rem; font-weight: bold;">💾 設定を保存</button>
-                <button onclick="clearSystemMemo()" style="padding:8px; background:#adb5bd; color:white; border:none; border-radius:4px; cursor:pointer; font-size: 0.8rem;">🗑️ メモ消去</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; border-radius: 8px; border: 1px solid #dee2e6;">
+                    <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color: #495057;">
+                        <input type="checkbox" id="admin-public" checked style="width: 18px; height: 18px;"> 🌏 記事を「公開」にする
+                    </label>
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="clearAdminForm()" style="padding:10px 20px; background:#e9ecef; color:#495057; border:none; border-radius:8px; cursor:pointer; font-size:0.9rem;">リセット</button>
+                        <button onclick="savePostFromAdmin()" style="padding:10px 30px; background:linear-gradient(135deg, #ff922b, #f08c00); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 12px rgba(240,140,0,0.3);">🚀 記事を保存</button>
+                    </div>
+                </div>
             </div>
         </div>
 
+        <div style="background: #f1f3f5; padding: 20px; border-radius: 12px; border: 1px solid #dee2e6;">
+            <p style="font-size: 0.85rem; font-weight: bold; color: #495057; margin: 0 0 12px 0;">⚙️ SYSTEM CONFIG & MEMO</p>
+            <textarea id="admin-system-memo" placeholder="システム設定や開発用メモをここに保存..." 
+                      style="width:100%; height:80px; padding:12px; border:1px solid #ced4da; border-radius:8px; background: #fff; font-family: monospace; font-size: 0.85rem;"></textarea>
+
+            <div style="display: flex; gap: 10px; margin-top: 12px;">
+                <button onclick="saveSystemConfig()" style="flex: 2; padding: 10px; background: #6741d9; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">💾 設定・メモを保存</button>
+                <button onclick="clearSystemMemo()" style="flex: 1; padding: 10px; background: #adb5bd; color: white; border: none; border-radius: 8px; cursor: pointer;">🗑️ 消去</button>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <button onclick="adminLogout()" style="background: none; border: none; color: #fa5252; font-size: 0.8rem; text-decoration: underline; cursor: pointer;">管理者ログアウト</button>
+        </div>
     </div>
 </div>
-
 <div id="privacy-modal" class="modal">
     <div class="modal-content">
         <button class="modal-close" onclick="closeModal('privacy-modal')">×</button>
@@ -1065,244 +1105,207 @@ const INITIAL_ALVERSE_DB = {
         }
     }
 
-    // ----------------------------- 📰 記事・検索・ページネーション制御 -----------------------------
-    let currentPage = 1;
-    const postsPerPage = 10;
-    let computedPosts = [];
+// ----------------------------- 📰 記事・検索・ページネーション制御 -----------------------------
+let currentPage = 1;
+const postsPerPage = 10;
+let computedPosts = [];
 
-    function onSearchChange() {
-        currentPage = 1;
-        renderArticlesGrid();
-    }
+// 検索入力時のイベント
+function onSearchChange() {
+    currentPage = 1;
+    renderArticlesGrid();
+}
 
+/**
+ * メイングリッドの描画 (一覧表示)
+ */
 function renderArticlesGrid() {
+    const searchBar = document.getElementById('search-bar');
+    const query = searchBar ? searchBar.value.toLowerCase().trim() : '';
+    const grid = document.getElementById('mainGrid');
+    if (!grid) return;
 
-const searchBar = document.getElementById('search-bar');
+    grid.innerHTML = '';
 
-const query = searchBar
-    ? searchBar.value.toLowerCase().trim()
-    : '';
+    // 1. フィルタリング (検索 & 公開状態)
+    computedPosts = (db.posts || []).filter(p => {
+        const title = (p.title || '').toLowerCase();
+        const body = (p.body || '').toLowerCase();
+        const category = (p.category || '').toLowerCase();
+        const matchesQuery = title.includes(query) || body.includes(query) || category.includes(query);
 
-const grid = document.getElementById('mainGrid');
+        return matchesQuery && (p.public !== false || db.isAdmin);
+    });
 
-if (!grid) {
-    console.error('mainGrid not found');
-    return;
-}
+    // 2. ページネーション計算
+    const totalPages = Math.ceil(computedPosts.length / postsPerPage);
+    const startIndex = (currentPage - 1) * postsPerPage;
+    const pageSelection = computedPosts.slice(startIndex, startIndex + postsPerPage);
 
-grid.innerHTML = '';
-
-computedPosts = (db.posts || []).filter(p => {
-
-    const title =
-        (p.title || '').toLowerCase();
-
-    const body =
-        (p.body || '').toLowerCase();
-
-    const category =
-        (p.category || '').toLowerCase();
-
-    const matchesQuery =
-        title.includes(query) ||
-        body.includes(query) ||
-        category.includes(query);
-
-    return matchesQuery &&
-           (p.public !== false || db.isAdmin);
-
-});
-
-const totalPages =
-    Math.ceil(computedPosts.length / postsPerPage);
-
-const startIndex =
-    (currentPage - 1) * postsPerPage;
-
-const endIndex =
-    startIndex + postsPerPage;
-
-const pageSelection =
-    computedPosts.slice(startIndex, endIndex);
-
-if (pageSelection.length === 0) {
-
-    grid.innerHTML =
-        '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#8c827a;">合致する記事が見つかりません。</div>';
-
-    const pagination =
-        document.getElementById('pagination');
-
-    if (pagination) {
-        pagination.innerHTML = '';
+    if (pageSelection.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#8c827a;">合致する記事が見つかりません。</div>';
+        const pagination = document.getElementById('pagination');
+        if (pagination) pagination.innerHTML = '';
+        return;
     }
 
-    return;
-}
+    // 3. カードの生成
+    pageSelection.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'post-card';
+        card.onclick = () => showArticleDetail(p.id);
 
-pageSelection.forEach(p => {
+        // カテゴリーIDをラベルに変換
+        const catData = AIVERSE_CATEGORIES.find(c => c.id === p.category);
+        const categoryLabel = catData ? catData.label : "未分類";
 
-    const card =
-        document.createElement('div');
+        const imageUrl = p.image || 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=600&q=80';
 
-    card.className = 'post-card';
+        // 管理者用操作パネル
+        const adminPanelHTML = db.isAdmin ? `
+            <div style="display:flex;gap:4px;margin-top:8px;" onclick="event.stopPropagation();">
+                <span style="background:${p.public ? '#28a745' : '#6c757d'};color:white;padding:2px 6px;border-radius:4px;font-size:0.7rem;">
+                    ${p.public ? '公開中' : '下書き'}
+                </span>
+                <button onclick="editArticle(${p.id})" style="background:#007bff;color:white;border:none;padding:2px 6px;border-radius:4px;font-size:0.7rem;cursor:pointer;">編集</button>
+                <button onclick="deleteArticle(${p.id})" style="background:#dc3545;color:white;border:none;padding:2px 6px;border-radius:4px;font-size:0.7rem;cursor:pointer;">削除</button>
+            </div>` : '';
 
-    card.onclick = () => {
-        showArticleDetail(p.id);
-    };
-
-    const fallbackImg =
-        'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=600&q=80';
-
-    const imageUrl =
-        p.image || fallbackImg;
-
-    const adminPanelHTML = db.isAdmin
-        ? '<div style="display:flex;gap:4px;margin-top:8px;" onclick="event.stopPropagation();">' +
-          '<span style="background:' +
-          (p.public ? '#28a745' : '#6c757d') +
-          ';color:white;padding:2px 6px;border-radius:4px;font-size:0.7rem;">' +
-          (p.public ? '公開中' : '下書き') +
-          '</span>' +
-          '<button onclick="editArticle(' + p.id + ')" style="background:#007bff;color:white;border:none;padding:2px 6px;border-radius:4px;font-size:0.7rem;">編集</button>' +
-          '<button onclick="deleteArticle(' + p.id + ')" style="background:#dc3545;color:white;border:none;padding:2px 6px;border-radius:4px;font-size:0.7rem;">削除</button>' +
-          '</div>'
-        : '';
-
-// 🚩 記事カードの内容を生成（カテゴリー表示を削除し、タイトルと本文を強調）
         card.innerHTML = `
-            <img src="${imageUrl}" 
-                 alt="${p.title || ''}" 
-                 style="width:100%; height:180px; object-fit:cover; border-radius:12px 12px 0 0;">
-
+            <img src="${imageUrl}" alt="${p.title}" style="width:100%; height:180px; object-fit:cover; border-radius:12px 12px 0 0;">
             <div style="padding:14px;">
-                <h3 style="margin:0 0 10px; font-size:1.1rem; line-height:1.4; color:var(--text-color);">
-                    ${p.title || '無題'}
-                </h3>
-
-                <p style="color:#aaa; font-size:0.9rem; line-height:1.6; margin-bottom:10px;">
-                    ${(p.body || '').substring(0, 120)}...
-                </p>
-
+                <div style="color: #d4a017; font-size: 0.75rem; font-weight: bold; margin-bottom: 5px;">${categoryLabel}</div>
+                <h3 style="margin:0 0 10px; font-size:1.1rem; line-height:1.4; color:var(--text-color);">${p.title || '無題'}</h3>
+                <p style="color:#aaa; font-size:0.9rem; line-height:1.6; margin-bottom:10px;">${(p.body || '').substring(0, 100)}...</p>
                 ${adminPanelHTML}
-
-                <div style="font-size:0.75rem; color:#8c827a; margin-top:8px;">
-                    ${p.date || ''}
-                </div>
+                <div style="font-size:0.75rem; color:#8c827a; margin-top:8px;">${p.date || ''}</div>
             </div>
         `;
-
         grid.appendChild(card);
-    }); // 🚩 ここで db.posts.forEach などのループを閉じる
-} // 🚩 ここで renderArticlesGrid 関数を終了させる
+    });
 
-    function buildPaginationControls(totalPages) {
-        const pagBox = document.getElementById('pagination');
-        pagBox.innerHTML = '';
-        if (totalPages <= 1) return;
+    buildPaginationControls(totalPages);
+}
 
-        for (let i = 1; i <= totalPages; i++) {
-            const btn = document.createElement('button');
-            btn.innerText = i;
-            btn.className = 'page-btn ' + (i === currentPage ? 'active' : '');
-            btn.onclick = () => {
-                currentPage = i;
-                renderArticlesGrid();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            };
-            pagBox.appendChild(btn);
-        }
-    }
-
-    // 記事の詳細表示 (見え方改善＆カテゴリー変更機能)
-    let currentDetailArticleId = null; // カテゴリー保存用
-
+/**
+ * 記事の詳細を表示する関数
+ * @param {number|string} id - クリックされた記事のID
+ */
 function showArticleDetail(id) {
-    currentDetailArticleId = id;
     const p = db.posts.find(item => item.id === id);
     if (!p) return;
 
-    // 🖼️ 1. 画像の表示処理 (HTMLになければ自動でタイトルの上に追加)
-    let imgEl = document.getElementById('detail-image');
-    if (!imgEl) {
-        imgEl = document.createElement('img');
-        imgEl.id = 'detail-image';
-        // 💡 画像のスタイル設定（横幅いっぱいに広げ、角を丸くし、高さを制限して綺麗に収めます）
-        imgEl.style = "width: 100%; border-radius: 12px; margin-bottom: 15px; max-height: 250px; object-fit: cover; display: none;";
-        const titleEl = document.getElementById('detail-title');
-        if (titleEl) {
-            titleEl.parentNode.insertBefore(imgEl, titleEl);
+    // 1. 画像の表示
+    const imgEl = document.getElementById('detail-image');
+    if (imgEl) {
+        if (p.image) {
+            imgEl.src = p.image;
+            imgEl.style.display = 'block';
+        } else {
+            imgEl.style.display = 'none';
         }
     }
 
-    // 画像URLがデータベースにあれば表示、なければ非表示に
-    if (p.image) {
-        imgEl.src = p.image;
-        imgEl.style.display = 'block';
-    } else {
-        imgEl.style.display = 'none';
+    // 2. カテゴリー情報の取得
+    const catData = AIVERSE_CATEGORIES.find(c => c.id === p.category);
+    const categoryName = catData ? catData.label : "未分類";
+
+    // 一般表示用ラベルへの反映
+    const labelDisplay = document.getElementById('detail-category-label');
+    if (labelDisplay) {
+        labelDisplay.innerText = categoryName;
+        // 管理者でも一般でも、現在のカテゴリー名がわかるように表示
+        labelDisplay.style.display = 'block';
     }
 
-// 🚩 カテゴリー選択欄（プルダウン）の取得と初期値設定
-const selector = document.getElementById('detail-category-selector');
+    // 3. 🚩 管理者用プルダウンの生成と反映
+    const selector = document.getElementById('detail-category-selector');
     if (selector) {
-        // 1. 開いた記事のカテゴリーを現在の値にセット（これで「宇宙」などが表示される）
-        selector.value = p.category || "";
+        if (db.isAdmin) {
+            selector.style.display = 'block';
 
-        // 2. プルダウンを変更した時の処理
-        selector.onchange = () => {
-            if (!db.isAdmin) return; // 管理者以外は何もしない
+            // --- 🚩 ここが重要：プルダウンの選択肢を毎回クリアして作り直す ---
+            selector.innerHTML = '<option value="">カテゴリーを選択</option>';
+            AIVERSE_CATEGORIES.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.label;
+                selector.appendChild(opt);
+            });
 
-            const newCategory = selector.value;
-            if (confirm(`カテゴリーを「${newCategory}」に変更して保存しますか？`)) {
-                // 内部データの書き換え
-                p.category = newCategory;
+            // 現在の記事のカテゴリーを選択状態にする
+            selector.value = p.category || "";
 
-                // 🚩 【重要】サーバーのDBとブラウザの両方に保存を実行
-                if (typeof saveDB === 'function') saveDB();
-                if (typeof saveToLocalStorage === 'function') saveToLocalStorage();
+            // 変更時の保存処理
+            selector.onchange = () => {
+                const newCategory = selector.value;
+                if (confirm(`カテゴリーを「${newCategory}」に変更して保存しますか？`)) {
+                    p.category = newCategory;
+                    if (typeof saveDB === 'function') saveDB(); // サーバー保存
+                    renderArticlesGrid(); // 一覧を再描画
 
-                // メイン画面のグリッドを再描画（これでカード側のデータも更新される）
-                renderArticlesGrid();
-
-                console.log("カテゴリーを更新しました: " + newCategory + " 🐾");
-            } else {
-                // キャンセルした場合は表示を元に戻す
-                selector.value = p.category || "";
-            }
-        };
-
-
-    if (db.isAdmin) {
-        // 🚩 管理者でも表示を完全に消す設定に変更
-        selector.style.cssText = "display: none !important;";
-    } else {
-        // 一般ユーザーも同様に非表示
-        selector.style.cssText = "display: none !important;";
+                    // ラベル表示も即座に更新
+                    const newCatData = AIVERSE_CATEGORIES.find(c => c.id === newCategory);
+                    if (labelDisplay) labelDisplay.innerText = newCatData ? newCatData.label : "未分類";
+                } else {
+                    selector.value = p.category; // キャンセルなら戻す
+                }
+            };
+        } else {
+            // 一般ユーザーは隠す
+            selector.style.display = 'none';
+        }
     }
-} // 🚩【重要】ここで if (selector) を閉じます（これが抜けていました）
-    // ✍ 3. タイトル、日付、本文の書き込み
-    document.getElementById('detail-title').innerText = p.title;
-    document.getElementById('detail-body').innerHTML = p.body;
-    openModal('detail-modal');
-} // 🚩 ここで showArticleDetail 関数を終了させる（} は1つだけ！）
 
-// ⚙️ ドロップダウン制御：絶対に動く安全版
+// 4. タイトル・本文の流し込み
+    const titleEl = document.getElementById('detail-title');
+    const bodyEl = document.getElementById('detail-body');
+
+    if (titleEl) titleEl.innerText = p.title || '無題';
+
+    if (bodyEl) {
+        // 🚩 ここを marked.parse(p.body) に変更！
+        // これでエディタの # や * が見出しや箇条書きとしてそのまま反映されます
+        bodyEl.innerHTML = marked.parse(p.body || ''); 
+    }
+
+    openModal('detail-modal');
+}
+/**
+ * ページネーション生成
+ */
+function buildPaginationControls(totalPages) {
+    const pagBox = document.getElementById('pagination');
+    if (!pagBox) return;
+    pagBox.innerHTML = '';
+    if (totalPages <= 1) return;
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.innerText = i;
+        btn.className = 'page-btn ' + (i === currentPage ? 'active' : '');
+        btn.onclick = () => {
+            currentPage = i;
+            renderArticlesGrid();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        pagBox.appendChild(btn);
+    }
+}
+
+/**
+ * ⚙️ ギアドロップダウン制御
+ */
 function toggleGearMenu(e) {
     if (e) e.stopPropagation();
     const menu = document.getElementById('gear-menu');
-    if (!menu) {
-        console.error("gear-menuが見つかりません。HTMLのIDを確認してください。");
-        return;
-    }
-    menu.classList.toggle('show');
+    if (menu) menu.classList.toggle('show');
 }
 
-// 画面外クリックで閉じる処理
+// メニュー外クリックで閉じる
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('gear-menu');
     if (menu && menu.classList.contains('show')) {
-        // クリックされたのがメニュー自体やボタンでない場合のみ閉じる
         if (!menu.contains(e.target)) {
             menu.classList.remove('show');
         }
