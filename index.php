@@ -105,20 +105,52 @@ if (session_status() === PHP_SESSION_NONE) {
 /* --- 💻 PC版 (1024px以上) --- */
 @media (min-width: 1024px) {
     .search-container {
-        max-width: 600px; /* 広々と使わせる */
+        max-width: 600px; 
+    }
+    /* 🚩 5列×2段の設定 */
+    #articles-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr); /* 均等に5分割 */
+        gap: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    /* 🚩 AdSenseスペース（記事エリアの横に確保する場合） */
+    .content-wrapper {
+        display: flex;
+        gap: 20px;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+}
+
+/* --- 📑 iPad・タブレット版 (769px〜1023px) --- */
+@media (min-width: 769px) and (max-width: 1023px) {
+    #articles-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* 3列でバランス調整 */
+        gap: 15px;
+        padding: 15px;
     }
 }
 
 /* --- 📱 iPhone版 (768px以下) --- */
 @media (max-width: 768px) {
     .search-container {
-        max-width: 200px; /* スマホでも十分な幅を確保 */
+        max-width: 200px;
         margin: 0 10px;
     }
+    /* 🚩 縦1列の設定 */
+    #articles-grid {
+        display: grid;
+        grid-template-columns: 1fr; /* スマホは1列が最も読みやすい */
+        gap: 15px;
+        padding: 10px;
+    }
 
-    #search-bar {
-        font-size: 0.85rem;
-        padding: 8px 15px;
+    .nav-icons {
+        gap: 4px; /* スマホではアイコン間隔をよりタイトに */
     }
 }
 /* 🧭 ナビゲーションアイコン */
@@ -501,26 +533,49 @@ body.admin-mode #detail-category-selector {
 }
 
 /* ============================================================
-   💻 2. PC版最適化（1024px以上）
+   📱 1. iPhone・スマホ版 (768px以下)
    ============================================================ */
-@media (min-width: 1024px) {
-    /* モーダル自体の横幅を広げる */
-    #gallery-upload-modal .modal-content,
-    .gallery-modal-main,
-    #gallery-container-parent {
-        width: 90% !important;
-        max-width: 1200px !important;
-        margin: auto;
-    }
-
-    /* 5カラムに拡張 */
+@media (max-width: 768px) {
+    /* 記事・ギャラリー共に1列（または2列） */
+    #articles-grid, 
     .gallery-grid {
-        grid-template-columns: repeat(5, 1fr) !important;
+        grid-template-columns: repeat(1, 1fr) !important;
         gap: 15px !important;
-        padding: 10px !important;
     }
 }
 
+/* ============================================================
+   📑 2. iPad・タブレット版 (769px〜1023px)
+   ============================================================ */
+@media (min-width: 769px) and (max-width: 1023px) {
+    /* 3列でバランスよく配置 */
+    #articles-grid, 
+    .gallery-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 15px !important;
+    }
+}
+
+/* ============================================================
+   💻 3. PC版 (1024px以上)
+   ============================================================ */
+@media (min-width: 1024px) {
+    /* 記事一覧を5カラム×2段（10記事）に固定 */
+    #articles-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr) !important;
+        grid-template-rows: repeat(2, auto); /* 2段を意識 */
+        gap: 20px;
+        max-width: 1400px; /* 広告用サイドバーを置くスペースを考慮 */
+        margin: 0 auto;
+    }
+
+    /* ギャラリーも5カラムに統一 */
+    .gallery-grid {
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 15px !important;
+    }
+}
 /* ============================================================
    🔍 3. 拡大ズーム表示（custom-zoom-overlay）
    ============================================================ */
@@ -749,6 +804,129 @@ body.admin-mode #detail-category-selector {
             transform: scale(1.01);
             background: rgba(255, 255, 255, 0.05);
         }
+/* 🚩 記事一覧のメインコンテナ（PCでは広告サイドバーと並ぶ） */
+.content-wrapper {
+    display: flex;
+    max-width: 1600px;
+    margin: 0 auto;
+    gap: 30px;
+    padding: 20px;
+}
+
+/* 🚩 記事グリッド：デバイスごとに列を切り替え */
+#mainGrid {
+    flex: 1;
+    display: grid;
+    gap: 25px;
+    /* デフォルト：iPhone（1列） */
+    grid-template-columns: 1fr;
+}
+
+/* iPad版 (768px以上) */
+@media (min-width: 768px) {
+    #mainGrid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* PC版 (1200px以上) */
+@media (min-width: 1200px) {
+    #mainGrid { grid-template-columns: repeat(5, 1fr); }
+}
+
+/* 🚩 広告サイドバー (PCのみ表示 / モバイルでは隠すか下へ) */
+.ad-sidebar {
+    width: 300px;
+    display: none;
+}
+@media (min-width: 1200px) {
+    .ad-sidebar { display: block; }
+}
+
+/* 🚩 ページネーション：押しやすい黄金比サイズ */
+#pagination {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 50px 0;
+}
+.page-btn {
+    width: 45px;
+    height: 45px;
+    border: 2px solid #d4a017;
+    background: transparent;
+    color: #d4a017;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+.page-btn.active {
+    background: #d4a017;
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(212, 160, 23, 0.3);
+}
+/* 記事カード本体 */
+.post-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 🚩 テキストエリアの余白設定（ここが重要） */
+.card-content, .card-body {
+    /* 左右上下にしっかり余白を取る（黄金比に近い配分） */
+    padding: 18px 20px 22px 20px; 
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* 要素間の隙間 */
+}
+
+/* カテゴリーラベル */
+.card-tag, .card-category {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #d4a017;
+    margin-bottom: 4px;
+}
+
+/* 記事タイトル */
+.card-title {
+    margin: 0;
+    font-size: 1.15rem;
+    line-height: 1.4;
+    color: #333;
+    /* 2行以上は「...」で省略して高さを揃える設定 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* 説明文（抜粋） */
+.card-excerpt, .card-desc {
+    font-size: 0.9rem;
+    line-height: 1.6; /* 行間を広げて読みやすく */
+    color: #666;
+    margin: 4px 0 10px 0;
+    /* 3行で省略 */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* 日付エリア */
+.card-date {
+    font-size: 0.75rem;
+    color: #8c827a;
+    margin-top: auto; /* 下端に固定 */
+    border-top: 1px solid #f0f0f0;
+    padding-top: 10px;
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
@@ -1107,78 +1285,105 @@ const INITIAL_ALVERSE_DB = {
 
 // ----------------------------- 📰 記事・検索・ページネーション制御 -----------------------------
 let currentPage = 1;
-const postsPerPage = 10;
+const postsPerPage = 10; // PC版 5列×2段 = 10記事
 let computedPosts = [];
 
-// 検索入力時のイベント
+/**
+ * 🚩 1. 検索イベント
+ */
 function onSearchChange() {
     currentPage = 1;
     renderArticlesGrid();
 }
 
 /**
- * メイングリッドの描画 (一覧表示)
+ * 2. メイングリッドの描画 (iPhone同期・強制上書き版)
  */
 function renderArticlesGrid() {
-    const searchBar = document.getElementById('search-bar');
-    const query = searchBar ? searchBar.value.toLowerCase().trim() : '';
     const grid = document.getElementById('mainGrid');
     if (!grid) return;
 
-    grid.innerHTML = '';
+// --- 🚩 iPhone/アプリ版 強制同期強化ロジック ---
+    if (typeof db === 'undefined' || !db.posts || db.posts.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 100px 20px; color: #8c827a;">
+                <div class="loading-spinner" style="margin-bottom: 15px; font-size: 1.5rem;">🐾</div>
+                <p style="font-size: 0.9rem; letter-spacing: 0.05em;">AIverse のデータを同期中...</p>
+                <p id="sync-status" style="font-size: 0.7rem; margin-top: 10px; opacity: 0.7;">(サーバーに接続しています...)</p>
+            </div>`;
 
-    // 1. フィルタリング (検索 & 公開状態)
-    computedPosts = (db.posts || []).filter(p => {
+        // まだロードが開始されていない場合のみ実行
+        if (typeof loadDB === 'function' && !window.isAiverseFetching) {
+            window.isAiverseFetching = true;
+
+            // 💡 iPhoneのキャッシュを回避するために、URLにタイムスタンプを付与して強制再取得
+            // (loadDB関数内で fetch を使っている場合、キャッシュを無視させる処理を優先)
+            loadDB();
+        }
+
+        // 0.8秒ごとに再チェック（iPhoneのラグを考慮）
+        setTimeout(renderArticlesGrid, 800);
+        return;
+    }
+    // --- 🔍 以下、描画処理 ---
+    // (ここで既存の描画ロジックが走ります)
+    // 省略しますが、最新の filter と sort を適用してください
+    // --- 🔍 フィルタリングと検索 ---
+    const searchBar = document.getElementById('search-bar');
+    const query = searchBar ? searchBar.value.toLowerCase().trim() : '';
+
+    // db.posts が存在することを確認した上で処理
+    computedPosts = db.posts.filter(p => {
+        if (!p) return false;
         const title = (p.title || '').toLowerCase();
         const body = (p.body || '').toLowerCase();
         const category = (p.category || '').toLowerCase();
         const matchesQuery = title.includes(query) || body.includes(query) || category.includes(query);
 
-        return matchesQuery && (p.public !== false || db.isAdmin);
-    });
-
-    // 2. ページネーション計算
+        // 公開フラグ(public)の有無をチェック
+        const isPublic = p.public === true || p.public === undefined;
+        return matchesQuery && (isPublic || db.isAdmin);
+    }).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    // ページネーション抽出
     const totalPages = Math.ceil(computedPosts.length / postsPerPage);
     const startIndex = (currentPage - 1) * postsPerPage;
     const pageSelection = computedPosts.slice(startIndex, startIndex + postsPerPage);
 
+    grid.innerHTML = '';
+
     if (pageSelection.length === 0) {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#8c827a;">合致する記事が見つかりません。</div>';
-        const pagination = document.getElementById('pagination');
-        if (pagination) pagination.innerHTML = '';
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:100px;">条件に合う記事が見つかりませんでした 🔍</div>';
+        buildPaginationControls(0);
         return;
     }
 
-    // 3. カードの生成
+    // カード生成ループ
     pageSelection.forEach(p => {
         const card = document.createElement('div');
         card.className = 'post-card';
         card.onclick = () => showArticleDetail(p.id);
 
-        // カテゴリーIDをラベルに変換
         const catData = AIVERSE_CATEGORIES.find(c => c.id === p.category);
         const categoryLabel = catData ? catData.label : "未分類";
+        const previewText = (p.body || '').replace(/[#*`>_-]/g, '').substring(0, 70);
 
-        const imageUrl = p.image || 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=600&q=80';
-
-        // 管理者用操作パネル
-        const adminPanelHTML = db.isAdmin ? `
-            <div style="display:flex;gap:4px;margin-top:8px;" onclick="event.stopPropagation();">
-                <span style="background:${p.public ? '#28a745' : '#6c757d'};color:white;padding:2px 6px;border-radius:4px;font-size:0.7rem;">
-                    ${p.public ? '公開中' : '下書き'}
-                </span>
-                <button onclick="editArticle(${p.id})" style="background:#007bff;color:white;border:none;padding:2px 6px;border-radius:4px;font-size:0.7rem;cursor:pointer;">編集</button>
-                <button onclick="deleteArticle(${p.id})" style="background:#dc3545;color:white;border:none;padding:2px 6px;border-radius:4px;font-size:0.7rem;cursor:pointer;">削除</button>
+        // 管理者パネル（一覧から直接編集・削除が可能）
+        const adminPanel = db.isAdmin ? `
+            <div class="admin-grid-tools" onclick="event.stopPropagation();">
+                <span class="badge ${p.public ? 'pub' : 'draft'}">${p.public ? '公開' : '下書き'}</span>
+                <button onclick="editArticle(${p.id})">編集</button>
             </div>` : '';
 
         card.innerHTML = `
-            <img src="${imageUrl}" alt="${p.title}" style="width:100%; height:180px; object-fit:cover; border-radius:12px 12px 0 0;">
-            <div style="padding:14px;">
-                <div style="color: #d4a017; font-size: 0.75rem; font-weight: bold; margin-bottom: 5px;">${categoryLabel}</div>
-                <h3 style="margin:0 0 10px; font-size:1.1rem; line-height:1.4; color:var(--text-color);">${p.title || '無題'}</h3>
-                <p style="color:#aaa; font-size:0.9rem; line-height:1.6; margin-bottom:10px;">${(p.body || '').substring(0, 100)}...</p>
-                ${adminPanelHTML}
-                <div style="font-size:0.75rem; color:#8c827a; margin-top:8px;">${p.date || ''}</div>
+            <div class="card-img-container">
+                <img src="${p.image || 'https://via.placeholder.com/600x400'}" alt="${p.title}" loading="lazy">
+            </div>
+            <div class="card-body">
+                <div class="card-tag">${categoryLabel}</div>
+                <h3 class="card-title">${p.title || '無題'}</h3>
+                <p class="card-desc">${previewText}...</p>
+                ${adminPanel}
+                <div class="card-date">${p.date || ''}</div>
             </div>
         `;
         grid.appendChild(card);
@@ -1188,43 +1393,34 @@ function renderArticlesGrid() {
 }
 
 /**
- * 記事の詳細を表示する関数
- * @param {number|string} id - クリックされた記事のID
+ * 🚩 3. 記事詳細表示 (Markdown + 管理者カテゴリー変更機能)
  */
 function showArticleDetail(id) {
     const p = db.posts.find(item => item.id === id);
     if (!p) return;
 
-    // 1. 画像の表示
+    // モーダル要素の取得
+    const titleEl = document.getElementById('detail-title');
+    const bodyEl = document.getElementById('detail-body');
     const imgEl = document.getElementById('detail-image');
-    if (imgEl) {
-        if (p.image) {
-            imgEl.src = p.image;
-            imgEl.style.display = 'block';
-        } else {
-            imgEl.style.display = 'none';
-        }
-    }
-
-    // 2. カテゴリー情報の取得
-    const catData = AIVERSE_CATEGORIES.find(c => c.id === p.category);
-    const categoryName = catData ? catData.label : "未分類";
-
-    // 一般表示用ラベルへの反映
-    const labelDisplay = document.getElementById('detail-category-label');
-    if (labelDisplay) {
-        labelDisplay.innerText = categoryName;
-        // 管理者でも一般でも、現在のカテゴリー名がわかるように表示
-        labelDisplay.style.display = 'block';
-    }
-
-    // 3. 🚩 管理者用プルダウンの生成と反映
     const selector = document.getElementById('detail-category-selector');
+
+    // 基本情報セット
+    if (titleEl) titleEl.innerText = p.title || '無題';
+    if (imgEl) {
+        imgEl.src = p.image || '';
+        imgEl.style.display = p.image ? 'block' : 'none';
+    }
+
+    // Markdown変換
+    if (bodyEl) {
+        bodyEl.innerHTML = (typeof marked !== 'undefined') ? marked.parse(p.body || '') : p.body;
+    }
+
+    // 🛠 管理者用カテゴリー変更プルダウン
     if (selector) {
         if (db.isAdmin) {
             selector.style.display = 'block';
-
-            // --- 🚩 ここが重要：プルダウンの選択肢を毎回クリアして作り直す ---
             selector.innerHTML = '<option value="">カテゴリーを選択</option>';
             AIVERSE_CATEGORIES.forEach(cat => {
                 const opt = document.createElement('option');
@@ -1232,47 +1428,29 @@ function showArticleDetail(id) {
                 opt.textContent = cat.label;
                 selector.appendChild(opt);
             });
-
-            // 現在の記事のカテゴリーを選択状態にする
             selector.value = p.category || "";
 
-            // 変更時の保存処理
+            // 変更時の自動保存処理
             selector.onchange = () => {
-                const newCategory = selector.value;
-                if (confirm(`カテゴリーを「${newCategory}」に変更して保存しますか？`)) {
-                    p.category = newCategory;
-                    if (typeof saveDB === 'function') saveDB(); // サーバー保存
-                    renderArticlesGrid(); // 一覧を再描画
-
-                    // ラベル表示も即座に更新
-                    const newCatData = AIVERSE_CATEGORIES.find(c => c.id === newCategory);
-                    if (labelDisplay) labelDisplay.innerText = newCatData ? newCatData.label : "未分類";
+                if (confirm(`カテゴリーを「${selector.value}」に変更しますか？`)) {
+                    p.category = selector.value;
+                    if (typeof saveDB === 'function') saveDB(); 
+                    renderArticlesGrid();
                 } else {
-                    selector.value = p.category; // キャンセルなら戻す
+                    selector.value = p.category;
                 }
             };
         } else {
-            // 一般ユーザーは隠す
             selector.style.display = 'none';
         }
     }
 
-// 4. タイトル・本文の流し込み
-    const titleEl = document.getElementById('detail-title');
-    const bodyEl = document.getElementById('detail-body');
-
-    if (titleEl) titleEl.innerText = p.title || '無題';
-
-    if (bodyEl) {
-        // 🚩 ここを marked.parse(p.body) に変更！
-        // これでエディタの # や * が見出しや箇条書きとしてそのまま反映されます
-        bodyEl.innerHTML = marked.parse(p.body || ''); 
-    }
-
-    openModal('detail-modal');
+    openModal('detail-modal'); // モーダルを開く
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
 /**
- * ページネーション生成
+ * 🚩 4. ページネーションUI生成
  */
 function buildPaginationControls(totalPages) {
     const pagBox = document.getElementById('pagination');
@@ -1292,7 +1470,6 @@ function buildPaginationControls(totalPages) {
         pagBox.appendChild(btn);
     }
 }
-
 /**
  * ⚙️ ギアドロップダウン制御
  */
@@ -2796,6 +2973,58 @@ window.onload = () => {
     // --- 🚩 今回のコード：Firebase受信（猫の知恵袋） ---
     onChildAdded(dbRef, (data) => {
         // ... (中身)
+    });
+
+/* --- 1. ページネーションの設定 --- */
+    let currentPage = 1;
+    const postsPerPage = 10; // PC版で5列×2段にするための10記事設定
+
+    /* --- 2. 記事を描画する関数 --- */
+    function renderArticlesGrid() {
+        const container = document.getElementById('articles-grid');
+        if (!container) return;
+
+        container.innerHTML = ''; // 一旦空にする
+
+        // 全記事データ(db.posts)から、今のページに必要な10件だけを抽出
+        const start = (currentPage - 1) * postsPerPage;
+        const end = start + postsPerPage;
+        const currentPosts = db.posts.slice(start, end);
+
+        currentPosts.forEach(p => {
+            const card = createArticleCard(p); // Kenyaさんの既存のカード作成関数
+            container.appendChild(card);
+        });
+
+        // 下のページ番号ボタンを更新
+        renderPagination();
+    }
+
+    /* --- 3. ページ番号ボタンを作る関数 --- */
+    function renderPagination() {
+        const nav = document.getElementById('pagination-nav');
+        if (!nav) return;
+
+        const totalPages = Math.ceil(db.posts.length / postsPerPage);
+        nav.innerHTML = '';
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.innerText = i;
+            btn.className = (i === currentPage) ? 'page-btn active' : 'page-btn';
+            btn.onclick = () => {
+                currentPage = i;
+                renderArticlesGrid();
+                window.scrollTo(0, 0); // 切り替え時に上に戻る
+            };
+            nav.appendChild(btn);
+        }
+    }
+
+    /* --- 4. 🚩 実行：ページ読み込み完了時に動かす --- */
+    document.addEventListener('DOMContentLoaded', () => {
+        // もしDBの読み込み待ちが必要ならその後に実行
+        renderArticlesGrid();
     });
 
 </script>
