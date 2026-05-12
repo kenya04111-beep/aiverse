@@ -1405,9 +1405,10 @@ function onSearchChange() {
  * 2. メイングリッドの描画 (iPhone同期・強制上書き版)
  */
 function renderArticlesGrid() {
+    db = window.db || db;
+
     const grid = document.getElementById('mainGrid');
     if (!grid) return;
-
 // --- 🚩 iPhone/アプリ版 強制同期強化ロジック ---
     if (typeof db === 'undefined' || !db.posts || db.posts.length === 0) {
         grid.innerHTML = `
@@ -1438,7 +1439,7 @@ function renderArticlesGrid() {
     const query = searchBar ? searchBar.value.toLowerCase().trim() : '';
 
     // db.posts が存在することを確認した上で処理
-    computedPosts = db.posts.filter(p => {
+    computedPosts = window.db.posts.filter(p => {
         if (!p) return false;
         const title = (p.title || '').toLowerCase();
         const body = (p.body || '').toLowerCase();
@@ -1447,7 +1448,7 @@ function renderArticlesGrid() {
 
         // 公開フラグ(public)の有無をチェック
         const isPublic = p.public === true || p.public === undefined;
-        return matchesQuery && (isPublic || db.isAdmin);
+        return matchesQuery && (isPublic || window.db.isAdmin);
     }).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
     // ページネーション抽出
     const totalPages = Math.ceil(computedPosts.length / postsPerPage);
