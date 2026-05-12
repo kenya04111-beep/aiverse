@@ -485,9 +485,13 @@ body.admin-mode #detail-category-selector {
    ============================================================ */
 .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    /* モバイルでは2列、PCでは3列〜5列に自動調整 */
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 12px;
     margin-top: 18px;
+    /* iOSでの横揺れ防止 */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .gallery-item {
@@ -498,40 +502,48 @@ body.admin-mode #detail-category-selector {
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     cursor: zoom-in;
     background: #f0f0f0;
+    /* タップ時の青いハイライトを消す（iOS用） */
+    -webkit-tap-highlight-color: transparent;
 }
 
 .gallery-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    /* 読み込みまで画像を表示させないことでガタつきを防止 */
+    display: block;
     transition: transform 0.3s ease;
 }
 
-.gallery-item:hover img {
-    transform: scale(1.05); /* ホバーで少し拡大 */
+/* ホバーはPCのみ適用、モバイルでの誤作動防止 */
+@media (hover: hover) {
+    .gallery-item:hover img {
+        transform: scale(1.05);
+    }
 }
 
-/* 🗑️ 削除ボタン（一覧時） */
+/* 🗑️ 削除ボタン（タッチしやすいよう少しサイズアップ） */
 .gallery-delete {
     position: absolute;
-    top: 6px;
-    right: 6px;
-    background: rgba(220, 53, 69, 0.9);
+    top: 8px;
+    right: 8px;
+    background: rgba(220, 53, 69, 0.95);
     color: white;
-    border: 2px solid white; /* 視認性アップ */
+    border: 2px solid white;
     border-radius: 50%;
-    width: 26px;
-    height: 26px;
+    width: 32px;  /* 26pxから32pxへ：指で押しやすく */
+    height: 32px;
     cursor: pointer;
     font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 16px;
     z-index: 10;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    /* ボタンを押しやすくするための余白を内側に確保 */
+    padding: 0;
 }
-
 /* ============================================================
    📱 1. iPhone・スマホ版 (768px以下)
    ============================================================ */
@@ -927,6 +939,56 @@ body.admin-mode #detail-category-selector {
     border-top: 1px solid #f0f0f0;
     padding-top: 10px;
 }
+/* ロゴ全体のレイアウト */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: white;
+    user-select: none; /* テキスト選択を防止 */
+}
+
+/* SVGアイコンのサイズと初期色（青） */
+.logo-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+}
+
+.dog-svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: #00e6ff; /* IDLE時の青 */
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.2s ease;
+}
+
+/* 共通パーツの線幅 */
+.dog-path {
+    stroke-width: 8;
+}
+
+/* 口のパーツ設定 */
+.dog-mouth {
+    stroke-width: 4.5;
+    transition: opacity 0.2s ease;
+}
+
+.dog-happy-mouth {
+    stroke-width: 7; /* 笑顔は少し太くして強調 */
+}
+
+/* HAPPY状態（オレンジ）の定義 */
+.logo.is-happy .dog-svg {
+    stroke: #ff9900;
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
@@ -934,10 +996,53 @@ body.admin-mode #detail-category-selector {
 
 <header>
     <!-- ロゴ：クリックでリロード、ホバー時に少し動く -->
-    <div class="logo" onclick="location.reload()" title="AIverse ホームへ">
-        <span class="logo-icon">🐶</span> Alverse
-    </div>
+<div class="logo" onclick="toggleAIverseMode(this)" title="AIverse モード切替">
+    <span class="logo-icon">
+        <svg id="dog-logo-svg" class="dog-svg" viewBox="0 0 128 128">
+            <path class="dog-path" d="M40 30 L88 30 L118 60 L100 60 L108 95 L64 115 L20 95 L28 60 L10 60 Z" />
+            <line class="dog-path" x1="40" y1="30" x2="28" y2="60" />
+            <line class="dog-path" x1="88" y1="30" x2="100" y2="60" />
+            <circle class="dog-path" cx="48" cy="72" r="10.5" stroke-width="6.5" />
+            <circle class="dog-path" cx="80" cy="72" r="10.5" stroke-width="6.5" />
+            <circle cx="48" cy="72" r="3.5" fill="white" stroke="none" />
+            <circle cx="80" cy="72" r="3.5" fill="white" stroke="none" />
+            <path d="M60 82 L68 82 L64 90 Z" fill="white" stroke="none" />
 
+            <path id="idle-mouth" class="dog-mouth" d="M64 90 L64 98 Q64 104 55 104 M64 90 Q64 104 73 104" />
+            <path id="happy-mouth" class="dog-mouth dog-happy-mouth" d="M45 95 Q64 110 83 95" style="display: none;" />
+
+            <line class="dog-path" x1="28" y1="90" x2="43" y2="90" stroke-width="6" />
+            <line class="dog-path" x1="31" y1="98" x2="41" y2="98" stroke-width="6" />
+            <line class="dog-path" x1="100" y1="90" x2="85" y2="90" stroke-width="6" />
+            <line class="dog-path" x1="97" y1="98" x2="87" y2="98" stroke-width="6" />
+        </svg>
+    </span>
+    Alverse
+</div>
+
+<script>
+/**
+ * ロゴ、口の形、ブラウザタイトルをすべて同期して切り替える関数
+ */
+window.toggleAIverseMode = function(el) {
+    // 1. ロゴの色をトグル
+    el.classList.toggle('is-happy');
+
+    const isHappy = el.classList.contains('is-happy');
+    const idleM = document.getElementById('idle-mouth');
+    const happyM = document.getElementById('happy-mouth');
+
+    // 2. 表情（口）の切り替え
+    if (idleM && happyM) {
+        idleM.style.display = isHappy ? 'none' : 'block';
+        happyM.style.display = isHappy ? 'block' : 'none';
+    }
+
+    // 3. ブラウザのタイトル（<title>）の絵文字も切り替え！
+    // HAPPYならオレンジ(🐶)、通常なら青い犬(🐶)
+    document.title = isHappy ? "🐶 Alverse" : "🐶 Alverse";
+};
+</script>
     <!-- 検索バー：中央配置で視認性を向上 -->
     <div class="search-container">
         <div class="search-wrapper">
@@ -1488,35 +1593,56 @@ document.addEventListener('click', function(e) {
         }
     }
 });
-    // ----------------------------- 🌛 ダークモード＆管理者長押し (現状維持) -----------------------------
+// --- 🌛 ダークモード切り替え & 管理者長押し (強化版) ---
     let pressTimer;
+    let isLongPress = false; // 長押し判定フラグ（クリックとの重複防止）
     const dmBtn = document.getElementById('dark-mode-btn');
 
-    dmBtn.addEventListener('pointerdown', function(e) {
-        e.preventDefault();
-    pressTimer = setTimeout(() => {
-                const pass = prompt("🔑 パスワードを入力してください：");
+    if (dmBtn) {
+        // 1. 長押し判定 (管理者ログイン)
+        dmBtn.addEventListener('pointerdown', function(e) {
+            isLongPress = false;
+            pressTimer = setTimeout(() => {
+                isLongPress = true; // 1.1秒経過で長押し確定
+                const pass = prompt("🔑 管理者パスワード：");
                 if (pass === "nekosuke101") {
                     db.isAdmin = true;
                     saveToLocalStorage();
-                    renderArticlesGrid();
-                    document.getElementById('admin-logout-item').style.display = 'block';
-                    alert("認証成功：管理者コントロール解放！");
-                    openModal('admin-modal');
+
+                    // UI更新
+                    if (typeof renderArticlesGrid === 'function') renderArticlesGrid();
+                    const logoutBtn = document.getElementById('admin-logout-item');
+                    if (logoutBtn) logoutBtn.style.display = 'block';
+
+                    alert("認証成功：管理者モード有効");
+                    if (typeof openModal === 'function') openModal('admin-modal');
                 } else if (pass !== null) {
                     alert("パスワードが違います。");
                 }
             }, 1100);
         });
-    dmBtn.addEventListener('pointerup', function() { clearTimeout(pressTimer); });
-    dmBtn.addEventListener('pointerleave', function() { clearTimeout(pressTimer); });
-    dmBtn.addEventListener('click', function() {
-        const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        document.body.setAttribute('data-theme', theme);
-        db.theme = theme;
-        saveToLocalStorage();
-    });
 
+        // 2. 指が離れた、またはエリア外に出た場合はタイマー解除
+        const cancelPress = () => clearTimeout(pressTimer);
+        dmBtn.addEventListener('pointerup', cancelPress);
+        dmBtn.addEventListener('pointerleave', cancelPress);
+
+        // 3. 通常クリック (ダークモード切り替え)
+        dmBtn.addEventListener('click', function() {
+            // 長押しが成功した直後はテーマを切り替えない
+            if (isLongPress) return;
+
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+
+            document.body.setAttribute('data-theme', newTheme);
+            db.theme = newTheme;
+
+            if (typeof saveToLocalStorage === 'function') {
+                saveToLocalStorage();
+            }
+        });
+    }
 // --- ⚙️ 設定: Firebase BBSパス ---
 const BBS_ENDPOINT = 'https://alverse-project-default-rtdb.firebaseio.com/chiebukuro/posts.json';
 
@@ -1683,46 +1809,89 @@ function toggleSecretMode() {
     }
 }
 
-// ----------------------------- 🖼️ フォトギャラリー (同期・自動更新版) -----------------------------
+// ----------------------------- 🖼️ フォトギャラリー (完全版) -----------------------------
 
-// 1. サーバーから画像リストを取得（キャッシュ対策済み）
+// 1. サーバーから最新の画像リストを取得
 async function loadServerGallery() {
     try {
-        // ?t=... を付けてブラウザキャッシュを強制回避
+        // キャッシュを避けるためタイムスタンプを付与
         const response = await fetch(`gallery.json?t=${Date.now()}`);
         if (response.ok) {
             const serverData = await response.json();
-            db.gallery = serverData || []; // サーバーの最新リストを反映
+            // データの安全な読み込み
+            db.gallery = Array.isArray(serverData) ? serverData : [];
             renderGallery();
         }
     } catch (e) {
-        console.error("ギャラリーの読み込み失敗:", e);
+        console.error("ギャラリーの同期失敗:", e);
     }
 }
 
-    // 2. ギャラリーの描画
-    function renderGallery() {
-        const container = document.getElementById('gallery-container');
-        if (!container) return;
-        container.innerHTML = '';
+// 2. ギャラリーの描画 (削除ボタンを強化)
+function renderGallery() {
+    const container = document.getElementById('gallery-container');
+    if (!container) return;
+    container.innerHTML = '';
 
-        if (!db.gallery || db.gallery.length === 0) {
-            container.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#8c827a;">画像はありません。</p>';
-            return;
-        }
-
-        db.gallery.forEach((g, index) => {
-            const div = document.createElement('div');
-            div.className = 'gallery-item';
-            div.onclick = () => openGalleryZoom(g.src);
-            div.innerHTML = `
-                <img src="${g.src}" alt="Photo">
-                <button class="gallery-delete" onclick="event.stopPropagation(); removeGalleryImage(${index})">×</button>
-            `;
-            container.appendChild(div);
-        });
+    if (!db.gallery || db.gallery.length === 0) {
+        container.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#8c827a;">画像がありません</p>';
+        return;
     }
 
+    // 最新の画像が上に来るように表示
+    db.gallery.forEach((g) => {
+        const div = document.createElement('div');
+        div.className = 'gallery-item';
+
+        // 画像クリックで拡大
+        div.onclick = () => openGalleryZoom(g.src);
+
+        // 💡 削除ボタン: ファイル名を直接渡すように修正
+        // filenameが取れない場合は src から抽出
+        const fileName = g.filename || g.src.split('/').pop();
+
+        div.innerHTML = `
+            <img src="${g.src}" alt="Photo">
+            <button class="gallery-delete" 
+                onclick="event.stopPropagation(); deleteGalleryImage('${fileName}')" 
+                title="削除">×</button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// 3. 削除機能 (サーバー同期 & 強制更新版)
+async function deleteGalleryImage(filename) {
+    if (!filename) {
+        alert("エラー: ファイル名が特定できません");
+        return;
+    }
+
+    if (!confirm("サーバーからこの画像を完全に削除しますか？\n" + filename)) return;
+
+    try {
+        const response = await fetch('delete_gallery.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: filename })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            console.log("削除成功:", filename);
+            // 💡 重要: サーバーで消した直後に、最新のリストを再読み込み
+            await loadServerGallery();
+            // iPhone対策: 画面全体をリロードするとより確実です
+            // location.reload(); 
+        } else {
+            alert('削除に失敗しました: ' + (result.message || '不明なエラー'));
+        }
+    } catch (e) {
+        console.error("通信エラー:", e);
+        alert('サーバーとの通信に失敗しました。');
+    }
+}
 // 3. 拡大機能
 function openGalleryZoom(src) {
     const zoomImg = document.getElementById('zoomed-image');
@@ -1768,23 +1937,28 @@ async function uploadImage(input) {
     }
 }
 // 5. 削除機能（サーバー同期版）
-async function removeGalleryImage(index) {
-    if (confirm("サーバーからこの画像を完全に削除しますか？")) {
-        try {
+// 引数を index から filename に変更
+async function deleteImage(filename) { 
+    if (!filename) {
+        alert("削除に失敗しました：ファイル名が空です");
+        return;
+    }
 
-            // サーバー側の削除用プログラム(PHP)にインデックスを送る
+    if (confirm("サーバーから「" + filename + "」を完全に削除しますか？")) {
+        try {
+            // サーバー側の削除用プログラムに「ファイル名」を送る
             const response = await fetch('delete_gallery.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ index: index })
+                // index ではなく filename を送る
+                body: JSON.stringify({ filename: filename }) 
             });
 
             const result = await response.json();
 
             if (result.success) {
-
-                // サーバーで消せたら、最新のリストを再取得して表示を更新
-                await loadServerGallery();
+                // 画面をリロード、または再描画してリストを更新
+                location.reload(); 
                 console.log("サーバー上のデータを更新しました");
             } else {
                 alert('削除に失敗しました: ' + result.message);
@@ -2879,12 +3053,10 @@ window.onload = () => {
     }
 }; // 2602行目の閉じ
 </script>
-<!-- PHPの条件分岐などがすべて終了したあと -->
-
 <script type="module">
-    // 1. Firebaseの読み込み（必要な機能をすべてインポート）
+    // 1. Firebaseモジュールの読み込み
     import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, remove, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, remove, update, push, serverTimestamp, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDbw7xkeplmYAE80JcrTIf1qkRpZsDTwXM",
@@ -2898,67 +3070,83 @@ window.onload = () => {
 
     const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     const db = getDatabase(app);
-    const dbRef = ref(db, "chiebukuro/posts");
+    window.firebaseDB = db;
 
-    // 🚩 削除機能（グローバル公開）
-    window.deleteBoardPost = (key) => {
-        if (!confirm("この投稿を削除しますか？🐾")) return;
-        remove(ref(db, `chiebukuro/posts/${key}`))
-            .then(() => { alert("削除しました"); location.reload(); })
-            .catch(err => console.error("削除失敗:", err));
+    // --- ⬇️ 記事同期システム (PC/スマホ共通) ⬇️ ---
+    window.loadArticles = () => {
+        console.log("記事同期を開始します...");
+        const articlesRef = ref(db, "articles");
+        onValue(articlesRef, (snapshot) => {
+            const data = snapshot.val();
+            if (!window.db) window.db = {};
+            window.db.posts = data ? Object.values(data) : [];
+
+            if (typeof renderArticlesGrid === 'function') {
+                renderArticlesGrid();
+            } else if (typeof renderArticles === 'function') {
+                renderArticles();
+            }
+        });
     };
+    window.loadArticles();
+</script>
+<script>
+// --- ⬇️ 管理機能 & 掲示板 ⬇️ ---
 
-    // 🚩 編集機能（グローバル公開）
-    window.editBoardPost = (key) => {
-        const newText = prompt("新しい本文を入力してください:");
-        if (!newText || newText.trim() === "") return;
-        update(ref(db, `chiebukuro/posts/${key}`), { text: newText })
-            .then(() => { alert("更新完了！🐾"); location.reload(); })
-            .catch(err => console.error("更新失敗:", err));
-    };
+window.deleteBoardPost = (key) => {
+    if (!confirm("この投稿を削除しますか？🐾")) return;
 
-    // 🚩 ログアウト機能
-    window.logoutAdmin = function() {
-        if (!confirm("管理者モードを終了しますか？🐾")) return;
-        localStorage.removeItem('aiverse_admin');
-        localStorage.removeItem('admin_status');
-        const adminSection = document.getElementById('admin-menu-section');
-        if (adminSection) adminSection.style.display = 'none';
-        alert("ログアウトしました。またにゃ！🐾");
-        location.reload();
-    };
+    remove(ref(db, `chiebukuro/posts/${key}`))
+        .then(() => location.reload());
+};
 
-    // 🚩 Firebase受信（猫の知恵袋）
-    onChildAdded(dbRef, (data) => {
-        const post = data.val();
-        const container = document.getElementById('board-posts-container');
-        if (!container) return;
+window.logoutAdmin = function () {
+    if (!confirm("管理者モードを終了しますか？🐾")) return;
 
-        const isAdmin = localStorage.getItem('aiverse_admin') === 'true' || localStorage.getItem('admin_status') === 'true';
-        const article = document.createElement('article');
-        article.className = 'board-post';
+    localStorage.removeItem('aiverse_admin');
+    localStorage.removeItem('admin_status');
 
-        const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const safeText = (post.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "以前の投稿";
+    location.reload();
+};
 
-        article.innerHTML = `
-            <div class="board-card" style="background: rgba(128,128,128,0.1); border: 1px solid rgba(128,128,128,0.2); border-radius: 8px; padding: 15px; margin-bottom: 10px; position: relative;">
-                <div class="board-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(128,128,128,0.3); padding-bottom:8px; margin-bottom:10px;">
-                    <span class="board-title" style="font-weight:bold; color:#d4a017; font-size:1.1rem;"> ${safeTitle}</span>
-                    <span style="font-size:0.75rem; color:#888;">${date}</span>
-                </div>
-                <div class="board-body" style="color: var(--text-color, #333); line-height:1.8; white-space: pre-wrap; font-size:0.95rem; margin-bottom: 10px;">${safeText}</div>
-                ${isAdmin ? `
-                <div class="admin-controls" style="display: flex; gap: 8px; justify-content: flex-end; border-top: 1px dashed rgba(128,128,128,0.2); padding-top: 8px;">
-                    <button onclick="window.editBoardPost('${data.key}')" style="background: #2196F3; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; cursor: pointer;">編集</button>
-                    <button onclick="window.deleteBoardPost('${data.key}')" style="background: #f44336; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; cursor: pointer;">削除</button>
-                </div>
-                ` : ''}
-            </div>
-        `;
-        container.prepend(article);
-    });
+const chiebukuroRef = ref(db, "chiebukuro/posts");
+
+onChildAdded(chiebukuroRef, (data) => {
+
+    const post = data.val();
+    const key = data.key;
+
+    const container = document.getElementById('board-posts-container');
+
+    if (!container) return;
+
+    const isAdmin =
+        localStorage.getItem('aiverse_admin') === 'true';
+
+    const article = document.createElement('article');
+
+    article.className = 'board-post';
+
+    const date = post.timestamp
+        ? new Date(post.timestamp).toLocaleString('ja-JP')
+        : "以前の投稿";
+
+    article.innerHTML = `
+        <h3>${(post.title || "無題").replace(/</g, "&lt;")}</h3>
+        <p class="post-date">${date}</p>
+        <div class="post-content">
+            ${(post.text || "").replace(/</g, "&lt;")}
+        </div>
+        ${
+            isAdmin
+                ? `<button onclick="deleteBoardPost('${key}')">削除</button>`
+                : ''
+        }
+    `;
+
+    container.prepend(article);
+
+});
 // --- (前回のコード) カテゴリーマスターリスト ---
     const AIVERSE_CATEGORIES = [ ... ];
 
@@ -2979,54 +3167,96 @@ window.onload = () => {
     let currentPage = 1;
     const postsPerPage = 10; // PC版で5列×2段にするための10記事設定
 
-    /* --- 2. 記事を描画する関数 --- */
-    function renderArticlesGrid() {
-        const container = document.getElementById('articles-grid');
-        if (!container) return;
+/* --- 2. 記事を描画する関数 --- */
+function renderArticlesGrid() {
 
-        container.innerHTML = ''; // 一旦空にする
+    const container = document.getElementById('articles-grid');
+    if (!container) return;
 
-        // 全記事データ(db.posts)から、今のページに必要な10件だけを抽出
-        const start = (currentPage - 1) * postsPerPage;
-        const end = start + postsPerPage;
-        const currentPosts = db.posts.slice(start, end);
-
-        currentPosts.forEach(p => {
-            const card = createArticleCard(p); // Kenyaさんの既存のカード作成関数
-            container.appendChild(card);
-        });
-
-        // 下のページ番号ボタンを更新
-        renderPagination();
+    // Firebase同期待ち対策
+    if (!window.db || !Array.isArray(db.posts)) {
+        console.log("posts未同期");
+        return;
     }
 
-    /* --- 3. ページ番号ボタンを作る関数 --- */
-    function renderPagination() {
-        const nav = document.getElementById('pagination-nav');
-        if (!nav) return;
+    container.innerHTML = '';
 
-        const totalPages = Math.ceil(db.posts.length / postsPerPage);
-        nav.innerHTML = '';
+    // ローディング画面を消す
+    const loading = document.getElementById('loading-screen');
+    if (loading) {
+        loading.style.display = 'none';
+    }
 
-        for (let i = 1; i <= totalPages; i++) {
-            const btn = document.createElement('button');
-            btn.innerText = i;
-            btn.className = (i === currentPage) ? 'page-btn active' : 'page-btn';
-            btn.onclick = () => {
-                currentPage = i;
-                renderArticlesGrid();
-                window.scrollTo(0, 0); // 切り替え時に上に戻る
-            };
-            nav.appendChild(btn);
+    // 全記事データ(db.posts)から、今のページに必要な件数だけ抽出
+    const start = (currentPage - 1) * postsPerPage;
+    const end = start + postsPerPage;
+
+    const currentPosts = db.posts.slice(start, end);
+
+    console.log("表示記事数:", currentPosts.length);
+
+    currentPosts.forEach(p => {
+
+        // createArticleCard存在確認
+        if (typeof createArticleCard !== 'function') {
+            console.error("createArticleCard が存在しません");
+            return;
         }
+
+        const card = createArticleCard(p);
+
+        if (card) {
+            container.appendChild(card);
+        }
+    });
+
+    // 下のページ番号ボタンを更新
+    renderPagination();
+}
+
+/* --- 3. ページ番号ボタンを作る関数 --- */
+function renderPagination() {
+
+    const nav = document.getElementById('pagination-nav');
+    if (!nav) return;
+
+    // posts未同期対策
+    if (!window.db || !Array.isArray(db.posts)) {
+        return;
     }
 
+    const totalPages = Math.ceil(db.posts.length / postsPerPage);
+
+    nav.innerHTML = '';
+
+    for (let i = 1; i <= totalPages; i++) {
+
+        const btn = document.createElement('button');
+
+        btn.innerText = i;
+
+        btn.className =
+            (i === currentPage)
+            ? 'page-btn active'
+            : 'page-btn';
+
+        btn.onclick = () => {
+
+            currentPage = i;
+
+            renderArticlesGrid();
+
+            window.scrollTo(0, 0);
+        };
+
+        nav.appendChild(btn);
+    }
+}
     /* --- 4. 🚩 実行：ページ読み込み完了時に動かす --- */
     document.addEventListener('DOMContentLoaded', () => {
         // もしDBの読み込み待ちが必要ならその後に実行
         renderArticlesGrid();
     });
-
 </script>
 </body>
 </html>
