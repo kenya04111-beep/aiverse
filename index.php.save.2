@@ -1,0 +1,658 @@
+
+    if (!menuList) return;
+
+    // 重複防止
+    if (
+        document.getElementById(
+            'admin-added-post'
+        )
+    ) {
+        return;
+    }
+
+    // -------------------------------------------------
+    // ✍️ 管理投稿
+    // -------------------------------------------------
+
+    const postLi =
+        document.createElement('li');
+
+    postLi.id =
+        'admin-added-post';
+
+    postLi.innerHTML = `
+        <a href="#"
+           onclick="
+               toggleGearMenu();
+               openModal('admin-modal');
+               return false;
+           ">
+           ✍️ 管理投稿
+        </a>
+    `;
+
+    // -------------------------------------------------
+    // 💾 バックアップ
+    // -------------------------------------------------
+
+    const backupLi =
+        document.createElement('li');
+
+    backupLi.id =
+        'admin-added-backup';
+
+    backupLi.innerHTML = `
+        <a href="#"
+           onclick="
+               exportData('posts');
+               return false;
+           ">
+           💾 記事バックアップ
+        </a>
+    `;
+
+    // -------------------------------------------------
+    // 🚪 ログアウト
+    // -------------------------------------------------
+
+    const logoutLi =
+        document.createElement('li');
+
+    logoutLi.id =
+        'admin-added-logout';
+
+    logoutLi.innerHTML = `
+        <a href="#"
+           onclick="
+               logoutAdmin();
+               return false;
+           "
+           style="
+               color:#fa5252;
+               font-weight:bold;
+           ">
+           🚪 ログアウト
+        </a>
+    `;
+
+    menuList.appendChild(postLi);
+    menuList.appendChild(backupLi);
+    menuList.appendChild(logoutLi);
+}
+
+// =========================================================
+// 🔐 管理者モード
+// =========================================================
+
+function toggleSecretMode() {
+
+    const pass =
+        prompt(
+            "管理者パスワードを入力してください🐾"
+        );
+
+    if (pass === null) {
+        return;
+    }
+
+    // -------------------------------------------------
+    // 🔑 認証
+    // -------------------------------------------------
+
+    if (pass === "nekosuke101") {
+
+        if (typeof db !== 'undefined') {
+
+            db.isAdmin = true;
+
+            // 永続化
+            localStorage.setItem(
+                'aiverse_admin',
+                'true'
+            );
+        }
+
+        injectAdminMenu();
+
+        showToast(
+            "🐱 管理者モード ON"
+        );
+
+    } else {
+
+        showToast(
+            "❌ パスワードが違います"
+        );
+    }
+}
+
+// =========================================================
+// 🚪 ログアウト
+// =========================================================
+
+function logoutAdmin() {
+
+    const ok =
+        confirm(
+            "管理者モードを終了しますか？🐾"
+        );
+
+    if (!ok) return;
+
+    if (typeof db !== 'undefined') {
+
+        db.isAdmin = false;
+    }
+
+    localStorage.removeItem(
+        'aiverse_admin'
+    );
+
+    showToast(
+        "🚪 ログアウトしました"
+    );
+
+    setTimeout(() => {
+
+        location.reload();
+
+    }, 400);
+}
+
+// =========================================================
+// 🍞 トースト通知
+// =========================================================
+
+function showToast(message = "") {
+
+    let toast =
+        document.getElementById(
+            'aiverse-toast'
+        );
+
+    if (!toast) {
+
+        toast =
+            document.createElement('div');
+
+        toast.id =
+            'aiverse-toast';
+
+        toast.style.cssText = `
+            position:fixed;
+            bottom:20px;
+            left:50%;
+            transform:translateX(-50%);
+            background:#111;
+            color:white;
+            padding:12px 18px;
+            border-radius:12px;
+            z-index:999999;
+            font-size:0.9rem;
+            box-shadow:0 8px 24px rgba(0,0,0,0.35);
+            opacity:0;
+            transition:0.25s;
+            pointer-events:none;
+        `;
+
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+
+    toast.style.opacity = '1';
+
+    clearTimeout(
+        window.__toastTimer
+    );
+
+    window.__toastTimer =
+        setTimeout(() => {
+
+            toast.style.opacity = '0';
+
+        }, 2200);
+}
+
+// =========================================================
+// 🖱️ 外側クリックで閉じる
+// =========================================================
+
+document.addEventListener(
+    'click',
+    function(event) {
+
+        const menu =
+            document.querySelector(
+                '.settings-dropdown'
+            );
+
+        const gear =
+            document.querySelector(
+                '.gear-btn'
+            );
+
+        if (
+            menu &&
+            !menu.contains(event.target) &&
+            gear &&
+            !gear.contains(event.target)
+        ) {
+            menu.classList.remove('open');
+            menu.style.display = 'none';
+        }
+    }
+);
+
+// =========================================================
+// 🚀 ログイン状態の自動反映（安全版）
+// =========================================================
+window.addEventListener('load', () => {
+    // 判定：aiverse_admin が 'true' の時だけ管理者とする
+    const isAdmin = localStorage.getItem('aiverse_admin') === 'true';
+    const adminSection = document.getElementById('admin-menu-section');
+
+    if (isAdmin) {
+        // 管理者の場合
+        if (typeof db !== 'undefined') {
+            db.isAdmin = true;
+        }
+        if (typeof injectAdminMenu === 'function') {
+            injectAdminMenu();
+        }
+        // メニューを表示
+        if (adminSection) adminSection.style.display = 'block';
+        console.log("😸 管理者ログイン状態を復元しました");
+    } else {
+        // 一般ユーザーの場合（ここを追加！）
+        if (typeof db !== 'undefined') {
+            db.isAdmin = false;
+        }
+        // メニューを確実に隠す
+        if (adminSection) adminSection.style.display = 'none';
+        console.log("👤 一般ユーザーとして表示しています");
+    }
+});
+// --- ここから追加：カテゴリーマスターリスト ---
+const AIVERSE_CATEGORIES = [
+    { id: "news", label: "📢 ニュース" },
+    { id: "ent", label: "🎭 エンタメ" },
+    { id: "game", label: "🎮 ゲーム" },
+    { id: "anime", label: "🎨 アニメ・漫画" },
+    { id: "movie", label: "🎬 映画・ドラマ" },
+    { id: "music", label: "🎵 音楽" },
+    { id: "science", label: "🧪 科学" },
+    { id: "space", label: "🚀 宇宙" },
+    { id: "tech", label: "💻 テクノロジー" },
+    { id: "ai", label: "🤖 AI" },
+    { id: "math", label: "📐 数学" },
+    { id: "phi", label: "📜 哲学・思想" },
+    { id: "hist", label: "🏛️ 歴史" },
+    { id: "politics", label: "⚖️ 政治・社会" },
+    { id: "biz", label: "📈 経済・ビジネス" },
+    { id: "health", label: "🏥 医療・健康" },
+    { id: "psych", label: "🧠 心理学" },
+    { id: "edu", label: "📖 教育・学習" },
+    { id: "mystery", label: "🔍 ミステリー・オカルト" },
+    { id: "urban", label: "⛩️ 都市伝説" },
+    { id: "uma", label: "👾 未確認生物" },
+    { id: "nature", label: "🌿 自然・生物" },
+    { id: "food", label: "🍳 食べ物・料理" },
+    { id: "life", label: "🏠 生活・暮らし" },
+    { id: "culture", label: "✈️ 旅行・文化" },
+    { id: "sports", label: "⚽ スポーツ" },
+    { id: "internet", label: "🌐 インターネット" },
+    { id: "youtube", label: "🎥 YouTube・配信" },
+    { id: "trivia", label: "💡 雑学・トリビア" },
+    { id: "column", label: "📝 コラム" },
+    { id: "special", label: "✨ 特集" }
+];
+
+function initCategorySelect() {
+    const select = document.getElementById('admin-category-input');
+    if (select) {
+        select.innerHTML = AIVERSE_CATEGORIES.map(cat =>
+            `<option value="${cat.id}">${cat.label}</option>`
+        ).join('');
+    }
+}
+
+// 💾 自動保存 ＆ プレビュー連動システム
+function setupDraftSystem() {
+    const titleInp = document.getElementById('admin-title-input');
+    const bodyInp = document.getElementById('admin-body-input');
+    const categoryInp = document.getElementById('admin-category-input');
+
+    if (!titleInp || !bodyInp || !categoryInp) return;
+    // 入力・変更があったら実行
+    const handleInput = () => {
+        updateAdminPreview(); // プレビュー更新
+        saveDraft();          // 下書き保存
+    };
+    titleInp.addEventListener('input', handleInput);
+    bodyInp.addEventListener('input', handleInput);
+    categoryInp.addEventListener('change', handleInput);
+    // ページ読み込み時に下書きがあれば復元
+    loadDraft();
+}
+// 👁️ プレビュー描画（画像URL連動版）
+function updateAdminPreview() {
+    const title = document.getElementById('admin-title-input').value || "タイトル未入力";
+    const body = document.getElementById('admin-body-input').value || "本文を執筆中...";
+    const categoryId = document.getElementById('admin-category-input').value;
+    const previewArea = document.getElementById('admin-preview-area');
+    // ✨ 画像URLを取得。空ならデフォルト（宇宙の画像）を表示
+    const customImg = document.getElementById('admin-image-input').value;
+    const imageUrl = customImg || "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=300&auto=format&fit=crop";
+
+    if (!previewArea) return;
+    // カテゴリーマスターからラベルを取得
+    const categoryObj = AIVERSE_CATEGORIES.find(c => c.id === categoryId) || { label: "📄 その他" };
+    const categoryLabel = categoryObj.label;
+
+    previewArea.innerHTML = `
+        <div class="card" style="width: 300px; margin: 0; pointer-events: none; opacity: 0.9;">
+            <div class="card-image" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center; height: 150px; background-color: #333;"></div>
+            <div class="card-content">
+                <div class="card-category" style="color: #ff9800;">${categoryLabel}</div>
+                <h3 class="card-title" style="margin: 5px 0; color: #fff; font-size: 1.1rem;">${escapeHTML(title)}</h3>
+                <p class="card-description" style="font-size: 0.8rem; color: #ccc;">${escapeHTML(body).substring(0, 40)}...</p>
+                <div class="card-footer" style="margin-top: 10px; font-size: 0.7rem; color: #888;">
+                    <span>LIVE PREVIEW</span> • <span>${new Date().toLocaleDateString()}</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+// 💾 下書き保存ロジック
+function saveDraft() {
+    const draft = {
+        title: document.getElementById('admin-title-input').value,
+        body: document.getElementById('admin-body-input').value,
+        category: document.getElementById('admin-category-input').value,
+        image: document.getElementById('admin-image-input').value, // ✨ 画像URLも保存
+        updated: new Date().getTime()
+    };
+    localStorage.setItem('aiverse_post_draft', JSON.stringify(draft));
+}
+// 📥 下書き復元ロジック
+function loadDraft() {
+    const saved = localStorage.getItem('aiverse_post_draft');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    // 2時間以内の下書きなら復元
+    if (new Date().getTime() - data.updated < 7200000) {
+        document.getElementById('admin-title-input').value = data.title;
+        document.getElementById('admin-body-input').value = data.body;
+        document.getElementById('admin-category-input').value = data.category;
+        document.getElementById('admin-image-input').value = data.image || ""; // ✨ 画像URLを復元
+        updateAdminPreview(); // 復元した内容でプレビューを表示
+    }
+}
+// ---------------------------------------------------------
+// 🚀 起動処理 (window.onload)
+// ---------------------------------------------------------
+window.onload = () => {
+    // 1. 基本システムの初期化
+    initCategorySelect();
+    renderArticlesGrid();
+
+    // 2. モーダル背景クリックの設定
+    const allModalIds = ['detail-modal', 'photo-modal', 'board-modal', 'gallery-modal', 'bgm-modal', 'admin-modal', 'memo-modal'];
+    allModalIds.forEach(id => {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) closeModal(id);
+            });
+        }
+    });
+    // 3. 震え対策CSSの適用
+    const fixStyle = document.createElement('style');
+    fixStyle.textContent = `
+        html.modal-open, body.modal-open {
+            overflow: hidden !important;
+            height: 100vh !important;
+            width: 100vw !important;
+            position: fixed !important;
+            top: 0; left: 0;
+        }
+        #photo-modal img {
+            max-width: 65vw !important;
+            max-height: 65vh !important;
+            pointer-events: none;
+        }
+    `;
+    document.head.appendChild(fixStyle);
+
+// 4. 🚀 全システムの同時起動（世界共有設定）
+    updateAdminUI();
+
+    // 🐾 猫の知恵袋を共有（最新の書き込みを取得）
+    loadBoardFromServer();
+
+    // 🖼️ フォトギャラリーを共有
+    loadServerGallery();
+
+    // 🎸 管理者設定のBGMを共有
+    loadBgmFromServer();
+
+    // 2601行目のすぐ後ろ
+    setupDraftSystem();
+
+    // 🚩 ログイン状態の最終判定（2706行目から移動）
+    const isAdminFinal = localStorage.getItem('aiverse_admin') === 'true' || localStorage.getItem('admin_status') === 'true';
+    const adminSection = document.getElementById('admin-menu-section');
+    if (adminSection) {
+        // !important相当の強度を持たせるため、直接styleプロパティを操作
+        adminSection.style.setProperty('display', isAdminFinal ? 'block' : 'none', 'important');
+    }
+}; // 2602行目の閉じ
+</script>
+<script type="module">
+    // 1. Firebaseモジュールの読み込み
+    import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, remove, update, push, serverTimestamp, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDbw7xkeplmYAE80JcrTIf1qkRpZsDTwXM",
+        authDomain: "alverse-project.firebaseapp.com",
+        databaseURL: "https://alverse-project-default-rtdb.firebaseio.com",
+        projectId: "alverse-project",
+        storageBucket: "alverse-project.firebasestorage.app",
+        messagingSenderId: "870564638397",
+        appId: "1:870564638397:web:d372f90b2b150e095791d4"
+    };
+
+    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    const db = getDatabase(app);
+    window.firebaseDB = db;
+
+    // --- ⬇️ 記事同期システム (PC/スマホ共通) ⬇️ ---
+    window.loadArticles = () => {
+        console.log("記事同期を開始します...");
+        const articlesRef = ref(db, "articles");
+        onValue(articlesRef, (snapshot) => {
+            const data = snapshot.val();
+            if (!window.db) window.db = {};
+            window.db.posts = data ? Object.values(data) : [];
+
+            if (typeof renderArticlesGrid === 'function') {
+                renderArticlesGrid();
+            } else if (typeof renderArticles === 'function') {
+                renderArticles();
+            }
+        });
+    };
+    window.loadArticles();
+</script>
+<script>
+// --- ⬇️ 管理機能 & 掲示板 ⬇️ ---
+
+window.deleteBoardPost = (key) => {
+    if (!confirm("この投稿を削除しますか？🐾")) return;
+
+    remove(ref(db, `chiebukuro/posts/${key}`))
+        .then(() => location.reload());
+};
+
+window.logoutAdmin = function () {
+    if (!confirm("管理者モードを終了しますか？🐾")) return;
+
+    localStorage.removeItem('aiverse_admin');
+    localStorage.removeItem('admin_status');
+
+    location.reload();
+};
+
+const chiebukuroRef = ref(db, "chiebukuro/posts");
+
+onChildAdded(chiebukuroRef, (data) => {
+
+    const post = data.val();
+    const key = data.key;
+
+    const container = document.getElementById('board-posts-container');
+
+    if (!container) return;
+
+    const isAdmin =
+        localStorage.getItem('aiverse_admin') === 'true';
+
+    const article = document.createElement('article');
+
+    article.className = 'board-post';
+
+    const date = post.timestamp
+        ? new Date(post.timestamp).toLocaleString('ja-JP')
+        : "以前の投稿";
+
+    article.innerHTML = `
+        <h3>${(post.title || "無題").replace(/</g, "&lt;")}</h3>
+        <p class="post-date">${date}</p>
+        <div class="post-content">
+            ${(post.text || "").replace(/</g, "&lt;")}
+        </div>
+        ${
+            isAdmin
+                ? `<button onclick="deleteBoardPost('${key}')">削除</button>`
+                : ''
+        }
+    `;
+
+    container.prepend(article);
+
+});
+// --- (前回のコード) カテゴリーマスターリスト ---
+    const AIVERSE_CATEGORIES = [ ... ];
+
+    // --- (前回のコード) プルダウン生成関数 ---
+    function initAdminCategorySelect() { ... }
+
+    // --- 🚩 今回のコード：ログアウト機能 ---
+    window.logoutAdmin = function() {
+        // ... (中身)
+    };
+
+    // --- 🚩 今回のコード：Firebase受信（猫の知恵袋） ---
+    onChildAdded(dbRef, (data) => {
+        // ... (中身)
+    });
+
+/* --- 1. ページネーションの設定 --- */
+    let currentPage = 1;
+    const postsPerPage = 10; // PC版で5列×2段にするための10記事設定
+
+/* --- 2. 記事を描画する関数 --- */
+function renderArticlesGrid() {
+
+    const container = document.getElementById('articles-grid');
+    if (!container) return;
+
+    // Firebase同期待ち対策
+    if (!window.db || !Array.isArray(db.posts)) {
+        console.log("posts未同期");
+        return;
+    }
+
+    container.innerHTML = '';
+
+    // ローディング画面を消す
+    const loading = document.getElementById('loading-screen');
+    if (loading) {
+        loading.style.display = 'none';
+    }
+
+    // 全記事データ(db.posts)から、今のページに必要な件数だけ抽出
+    const start = (currentPage - 1) * postsPerPage;
+    const end = start + postsPerPage;
+
+    const currentPosts = db.posts.slice(start, end);
+
+    console.log("表示記事数:", currentPosts.length);
+
+    currentPosts.forEach(p => {
+
+        // createArticleCard存在確認
+        if (typeof createArticleCard !== 'function') {
+            console.error("createArticleCard が存在しません");
+            return;
+        }
+
+        const card = createArticleCard(p);
+
+        if (card) {
+            container.appendChild(card);
+        }
+    });
+
+    // 下のページ番号ボタンを更新
+    renderPagination();
+}
+
+/* --- 3. ページ番号ボタンを作る関数 --- */
+function renderPagination() {
+
+    const nav = document.getElementById('pagination-nav');
+    if (!nav) return;
+
+    // posts未同期対策
+    if (!window.db || !Array.isArray(db.posts)) {
+        return;
+    }
+
+    const totalPages = Math.ceil(db.posts.length / postsPerPage);
+
+    nav.innerHTML = '';
+
+    for (let i = 1; i <= totalPages; i++) {
+
+        const btn = document.createElement('button');
+
+        btn.innerText = i;
+
+        btn.className =
+            (i === currentPage)
+            ? 'page-btn active'
+            : 'page-btn';
+
+        btn.onclick = () => {
+
+            currentPage = i;
+
+            renderArticlesGrid();
+
+            window.scrollTo(0, 0);
+        };
+
+        nav.appendChild(btn);
+    }
+}
+    /* --- 4. 🚩 実行：ページ読み込み完了時に動かす --- */
+    document.addEventListener('DOMContentLoaded', () => {
+        // もしDBの読み込み待ちが必要ならその後に実行
+        renderArticlesGrid();
+    });
+</script>
+</body>
+</html>

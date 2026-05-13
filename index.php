@@ -2348,21 +2348,34 @@ function toggleGearMenu(e) {
  * 🗑️ 掲示板（猫の知恵袋）の投稿削除機能
  */
 async function deleteBoardEntry(fbKey) {
+    if (!fbKey) {
+        alert("キーが存在しません");
+        return;
+    }
+
     if (!confirm("この知恵を消去してもよろしいですか？🐾")) return;
 
     try {
-        // ★修正ポイント：URLを正しく結合しました
-        const deleteUrl = 'https://alverse-project-default-rtdb.firebaseio.com/chiebukuro/posts/' + fbKey + '.json';
-        const res = await fetch(deleteUrl, { method: 'DELETE' });
+        const deleteUrl =
+            `https://alverse-project-default-rtdb.firebaseio.com/chiebukuro/posts/${fbKey}.json`;
 
-        if (!res.ok) throw new Error("削除リクエストに失敗しました");
+        const res = await fetch(deleteUrl, {
+            method: 'DELETE'
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`削除失敗: ${text}`);
+        }
 
         alert("消去完了しました 🐱");
+
         if (typeof loadBoardFromServer === 'function') {
-            await loadBoardFromServer(); // 画面を更新
+            await loadBoardFromServer();
         } else {
-            location.reload(); // 関数がない場合はリロード
+            location.reload();
         }
+
     } catch (e) {
         console.error("削除エラー:", e);
         alert("消去に失敗しました😿：" + e.message);
@@ -3055,41 +3068,81 @@ window.onload = () => {
 }; // 2602行目の閉じ
 </script>
 <script type="module">
-    // 1. Firebaseモジュールの読み込み
-    import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, remove, update, push, serverTimestamp, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+<!-- 1. Firebaseライブラリの読み込み（ここはHTMLなのでこのコメントでOK） -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
+<script>
+  (function() {
+    // 2. Firebase設定
     const firebaseConfig = {
         apiKey: "AIzaSyDbw7xkeplmYAE80JcrTIf1qkRpZsDTwXM",
         authDomain: "alverse-project.firebaseapp.com",
         databaseURL: "https://alverse-project-default-rtdb.firebaseio.com",
         projectId: "alverse-project",
-        storageBucket: "alverse-project.firebasestorage.app",
+        storageBucket: "alverse-project.appspot.com",
         messagingSenderId: "870564638397",
         appId: "1:870564638397:web:d372f90b2b150e095791d4"
     };
 
-    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    const db = getDatabase(app);
-    window.firebaseDB = db;
+    // 3. 初期化（二重初期化を防止）
+    let app;
+    if (!firebase.apps.length) {
+        app = firebase.initializeApp(firebaseConfig);
+    } else {
+        app = firebase.app();
+    }
+    const database = firebase.database();
 
-    // --- ⬇️ 記事同期システム (PC/スマホ共通) ⬇️ ---
-    window.loadArticles = () => {
-        console.log("記事同期を開始します...");
-        const articlesRef = ref(db, "articles");
-        onValue(articlesRef, (snapshot) => {
-            const data = snapshot.val();
-            if (!window.db) window.db = {};
-            window.db.posts = data ? Object.values(data) : [];
+    // 4. グローバル変数・関数として公開（他のスクリプトからの呼び出しを可能にする）
+    window.db = database;
+    window.ref = function(dbObj, path) { return dbObj.ref(path); };
+    window.onValue = function(query, cb) { query.on('value', cb); };
+    window.remove = function(query) { return query.remove(); };
 
-            if (typeof renderArticlesGrid === 'function') {
-                renderArticlesGrid();
-            } else if (typeof renderArticles === 'function') {
-                renderArticles();
-            }
-        });
-    };
-    window.loadArticles();
+    // 既存のコードが参照している可能性のある名前を維持
+    window.firebaseDB = window.db;
+    window.firebaseRef = window.ref;
+
+    console.log("✅ Firebase (Compat Mode) 初期化完了");
+  })();
+
+  // 5. 記事保存用関数（ボタンの onclick から呼び出す用）
+  window.saveArticleSimple = async function() {
+      const titleInput = document.getElementById('admin-title-input');
+      const bodyInput = document.getElementById('admin-body-input');
+
+      if (!titleInput || !bodyInput) {
+          alert("入力フォームが見つかりません。");
+          return;
+      }
+
+      const title = titleInput.value;
+      const body = bodyInput.value;
+
+      if (!title || !body) {
+          alert("タイトルと本文を入力してください。");
+          return;
+      }
+
+      const newPost = {
+          id: Date.now(),
+          title: title,
+          body: body,
+          date: new Date().toLocaleString(),
+          public: true
+      };
+
+      try {
+          // Firebaseへの直接書き込み
+          await window.db.ref('articles/' + newPost.id).set(newPost);
+          alert("保存が完了しました！DBに書き込まれました。");
+          location.reload(); // 画面を更新して反映
+      } catch (e) {
+          console.error("保存失敗:", e);
+          alert("エラーが発生しました: " + e.message);
+      }
+  };
 </script>
 <script>
 // --- ⬇️ 管理機能 & 掲示板 ⬇️ ---
@@ -3148,25 +3201,47 @@ onChildAdded(chiebukuroRef, (data) => {
     container.prepend(article);
 
 });
-// --- (前回のコード) カテゴリーマスターリスト ---
-    const AIVERSE_CATEGORIES = [ ... ];
 
-    // --- (前回のコード) プルダウン生成関数 ---
-    function initAdminCategorySelect() { ... }
+window.saveArticleSimple = async () => {
+    const title = document.getElementById('admin-title-input')?.value;
+    const body = document.getElementById('admin-body-input')?.value;
 
-    // --- 🚩 今回のコード：ログアウト機能 ---
-    window.logoutAdmin = function() {
-        // ... (中身)
+    if (!title || !body) return alert("内容が空です");
+
+    const newPost = {
+        id: Date.now(),
+        title: title,
+        body: body,
+        date: new Date().toLocaleString(),
+        public: true
     };
 
-    // --- 🚩 今回のコード：Firebase受信（猫の知恵袋） ---
-    onChildAdded(dbRef, (data) => {
-        // ... (中身)
-    });
+    try {
+        // window.ref を使うことでエラーを回避
+        await window.db.ref('articles/' + newPost.id).set(newPost);
+        alert("保存が完了しました！DBに書き込まれました。");
+        location.reload();
+    } catch (e) {
+        alert("エラー: " + e.message);
+    }
+};
+// --- ⬇️ 管理画面用：カテゴリ選択プルダウン生成関数 ⬇️ ---
+function initAdminCategorySelect() {
+    const select = document.getElementById('adminCategorySelect');
+    if (!select) return;
 
-/* --- 1. ページネーションの設定 --- */
-    let currentPage = 1;
-    const postsPerPage = 10; // PC版で5列×2段にするための10記事設定
+    // 一旦クリア
+    select.innerHTML = '';
+
+    // カテゴリを生成
+    AIVERSE_CATEGORIES.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        select.appendChild(option);
+    });
+    console.log("🐾 カテゴリ選択肢を生成しました");
+}
 
 /* --- 2. 記事を描画する関数 --- */
 function renderArticlesGrid() {
@@ -3221,12 +3296,13 @@ function renderPagination() {
     const nav = document.getElementById('pagination-nav');
     if (!nav) return;
 
-    // posts未同期対策
-    if (!window.db || !Array.isArray(db.posts)) {
+    const dbObj = window.db;
+
+    if (!dbObj || !Array.isArray(dbObj.posts)) {
         return;
     }
 
-    const totalPages = Math.ceil(db.posts.length / postsPerPage);
+    const totalPages = Math.ceil(dbObj.posts.length / postsPerPage);
 
     nav.innerHTML = '';
 
