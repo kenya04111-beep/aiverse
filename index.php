@@ -3068,13 +3068,12 @@ window.onload = () => {
 }; // 2602行目の閉じ
 </script>
 <script type="module">
-<!-- 1. Firebaseライブラリの読み込み（ここはHTMLなのでこのコメントでOK） -->
+<!-- 3070行目から置き換え開始 -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
 <script>
   (function() {
-    // 2. Firebase設定
     const firebaseConfig = {
         apiKey: "AIzaSyDbw7xkeplmYAE80JcrTIf1qkRpZsDTwXM",
         authDomain: "alverse-project.firebaseapp.com",
@@ -3085,35 +3084,21 @@ window.onload = () => {
         appId: "1:870564638397:web:d372f90b2b150e095791d4"
     };
 
-    // 3. 初期化（二重初期化を防止）
-    let app;
     if (!firebase.apps.length) {
-        app = firebase.initializeApp(firebaseConfig);
-    } else {
-        app = firebase.app();
+        firebase.initializeApp(firebaseConfig);
     }
-    const database = firebase.database();
-
-    // 4. グローバル変数・関数として公開（他のスクリプトからの呼び出しを可能にする）
-    window.db = database;
-    window.ref = function(dbObj, path) { return dbObj.ref(path); };
-    window.onValue = function(query, cb) { query.on('value', cb); };
-    window.remove = function(query) { return query.remove(); };
-
-    // 既存のコードが参照している可能性のある名前を維持
-    window.firebaseDB = window.db;
-    window.firebaseRef = window.ref;
-
-    console.log("✅ Firebase (Compat Mode) 初期化完了");
+    window.db = firebase.database();
+    
+    console.log("✅ Firebase 基盤接続完了");
   })();
 
-  // 5. 記事保存用関数（ボタンの onclick から呼び出す用）
+  // 記事保存用関数
   window.saveArticleSimple = async function() {
       const titleInput = document.getElementById('admin-title-input');
       const bodyInput = document.getElementById('admin-body-input');
 
       if (!titleInput || !bodyInput) {
-          alert("入力フォームが見つかりません。");
+          alert("入力欄(ID: admin-title-input または admin-body-input)が見つかりません。");
           return;
       }
 
@@ -3134,16 +3119,16 @@ window.onload = () => {
       };
 
       try {
-          // Firebaseへの直接書き込み
           await window.db.ref('articles/' + newPost.id).set(newPost);
           alert("保存が完了しました！DBに書き込まれました。");
-          location.reload(); // 画面を更新して反映
+          location.reload();
       } catch (e) {
           console.error("保存失敗:", e);
           alert("エラーが発生しました: " + e.message);
       }
   };
 </script>
+<!-- 置き換え終了 -->
 <script>
 // --- ⬇️ 管理機能 & 掲示板 ⬇️ ---
 
@@ -3216,15 +3201,22 @@ window.saveArticleSimple = async () => {
         public: true
     };
 
-    try {
-        // window.ref を使うことでエラーを回避
-        await window.db.ref('articles/' + newPost.id).set(newPost);
-        alert("保存が完了しました！DBに書き込まれました。");
-        location.reload();
-    } catch (e) {
-        alert("エラー: " + e.message);
-    }
-};
+try {
+    // 1. Firebaseに新規データを書き込む
+    await window.db.ref('articles/' + newPost.id).set(newPost);
+
+    // 2. ブラウザが持っている「古いリスト」に、今作った新規投稿を無理やりねじ込む
+    if (!window.db.posts) window.db.posts = [];
+    window.db.posts.unshift(newPost); // リストの先頭に追加
+
+    alert("保存が完了しました！新規投稿として反映します。");
+
+    // 3. 画面を更新して最新の状態を表示する
+    renderArticlesGrid(); 
+
+} catch (e) {
+    alert("投稿失敗: " + e.message);
+}
 // --- ⬇️ 管理画面用：カテゴリ選択プルダウン生成関数 ⬇️ ---
 function initAdminCategorySelect() {
     const select = document.getElementById('adminCategorySelect');
@@ -3250,10 +3242,8 @@ function renderArticlesGrid() {
     if (!container) return;
 
     // Firebase同期待ち対策
-    if (!window.db || !Array.isArray(db.posts)) {
-        console.log("posts未同期");
-        return;
-    }
+    if (!window.db) return;
+    const posts = Array.isArray(window.db.posts) ? window.db.posts : [];
 
     container.innerHTML = '';
 
