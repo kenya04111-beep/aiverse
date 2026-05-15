@@ -1969,7 +1969,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const dbRef = ref(db, "chiebukuro/posts");
+const dbRef = db.ref( "chiebukuro/posts");
 
 // 送信関数（windowに登録してHTMLから呼べるようにする）
 window.submitBoardPost = () => {

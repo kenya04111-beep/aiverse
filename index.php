@@ -77,7 +77,7 @@ if (session_status() === PHP_SESSION_NONE) {
     flex-grow: 1;
     display: flex;
     justify-content: center;
-    max-width: 100%; /* タブレット標準幅 */
+    max-width: 320px; /* タブレット標準幅 */
     margin: 0 20px;
     transition: max-width 0.3s ease;
 }
@@ -105,52 +105,20 @@ if (session_status() === PHP_SESSION_NONE) {
 /* --- 💻 PC版 (1024px以上) --- */
 @media (min-width: 1024px) {
     .search-container {
-        max-width: 650px;
-    }
-    /* 🚩 5列×2段の設定 */
-    #mainGrid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr); /* 均等に5分割 */
-        gap: 20px;
-        max-width: 1350px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-    /* 🚩 AdSenseスペース（記事エリアの横に確保する場合） */
-    .content-wrapper {
-        display: flex;
-        gap: 20px;
-        max-width: 1580px;
-        margin: 0 auto;
-    }
-}
-
-/* --- 📑 iPad・タブレット版 (769px〜1023px) --- */
-@media (min-width: 769px) and (max-width: 1023px) {
-    #mainGrid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); /* 3列でバランス調整 */
-        gap: 15px;
-        padding: 15px;
+        max-width: 600px; /* 広々と使わせる */
     }
 }
 
 /* --- 📱 iPhone版 (768px以下) --- */
 @media (max-width: 768px) {
     .search-container {
-        max-width: 200px;
+        max-width: 200px; /* スマホでも十分な幅を確保 */
         margin: 0 10px;
     }
-    /* 🚩 縦1列の設定 */
-    #mainGrid {
-        display: grid;
-        grid-template-columns: 1fr; /* スマホは1列が最も読みやすい */
-        gap: 15px;
-        padding: 10px;
-    }
 
-    .nav-icons {
-        gap: 4px; /* スマホではアイコン間隔をよりタイトに */
+    #search-bar {
+        font-size: 0.85rem;
+        padding: 8px 15px;
     }
 }
 /* 🧭 ナビゲーションアイコン */
@@ -287,55 +255,17 @@ if (session_status() === PHP_SESSION_NONE) {
     z-index: 1; /* 画像ズーム時に背景を守る */
 }
 
-/* 🚩 記事カードや詳細画面の「バッジ」は完全に消す */
-.post-category,
-.modal-category,
-.post-detail-category {
-    display: none !important;
-}
-
-/* 🚩 編集用セレクトボックスの基本設定 */
-#detail-category-selector {
-    display: none; /* 基本は隠しておく */
-    width: 100%;
-    background: #222;
-    color: #d4a017;
-    border: 1px solid #444;
-    padding: 5px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-}
-
-/* 🚩 管理者モードの時だけ、セレクトボックスを表示する */
-body.admin-mode #detail-category-selector {
-    display: block !important;
-}
-/* 📝 Markdownで変換された要素の調整 */
-#detail-body h1,
-#detail-body h2 {
-    color: #d4a017; /* セレクトボックスの色と統一 */
-    border-left: 4px solid #d4a017; /* 見出しっぽく左線を追加 */
-    padding-left: 10px;
-    margin-top: 25px;
-    margin-bottom: 10px;
-}
-
-#detail-body ul {
-    list-style-type: disc;
-    padding-left: 25px;
-    margin-bottom: 15px;
-}
-
-#detail-body li {
+/* 🏷️ カテゴリーラベル（絵文字・日本語対応版） */
+.post-category {
+    display: inline-block;
+    font-size: 0.8rem;
+    color: #ff9800; /* 先ほどモーダルと統一したAIverseのテーマカラー */
+    font-weight: 700;
     margin-bottom: 8px;
-    line-height: 1.6;
+    letter-spacing: 0.5px;
+    /* text-transform: uppercase; は絵文字と日本語が化けるため削除！ */
 }
 
-/* 太字の強調色 */
-#detail-body strong {
-    color: #d4a017;
-    font-weight: bold;
-}
 /* 🖋️ 記事タイトル（2行制限を維持しつつ行間最適化） */
 .post-title {
     font-size: 1.1rem;
@@ -403,32 +333,30 @@ body.admin-mode #detail-category-selector {
             transform: scale(1.05);
         }
 
-/* 🧱 モーダルウィンドウ共通 */
-.modal {
-    display: none; /* JSで表示時に 'flex' に切り替えます */
-    position: fixed;
-    top: 0; left: 0; 
-    width: 100vw; height: 100vh;
-    background: var(--modal-bg);
-    z-index: 10000;
-    backdrop-filter: blur(4px);
-
-    /* 🧱 鉄板の中央寄せ設定 */
-    display: none; /* 初期状態 */
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    background: var(--card-bg);
-    padding: 28px;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 500px;
-    /* margin-topなどはすべて削除し、これだけにします */
-    position: relative;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-}
+        /* 🧱 モーダルウィンドウ共通 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-bg);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+            padding: 16px;
+        }
+        .modal-content {
+            background: var(--card-bg);
+            padding: 28px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 620px;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            animation: modalUp 0.25s ease-out;
+        }
         .modal-close {
             position: absolute;
             top: 16px; right: 16px;
@@ -466,18 +394,30 @@ body.admin-mode #detail-category-selector {
         .footer-links a:hover { opacity: 0.8; text-decoration: underline; }
         footer p { margin: 6px 0; opacity: 0.85; line-height: 1.5; }
 
+        /* 😸 猫の知恵袋 BBS専用スタイル */
+        .board-post {
+            border-bottom: 1px dashed var(--border-color);
+            padding: 14px 0;
+        }
+        .board-post:last-child { border-bottom: none; }
+        .board-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #8c827a;
+            margin-bottom: 4px;
+        }
+        .board-title { font-weight: 700; font-size: 1.1rem; color: #a26d46; margin-bottom: 4px; }
+        .board-body { font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap; }
+
 /* ============================================================
    🖼️ 1. ギャラリー一覧（デフォルト・スマホ・iPad）
    ============================================================ */
 .gallery-grid {
     display: grid;
-    /* モバイルでは2列、PCでは3列〜5列に自動調整 */
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
     margin-top: 18px;
-    /* iOSでの横揺れ防止 */
-    width: 100%;
-    box-sizing: border-box;
 }
 
 .gallery-item {
@@ -488,92 +428,61 @@ body.admin-mode #detail-category-selector {
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     cursor: zoom-in;
     background: #f0f0f0;
-    /* タップ時の青いハイライトを消す（iOS用） */
-    -webkit-tap-highlight-color: transparent;
 }
 
 .gallery-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* 読み込みまで画像を表示させないことでガタつきを防止 */
-    display: block;
     transition: transform 0.3s ease;
 }
 
-/* ホバーはPCのみ適用、モバイルでの誤作動防止 */
-@media (hover: hover) {
-    .gallery-item:hover img {
-        transform: scale(1.05);
-    }
+.gallery-item:hover img {
+    transform: scale(1.05); /* ホバーで少し拡大 */
 }
 
-/* 🗑️ 削除ボタン（タッチしやすいよう少しサイズアップ） */
+/* 🗑️ 削除ボタン（一覧時） */
 .gallery-delete {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(220, 53, 69, 0.95);
+    top: 6px;
+    right: 6px;
+    background: rgba(220, 53, 69, 0.9);
     color: white;
-    border: 2px solid white;
+    border: 2px solid white; /* 視認性アップ */
     border-radius: 50%;
-    width: 32px;  /* 26pxから32pxへ：指で押しやすく */
-    height: 32px;
+    width: 26px;
+    height: 26px;
     cursor: pointer;
     font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 14px;
     z-index: 10;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    /* ボタンを押しやすくするための余白を内側に確保 */
-    padding: 0;
-}
-/* ============================================================
-   📱 1. iPhone・スマホ版 (768px以下)
-   ============================================================ */
-@media (max-width: 768px) {
-    /* 記事・ギャラリー共に1列（または2列） */
-    #articles-grid, 
-    .gallery-grid {
-        grid-template-columns: repeat(1, 1fr) !important;
-        gap: 15px !important;
-    }
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 /* ============================================================
-   📑 2. iPad・タブレット版 (769px〜1023px)
-   ============================================================ */
-@media (min-width: 769px) and (max-width: 1023px) {
-    /* 3列でバランスよく配置 */
-    #articles-grid, 
-    .gallery-grid {
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 15px !important;
-    }
-}
-
-/* ============================================================
-   💻 3. PC版 (1024px以上)
+   💻 2. PC版最適化（1024px以上）
    ============================================================ */
 @media (min-width: 1024px) {
-    /* 記事一覧を5カラム×2段（10記事）に固定 */
-    #articles-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr) !important;
-        grid-template-rows: repeat(2, auto); /* 2段を意識 */
-        gap: 20px;
-        max-width: 1380px; /* 広告用サイドバーを置くスペースを考慮 */
-        margin: 0 auto;
+    /* モーダル自体の横幅を広げる */
+    #gallery-upload-modal .modal-content,
+    .gallery-modal-main,
+    #gallery-container-parent {
+        width: 90% !important;
+        max-width: 1200px !important;
+        margin: auto;
     }
 
-    /* ギャラリーも5カラムに統一 */
+    /* 5カラムに拡張 */
     .gallery-grid {
         grid-template-columns: repeat(5, 1fr) !important;
         gap: 15px !important;
+        padding: 10px !important;
     }
 }
+
 /* ============================================================
    🔍 3. 拡大ズーム表示（custom-zoom-overlay）
    ============================================================ */
@@ -773,7 +682,7 @@ body.admin-mode #detail-category-selector {
     font-weight: bold;
 }
 
-        /* --- ✨ アニメーション定義 --- */
+/* --- ✨ アニメーション定義 --- */
         /* 下からふわっと浮かび上がる共通の動き */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -802,273 +711,16 @@ body.admin-mode #detail-category-selector {
             transform: scale(1.01);
             background: rgba(255, 255, 255, 0.05);
         }
-/* 🚩 記事一覧のメインコンテナ（PCでは広告サイドバーと並ぶ） */
-.content-wrapper {
-    display: flex;
-    max-width: 1600px;
-    margin: 0 auto;
-    gap: 30px;
-    padding: 20px;
-}
-
-/* 🚩 記事グリッド：デバイスごとに列を切り替え */
-#mainGrid {
-    flex: 1;
-    display: grid;
-    gap: 25px;
-    /* デフォルト：iPhone（1列） */
-    grid-template-columns: 1fr;
-}
-
-/* iPad版 (768px以上) */
-@media (min-width: 768px) {
-    #mainGrid { grid-template-columns: repeat(3, 1fr); }
-}
-
-/* PC版 (1200px以上) */
-@media (min-width: 1200px) {
-    #mainGrid { grid-template-columns: repeat(5, 1fr); }
-}
-
-/* 🚩 広告サイドバー (PCのみ表示 / モバイルでは隠すか下へ) */
-.ad-sidebar {
-    width: 300px;
-    display: none;
-}
-@media (min-width: 1200px) {
-    .ad-sidebar { display: block; }
-}
-
-/* 🚩 ページネーション：押しやすい黄金比サイズ */
-#pagination {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin: 50px 0;
-}
-.page-btn {
-    width: 45px;
-    height: 45px;
-    border: 2px solid #d4a017;
-    background: transparent;
-    color: #d4a017;
-    border-radius: 50%;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.3s;
-}
-.page-btn.active {
-    background: #d4a017;
-    color: #fff;
-    box-shadow: 0 4px 10px rgba(212, 160, 23, 0.3);
-}
-/* 記事カード本体 */
-.post-card {
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-}
-
-/* 🚩 テキストエリアの余白設定（ここが重要） */
-.card-content, .card-body {
-    /* 左右上下にしっかり余白を取る（黄金比に近い配分） */
-    padding: 18px 20px 22px 20px; 
-    display: flex;
-    flex-direction: column;
-    gap: 8px; /* 要素間の隙間 */
-}
-
-/* カテゴリーラベル */
-.card-tag, .card-category {
-    font-size: 0.75rem;
-    font-weight: bold;
-    color: #d4a017;
-    margin-bottom: 4px;
-}
-
-/* 記事タイトル */
-.card-title {
-    margin: 0;
-    font-size: 1.15rem;
-    line-height: 1.4;
-    color: #333;
-    /* 2行以上は「...」で省略して高さを揃える設定 */
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-/* 説明文（抜粋） */
-.card-excerpt, .card-desc {
-    font-size: 0.9rem;
-    line-height: 1.6; /* 行間を広げて読みやすく */
-    color: #666;
-    margin: 4px 0 10px 0;
-    /* 3行で省略 */
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-/* 日付エリア */
-.card-date {
-    font-size: 0.75rem;
-    color: #8c827a;
-    margin-top: auto; /* 下端に固定 */
-    border-top: 1px solid #f0f0f0;
-    padding-top: 10px;
-}
-/* ロゴ全体のレイアウト */
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1.2rem;
-    color: white;
-    user-select: none; /* テキスト選択を防止 */
-}
-
-/* SVGアイコンのサイズと初期色（青） */
-.logo-icon {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-}
-
-.dog-svg {
-    width: 100%;
-    height: 100%;
-    fill: none;
-    stroke: #00e6ff; /* IDLE時の青 */
-    stroke-width: 8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    transition: stroke 0.2s ease;
-}
-
-/* 共通パーツの線幅 */
-.dog-path {
-    stroke-width: 8;
-}
-
-/* 口のパーツ設定 */
-.dog-mouth {
-    stroke-width: 4.5;
-    transition: opacity 0.2s ease;
-}
-
-.dog-happy-mouth {
-    stroke-width: 7; /* 笑顔は少し太くして強調 */
-}
-
-/* HAPPY状態（オレンジ）の定義 */
-.logo.is-happy .dog-svg {
-    stroke: #ff9900;
-}
 </style>
-
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
 </head>
 <body>
-<script>
-window.AppState = window.AppState || {
-    posts: [],
-    currentPage: 1,
-    perPage: 10,
-    runtime: {
-        isGearOpen: false,
-        scrollLock: false
-    }
-};
 
-// 2. 歯車メニュー (toggleGearMenu) を「壁」の手前で定義
-window.toggleGearMenu = function() {
-    const menu = document.getElementById('gear-menu');
-    if (!menu) return;
-
-    // AppStateの状態を反転
-    window.AppState.runtime.isGearOpen = !window.AppState.runtime.isGearOpen;
-
-    // 状態に合わせて表示を切り替え
-    menu.classList.toggle('active', window.AppState.runtime.isGearOpen);
-    console.log("⚙ Menu State:", window.AppState.runtime.isGearOpen);
-};
-
-// 3. モーダル (openModal) もここで定義して「未定義エラー」を防止
-window.openModal = function(id) {
-    const modal = document.getElementById(id);
-    if (modal) modal.style.display = 'block';
-};
-
-// 4. ログアウト処理（AppState主体管理）
-window.handleLogout = function() {
-    if(confirm("ログアウトしますか？")) {
-        window.AppState.isAdmin = false;
-        location.reload();
-    }
-};
-</script>
 <header>
-  <!-- ヘッダー内容 -->
     <!-- ロゴ：クリックでリロード、ホバー時に少し動く -->
-<div class="logo" onclick="toggleAIverseMode(this)" title="AIverse モード切替">
-    <span class="logo-icon">
-        <svg id="dog-logo-svg" class="dog-svg" viewBox="0 0 128 128">
-            <path class="dog-path" d="M40 30 L88 30 L118 60 L100 60 L108 95 L64 115 L20 95 L28 60 L10 60 Z" />
-            <line class="dog-path" x1="40" y1="30" x2="28" y2="60" />
-            <line class="dog-path" x1="88" y1="30" x2="100" y2="60" />
-            <circle class="dog-path" cx="48" cy="72" r="10.5" stroke-width="6.5" />
-            <circle class="dog-path" cx="80" cy="72" r="10.5" stroke-width="6.5" />
-            <circle cx="48" cy="72" r="3.5" fill="white" stroke="none" />
-            <circle cx="80" cy="72" r="3.5" fill="white" stroke="none" />
-            <path d="M60 82 L68 82 L64 90 Z" fill="white" stroke="none" />
+    <div class="logo" onclick="location.reload()" title="AIverse ホームへ">
+        <span class="logo-icon">🐶</span> Alverse
+    </div>
 
-            <path id="idle-mouth" class="dog-mouth" d="M64 90 L64 98 Q64 104 55 104 M64 90 Q64 104 73 104" />
-            <path id="happy-mouth" class="dog-mouth dog-happy-mouth" d="M45 95 Q64 110 83 95" style="display: none;" />
-
-            <line class="dog-path" x1="28" y1="90" x2="43" y2="90" stroke-width="6" />
-            <line class="dog-path" x1="31" y1="98" x2="41" y2="98" stroke-width="6" />
-            <line class="dog-path" x1="100" y1="90" x2="85" y2="90" stroke-width="6" />
-            <line class="dog-path" x1="97" y1="98" x2="87" y2="98" stroke-width="6" />
-        </svg>
-    </span>
-    Alverse
-</div>
-<script>
-
-/**
- * ロゴ、口の形、ブラウザタイトルをすべて同期して切り替える関数
- */
-window.toggleAIverseMode = function(el) {
-    // 1. ロゴの色をトグル
-    el.classList.toggle('is-happy');
-
-    const isHappy = el.classList.contains('is-happy');
-    const idleM = document.getElementById('idle-mouth');
-    const happyM = document.getElementById('happy-mouth');
-
-    // 2. 表情（口）の切り替え
-    if (idleM && happyM) {
-        idleM.style.display = isHappy ? 'none' : 'block';
-        happyM.style.display = isHappy ? 'block' : 'none';
-    }
-
-    // 3. ブラウザのタイトル（<title>）の絵文字も切り替え！
-    // HAPPYならオレンジ(🐶)、通常なら青い犬(🐶)
-    document.title = isHappy ? "🐶 Alverse" : "🐶 Alverse";
-};
-</script>
     <!-- 検索バー：中央配置で視認性を向上 -->
     <div class="search-container">
         <div class="search-wrapper">
@@ -1127,23 +779,27 @@ window.toggleAIverseMode = function(el) {
 
 <div id="board-modal" class="modal">
     <div class="modal-content">
-        <!-- ✕ボタンをAppState主体の関数へ紐付け -->
-        <button class="modal-close" onclick="window.closeModal('board-modal')">×</button>
-
+        <button class="modal-close" onclick="closeModal('board-modal')">×</button>
         <h2 style="margin-top:0;">😸 猫の知恵袋</h2>
         <p style="font-size:0.85rem; color:#8c827a; margin-bottom:15px;">
             生活の知恵から、リアルでは吐き出せない日常の愚痴、ちょっとした悩みまで。
         </p>
 
-        <!-- 入力エリア -->
-        <input type="text" id="bbs-title" placeholder="知恵のタイトル（任意）" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #ddd; border-radius:4px;">
-        <textarea id="bbs-body" placeholder="ここに本文を書き込んでください..." style="width:100%; height:100px; margin-bottom:10px; padding:8px; border:1px solid #ddd; border-radius:4px;"></textarea>
+        <div style="background:var(--bg-color); padding:16px; border-radius:12px; border:1px solid var(--border-color); margin-bottom:20px;">
+            <input type="text" id="board-title-input" placeholder="知恵のタイトル（任意）"
+                   style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:6px; margin-bottom:10px; background:#fffef9; font-family:serif;">
 
-        <!-- 修正された送信ボタン：文字列漏れを防止 -->
-        <button id="bbs-submit" onclick="window.handleSubmitBbs()" 
-            style="margin-top:10px; width:100%; padding:12px; background:#f1c40f; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
-            知恵を共有する（送信）
-        </button>
+            <textarea id="board-body-input" rows="3" placeholder="ここに本文を書き込んでください..."
+                      style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:6px; background:#fffef9; font-family:serif; resize:none;"></textarea>
+
+            <button onclick="submitBoardPost()" class="bgm-btn"
+                    style="margin-top:10px; width:100%; padding:12px; background:#f1c40f; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
+                知恵を共有する（送信）
+            </button>
+        </div>
+
+        <div id="board-posts-container" style="max-height:50vh; overflow-y:auto; padding-right:8px;">
+            </div>
     </div>
 </div>
 <div id="gallery-modal" class="modal">
@@ -1185,6 +841,13 @@ window.toggleAIverseMode = function(el) {
             endif;
             ?>
         </div>
+    </div>
+</div>
+<div id="gallery-zoom-modal" class="custom-zoom-overlay" onclick="closeGalleryZoom(event)">
+    <div class="zoom-card" onclick="event.stopPropagation()">
+        <img id="zoomed-image" src="" alt="拡大画像">
+
+        <button class="simple-x-btn" onclick="closeGalleryZoom(event)">×</button>
     </div>
 </div>
 <div id="gallery-zoom-modal" class="custom-zoom-overlay" onclick="closeGalleryZoom(event)">
@@ -1281,90 +944,74 @@ window.toggleAIverseMode = function(el) {
 </div>
 
 <div id="detail-modal" class="modal">
-    <div class="modal-content" style="max-width: 700px; padding: 30px; border-radius: 20px;">
-        <button class="modal-close" onclick="closeModal('detail-modal')">&times;</button>
-
-        <img id="detail-image" style="width:100%; border-radius:12px; margin-bottom: 25px; display:none; object-fit: cover; max-height: 400px;">
-
-        <div id="detail-category-label" style="color: #d4a017; font-weight: bold; font-size: 0.95rem; margin-bottom: 15px;"></div>
-
-        <select id="detail-category-selector" style="display:none; width:100%; padding:10px; margin-bottom:20px; border-radius: 8px; border: 1px solid #ddd;"></select>
-
-        <h2 id="detail-title" style="margin: 0 0 20px 0; font-size: 1.8rem; color: #333; line-height: 1.3;"></h2>
-
-        <div id="detail-body" style="font-size: 1.05rem; line-height: 1.8; color: #444; letter-spacing: 0.02em;"></div>
+    <div class="modal-content" style="padding: 24px; max-width: 680px;">
+        <button class="modal-close" onclick="closeModal('detail-modal')">×</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px;">
+            <div id="detail-category-container" style="flex: 1;">
+                <select id="detail-category-selector" style="width: 100%; padding: 6px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); color: #a26d46; font-size: 0.8rem; font-weight: 700;"></select>
+            </div>
+            <p id="detail-date" style="font-size:0.85rem; color:#8c827a; margin: 0;"></p>
+        </div>
+        <h1 id="detail-title" style="margin:0 0 16px 0; font-size: 1.5rem; font-weight: 800; line-height: 1.35; color: var(--text-color);"></h1>
+        <hr style="border:0; border-top:1px solid var(--border-color); margin-bottom:20px;">
+        <div id="detail-body" style="line-height:1.9; font-size:1.1rem; white-space:pre-wrap; color: var(--text-color);"></div>
     </div>
 </div>
 
 <div id="admin-modal" class="modal">
-    <div class="modal-content" style="max-width: 650px; border-radius: 15px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-        <button class="modal-close" onclick="closeModal('admin-modal')" style="font-size: 2rem;">&times;</button>
+    <div class="modal-content" style="max-width: 600px;">
+        <button class="modal-close" onclick="closeModal('admin-modal')">&times;</button>
+        <h2 style="margin-top:0;">🔑 管理者センター</h2>
 
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-            <h2 style="margin:0; font-size: 1.5rem; color: #343a40;">🔑 管理者センター</h2>
-            <span style="font-size: 0.7rem; background: #e7f5ff; color: #1971c2; padding: 2px 8px; border-radius: 10px; font-weight: bold;">System v2.0</span>
-        </div>
-
-        <div style="background: #fff4e6; padding: 20px; border-radius: 12px; border: 1px solid #ffd8a8; margin-bottom: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <p style="font-size: 0.85rem; font-weight: bold; color: #d9480f; margin: 0;">📰 CONTENTS (記事投稿・編集)</p>
-                <button onclick="clearAdminForm(); document.getElementById('admin-post-id-input').value='';"
-                        style="padding: 6px 12px; background: #4dabf7; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold; transition: 0.2s;">
-                    🆕 新規作成モード
-                </button>
-            </div>
-
+        <div style="background: #fff4e6; padding: 15px; border-radius: 10px; border: 1px solid #ffd8a8; margin-bottom: 20px;">
+            <p style="font-size: 0.8rem; font-weight: bold; color: #d9480f; margin: 0 0 10px 0;">CONTENTS (記事投稿・編集)</p>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <p style="font-size: 0.8rem; font-weight: bold; color: #d9480f; margin: 0;">CONTENTS (記事投稿・編集)</p>
+    <button onclick="clearAdminForm(); document.getElementById('admin-post-id-input').value='';"
+            style="padding: 5px 10px; background: #4dabf7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.7rem;">
+        🆕 新規作成モード
+    </button>
+</div>
             <input type="hidden" id="admin-post-id-input">
+<div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed #ced4da;">
+    <p style="font-size: 0.7rem; font-weight: bold; color: #868e96; margin: 0 0 8px 0; text-align: center;">LIVE PREVIEW</p>
+    <div id="admin-preview-area" style="display: flex; justify-content: center; transform: scale(0.85); margin: -20px 0;">
+        </div>
+</div>
 
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px dashed #ced4da;">
-                <p style="font-size: 0.7rem; font-weight: bold; color: #adb5bd; margin: 0 0 10px 0; text-align: center; letter-spacing: 1px;">LIVE PREVIEW</p>
-                <div id="admin-preview-area" style="display: flex; justify-content: center; transform: scale(0.9); margin: -10px 0;">
-                    </div>
-            </div>
+<input type="text" id="admin-image-input" placeholder="画像URLを入力 (空欄でデフォルト)"
+       style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+<input type="text" id="admin-title-input" placeholder="タイトルを入力" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
 
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="admin-image-input" placeholder="🖼️ 画像URLを入力 (空欄でデフォルト)"
-                           style="flex: 1; padding:12px; border:1px solid #dee2e6; border-radius:8px; font-size:0.9rem;">
+            <select id="admin-category-input" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px;">
+                <option value="news">📢 ニュース</option>
+                <option value="update">🆙 更新情報</option>
+                <option value="diary">🐾 日記</option>
+            </select>
 
-                    <select id="admin-category-input" style="width: 180px; padding:12px; border:1px solid #dee2e6; border-radius:8px; background: white; cursor: pointer; font-size:0.9rem;">
-                        </select>
-                </div>
+            <textarea id="admin-body-input" placeholder="本文を入力" style="width:100%; height:150px; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;"></textarea>
 
-                <input type="text" id="admin-title-input" placeholder="📌 タイトルを入力"
-                       style="width:100%; padding:12px; border:1px solid #dee2e6; border-radius:8px; font-size:1rem; font-weight: bold;">
+            <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem; margin-bottom:15px; cursor:pointer;">
+                <input type="checkbox" id="admin-public" checked> 記事を「公開」にする
+            </label>
 
-                <textarea id="admin-body-input" placeholder="🖋️ 本文を入力してください..."
-                          style="width:100%; height:180px; padding:12px; border:1px solid #dee2e6; border-radius:8px; font-size:0.9rem; line-height: 1.6; resize: vertical;"></textarea>
-
-                <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; border-radius: 8px; border: 1px solid #dee2e6;">
-                    <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color: #495057;">
-                        <input type="checkbox" id="admin-public" checked style="width: 18px; height: 18px;"> 🌏 記事を「公開」にする
-                    </label>
-                    <div style="display:flex; gap:10px;">
-                        <button onclick="clearAdminForm()" style="padding:10px 20px; background:#e9ecef; color:#495057; border:none; border-radius:8px; cursor:pointer; font-size:0.9rem;">リセット</button>
-                        <button onclick="savePostFromAdmin()" style="padding:10px 30px; background:linear-gradient(135deg, #ff922b, #f08c00); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 12px rgba(240,140,0,0.3);">🚀 記事を保存</button>
-                    </div>
-                </div>
+            <div style="display:flex; gap:10px;">
+                <button onclick="savePostFromAdmin()" style="flex:2; padding:12px; background:#ff9800; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">🚀 記事を保存</button>
+                <button onclick="clearAdminForm()" style="flex:1; padding:12px; background:#8c827a; color:white; border:none; border-radius:5px; cursor:pointer;">リセット</button>
             </div>
         </div>
 
-        <div style="background: #f1f3f5; padding: 20px; border-radius: 12px; border: 1px solid #dee2e6;">
-            <p style="font-size: 0.85rem; font-weight: bold; color: #495057; margin: 0 0 12px 0;">⚙️ SYSTEM CONFIG & MEMO</p>
-            <textarea id="admin-system-memo" placeholder="システム設定や開発用メモをここに保存..." 
-                      style="width:100%; height:80px; padding:12px; border:1px solid #ced4da; border-radius:8px; background: #fff; font-family: monospace; font-size: 0.85rem;"></textarea>
-
-            <div style="display: flex; gap: 10px; margin-top: 12px;">
-                <button onclick="saveSystemConfig()" style="flex: 2; padding: 10px; background: #6741d9; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">💾 設定・メモを保存</button>
-                <button onclick="clearSystemMemo()" style="flex: 1; padding: 10px; background: #adb5bd; color: white; border: none; border-radius: 8px; cursor: pointer;">🗑️ 消去</button>
+        <div style="background: #f1f3f5; padding: 15px; border-radius: 10px; border: 1px solid #dee2e6;">
+            <p style="font-size: 0.8rem; font-weight: bold; color: #495057; margin: 0 0 10px 0;">SYSTEM CONFIG (設定・メモ)</p>
+            <textarea id="memo-textarea" style="width:100%; height:60px; margin-bottom:10px; font-family:monospace; padding:8px; box-sizing:border-box;" placeholder="設定用メモ..."></textarea>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                <button onclick="db.memo = document.getElementById('memo-textarea').value; saveToLocalStorage(); alert('設定を保存しました');" style="padding:8px; background:white; border:1px solid #adb5bd; border-radius:5px; cursor:pointer;">💾 設定を保存</button>
+                <button onclick="document.getElementById('memo-textarea').value = '';" style="padding:8px; background:white; border:1px solid #adb5bd; border-radius:5px; cursor:pointer;">🗑️ メモ消去</button>
             </div>
-        </div>
-
-        <div style="margin-top: 20px; text-align: center;">
-            <button onclick="adminLogout()" style="background: none; border: none; color: #fa5252; font-size: 0.8rem; text-decoration: underline; cursor: pointer;">管理者ログアウト</button>
         </div>
     </div>
 </div>
+
 <div id="privacy-modal" class="modal">
     <div class="modal-content">
         <button class="modal-close" onclick="closeModal('privacy-modal')">×</button>
@@ -1386,1990 +1033,261 @@ window.toggleAIverseMode = function(el) {
 
 <script>
 
-// =====================================================
-// 📌 APP ANCHOR: CORE_INIT (STATE + FIREBASE)
-// =====================================================
-
-// -----------------------------
-// 🧠 AppState（単一状態管理）
-// -----------------------------
-window.AppState = window.AppState || {};
-
-// スキーマ補完（安全初期化）
-window.AppState.posts ??= [];
-window.AppState.currentPage ??= 1;
-window.AppState.perPage ??= 10;
-window.AppState.isAdmin ??= false;
-
-window.AppState.draft ??= {
-    title: "",
-    body: "",
-    category: "",
-    image: ""
-};
-
-window.AppState.runtime ??= {
-    dbReady: false,
-    dataReady: false,
-    syncRetry: 0,
-    isFetching: false
-};
-// BGM / Memo 系
-window.AppState.memo ??= "";
-window.AppState.playlists ??= [];
-window.AppState.activePlaylistIdx ??= 0;
-
-// Firebase DB
-window.AppState.db ??= null;
-// DB格納枠
-window.AppState.db ??= null;
-
-// =====================================================
-// 👤 ADMIN STATE RESTORE
-// =====================================================
-window.AppState.isAdmin =
-    localStorage.getItem('aiverse_admin') === 'true';
-
-// 🔥 ここを追加（重要）
-window.db = window.AppState.db;
-
-// =====================================================
-// 🔥 Firebase 初期化
-// =====================================================
-(function initFirebase() {
-    // 二重初期化防止
-    if (window.AppState.db) return;
-
-    if (typeof window.firebase === "undefined") {
-        console.warn("[Firebase] SDK not loaded");
-        window.AppState.db = null;
-        window.db = null;
-        return;
-    }
-
-try {
-    const db = firebase.database();
-
-    window.AppState.db = db;
-    window.db = db;
-
-    console.log("[Firebase] initialized");
-
-} catch (e) {
-    console.error("[Firebase] init failed:", e);
-
-    window.AppState.db = null;
-    window.db = null;
-}
-})();
-// ----------------------------- 📰 記事・検索・ページネーション制御 -----------------------------
-
-let currentPage = 1;
-const postsPerPage = 10; // PC版 5列×2段
-let computedPosts = [];
-
-/**
- * 🚩 検索イベント
- */
-function onSearchChange() {
-    currentPage = 1;
-    renderArticlesGrid();
-}
-
-/**
- * 📰 メイングリッド描画
- */
-function renderArticlesGrid() {
-
-    // 安全ガード（再代入しない）
-const dbRef = window.AppState.db;
-    if (!dbRef) {
-        console.error("DB未初期化");
-        return;
-    }
-
-    const grid = document.getElementById('mainGrid');
-    if (!grid) return;
-
-    // ここから先で dbRef を使う
-}
-// --- 🚩 iPhone/アプリ版 強制同期強化ロジック ---
-(function() {
-    const grid = document.getElementById('mainGrid');
-    if (grid) {
-        console.log("MainGrid detected. Syncing...");
-        // 状態管理
-        window.AppState.runtime.dbReady ??= false;
-        window.AppState.runtime.dataReady ??= false;
-        window.AppState.runtime.syncRetry ??= 0;
-
-        // DB未接続 or データ未取得の場合の処理
-        if (!window.AppState.db || !window.AppState.runtime.dataReady) {
-            grid.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 100px 20px; color: #8c827a;">
-                    <div style="margin-bottom: 15px; font-size: 1.5rem;">🐾</div>
-                    <p style="font-size: 0.9rem;">AIverse のデータを同期中...</p>
-                    <p style="font-size: 0.7rem; opacity: 0.7;">(サーバーに接続しています...)</p>
-                </div>`;
-
-            if (typeof loadDB === 'function' && !window.AppState.runtime.isFetching) {
-                try {
-                    const result = loadDB();
-
-                    if (result?.then) {
-                        result.then(() => {
-                            window.AppState.runtime.isFetching = true;
-                            // 成功時のフラグ更新
-                            window.AppState.runtime.syncRetry = 0;
-                            window.AppState.runtime.dbReady = true;
-                            window.AppState.runtime.dataReady = true;
-                        }).catch(err => {
-                            console.error("loadDB failed", err);
-                            window.AppState.runtime.isFetching = false;
-                            window.AppState.runtime.dbReady = false;
-                            window.AppState.runtime.dataReady = false;
-                        });
-                    }
-                } catch (e) {
-                    console.error("loadDB failed", e);
-                    window.AppState.runtime.isFetching = false;
-                    window.AppState.runtime.dbReady = false;
-                    window.AppState.runtime.dataReady = false;
-                }
-            }
-
-            // リトライロジック
-            window.AppState.runtime.syncRetry++;
-            setTimeout(() => {
-                if (window.AppState.runtime.syncRetry < 10) {
-                    requestAnimationFrame(renderArticlesGrid);
-                }
-            }, 800);
-
-        } else {
-            // 既にデータがある場合
-            window.AppState.runtime.syncRetry = 0;
-            window.AppState.runtime.dbReady = true;
-            window.AppState.runtime.dataReady = true;
-        }
-    }
-})();
-// --- 🔍 フィルタリングと検索 ---
-
-const searchBar = document.getElementById('search-bar');
-const query = (searchBar?.value || '').toLowerCase().trim();
-
-// 安全取得
-const posts = Array.isArray(window.posts) ? window.posts : [];
-
-// カテゴリMap（安全化）
-const categoryMap = window.__categoryMap || new Map(
-    (window.AIVERSE_CATEGORIES || []).map(c => [c.id, c.label])
-);
-
-// フィルタ
-computedPosts = posts.filter(p => {
-    if (!p) return false;
-
-    const title = (p.title || '').toLowerCase();
-    const body = (p.body || '').toLowerCase();
-    const category = (p.category || '').toLowerCase();
-
-    const matchesQuery =
-        title.includes(query) ||
-        body.includes(query) ||
-        category.includes(query);
-
-    const isPublic = p.public !== false;
-    const isAdmin =
-    window.AppState.isAdmin === true;
-
-    return matchesQuery && (isPublic || isAdmin);
-});
-
-// ★ sortを分離（軽量化 & 安全化）
-computedPosts.sort((a, b) => {
-    const t1 = Date.parse(a.date || "") || 0;
-    const t2 = Date.parse(b.date || "") || 0;
-    return t2 - t1;
-});
-
-// ページング
-const startIndex = (currentPage - 1) * postsPerPage;
-const pageSelection = computedPosts.slice(
-    startIndex,
-    startIndex + postsPerPage
-);
-
-grid.innerHTML = '';
-
-if (pageSelection.length === 0) {
-    grid.innerHTML = `
-        <div style="grid-column:1/-1;text-align:center;padding:100px;">
-            条件に合う記事が見つかりませんでした 🔍
-        </div>`;
-    buildPaginationControls(0);
-}
-
-// カテゴリキャッシュ（初回のみ生成）
-if (!window.__categoryMap) {
-    window.__categoryMap = new Map(
-        (window.AIVERSE_CATEGORIES || []).map(c => [c.id, c.label])
-    );
-}
-
-// カード生成
-pageSelection.forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'post-card';
-    card.onclick = () => showArticleDetail(p.id);
-
-    const categoryLabel =
-        window.__categoryMap.get(p.category) || "未分類";
-
-    const previewText = (p.body || '')
-        .replace(/[#*`>_-]/g, '')
-        .substring(0, 70);
-
-    // DOM生成続き
-});
-        // 管理者パネル（一覧から直接編集・削除が可能）
-if (p) {
-
-const isAdminNow =
-    window.AppState.isAdmin === true;
-const adminPanelEl = isAdminNow
-    ? (() => {
-        const isPublic = p.public !== false;
-
-        const el = document.createElement('div');
-        el.className = 'admin-grid-tools';
-
-        const badge = document.createElement('span');
-        badge.className = `badge ${isPublic ? 'pub' : 'draft'}`;
-        badge.textContent = isPublic ? '公開' : '下書き';
-
-        const btn = document.createElement('button');
-        btn.textContent = '編集';
-
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (p?.id != null) {
-                editArticle(String(p.id));
-            }
-        });
-
-        el.append(badge, btn);
-        return el;
-    })()
-    : null;
-/**
- * 🚩 3. 記事詳細表示 (Markdown + 管理者カテゴリー変更機能)
- */
-function showArticleDetail(id) {
-
-    const posts = Array.isArray(window.posts) ? window.posts : [];
-
-    const p = posts.find(item =>
-        String(item?.id) === String(id)
-    );
-
-    if (p) {
-
-    const cache = window.__detailCache || (
-        window.__detailCache = {
-            title: document.getElementById('detail-title'),
-            body: document.getElementById('detail-body'),
-            img: document.getElementById('detail-image'),
-            selector: document.getElementById('detail-category-selector')
-        }
-    );
-
-    if (cache.title) {
-        cache.title.innerText = p.title || '無題';
-    }
-
-    if (cache.img) {
-        cache.img.src = p.image || '';
-        cache.img.style.display = p.image ? 'block' : 'none';
-    }
-
-    if (cache.body) {
-        const raw = p.body || '';
-
-        const html = typeof marked !== 'undefined'
-            ? marked.parse(raw, {
-                headerIds: false,
-                mangle: false
-            })
-            : raw;
-
-        cache.body.innerHTML = html;
-    }
-}
-// 🛠 管理者用カテゴリー変更プルダウン（安定最終整理版）
-
-if (selector && p) {
-    const isAdmin = window.AppState.isAdmin === true;
-    selector.style.display = isAdmin ? 'block' : 'none';
-if (isAdmin) {
-
-// カテゴリ取得
-const categories = window.AIVERSE_CATEGORIES || [];
-
-// ★新規セレクトを完全生成（clone排除）
-const newSelector = document.createElement('select');
-
-// 初期option
-const defaultOpt = document.createElement('option');
-defaultOpt.value = '';
-defaultOpt.textContent = 'カテゴリーを選択';
-newSelector.appendChild(defaultOpt);
-
-// options生成
-for (const cat of categories) {
-    const opt = document.createElement('option');
-    opt.value = cat.id;
-    opt.textContent = cat.label;
-    newSelector.appendChild(opt);
-}
-
-// 値同期
-newSelector.value = p.category || "";
-
-// 置換
-selector.parentNode.replaceChild(newSelector, selector);
-
-// 更新処理
-newSelector.addEventListener('change', () => {
-    const newValue = newSelector.value;
-
-    if (newValue === p.category) return;
-
-    if (!confirm(`カテゴリーを「${newValue}」に変更しますか？`)) {
-        newSelector.value = p.category || "";
-        return;
-    }
-
-    // 単一ソース更新（pに統一）
-    p.category = newValue;
-
-    try {
-        saveDB?.();
-    } catch (e) {
-        console.error(e);
-    }
-
-    clearTimeout(window.__renderTimer);
-    window.__renderTimer = setTimeout(() => {
-        requestAnimationFrame(renderArticlesGrid);
-    }, 50);
-});
-
-// 表示
-openModal('detail-modal');
-window.scrollTo({ top: 0, behavior: 'smooth' });
-/**
- * 🚩 4. ページネーションUI生成（安定版）
- */
-function buildPaginationControls(totalPages) {
-    const pagBox = document.getElementById('pagination');
-    if (!pagBox) return;
-
-    pagBox.innerHTML = '';
-    if (totalPages <= 1) return;
-
-    const maxButtons = 7;
-
-    let start = currentPage - Math.floor(maxButtons / 2);
-    let end = currentPage + Math.floor(maxButtons / 2);
-
-    if (start < 1) {
-        start = 1;
-        end = Math.min(totalPages, maxButtons);
-    }
-
-    if (end > totalPages) {
-        end = totalPages;
-        start = Math.max(1, totalPages - maxButtons + 1);
-    }
-
-    for (let i = start; i <= end; i++) {
-        const btn = document.createElement('button');
-
-        btn.textContent = i;
-        btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
-
-        btn.addEventListener('click', () => {
-            if (i === currentPage) return;
-
-            currentPage = i;
-
-            // ★多重防止のみ
-            clearTimeout(window.__pageRenderTimer);
-            window.__pageRenderTimer = setTimeout(() => {
-                renderArticlesGrid();
-            }, 50);
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-
-        pagBox.appendChild(btn);
-    }
-}
-/**
- * ⚙️ ギアドロップダウン制御（安定版）
- */
-function toggleGearMenu(e) {
-    if (e) e.stopPropagation();
-
-    const gearMenu = document.getElementById('gear-menu');
-    if (!gearMenu) return;
-
-    gearMenu.classList.toggle('show');
-}
-
-// 外側クリックで閉じる（安定版）
-document.addEventListener('click', (e) => {
-    const gearMenu = document.getElementById('gear-menu');
-    if (!gearMenu) return;
-
-    if (!gearMenu.classList.contains('show')) return;
-
-    if (!gearMenu.contains(e.target)) {
-        gearMenu.classList.remove('show');
-    }
-});
-// --- 🌛 ダークモード切り替え & 管理者長押し (強化版) ---
-let pressTimer = null;
-let longPressActive = false;
-
-const dmBtn = document.getElementById('dark-mode-btn');
-
-if (dmBtn) {
-
-    dmBtn.addEventListener('pointerdown', () => {
-        longPressActive = false;
-
-        pressTimer = setTimeout(() => {
-            longPressActive = true;
-
-            const pass = prompt("🔑 管理者パスワード：");
-
-            if (pass === "nekosuke101") {
-                window.AppState.isAdmin = true;
-                saveToLocalStorage?.();
-
-                renderArticlesGrid?.();
-
-                const logoutBtn = document.getElementById('admin-logout-item');
-                if (logoutBtn) logoutBtn.style.display = 'block';
-
-                alert("認証成功：管理者モード有効");
-                openModal?.('admin-modal');
-            } else if (pass !== null) {
-                alert("パスワードが違います。");
-            }
-
-        }, 1000);
-    });
-
-    const cancel = () => {
-        clearTimeout(pressTimer);
-        pressTimer = null;
+   // ----------------------------- 🗄️ データ構造 (初期値) -----------------------------
+    const INITIAL_ALVERSE_DB = {
+        isAdmin: false,
+        theme: 'light',
+        posts: [
+            { id: 1, title: "埃を極限まで吸い寄せるナノデバイス", category: "発明王への道", body: "超電磁マトリクスを空間に形成し、生活空間に散らばる微粒子、チリ、埃をミリ秒単位で一箇所に安全に集めるためのクリーン技術です。アレルギーに苦しむ人たちのために作られました。", image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=600&q=80", date: "2026-05-01", public: true },
+            { id: 2, title: "くぐるだけで免疫が再起動する量子ドーム", category: "発明王への道", body: "微弱なヘルツ共鳴波を発生させる特殊なゲート。通るだけで、人間の基礎体温と細胞の自己回復能力を心地よく覚醒させる未来型ヘルスケアシステム。ねこの温もりを科学的に応用しています。", image: "https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=600&q=80", date: "2026-05-02", public: true },
+            { id: 3, title: "太陽光を120%増幅させるレンズパネル", category: "グリーンエネルギー", body: "窓に貼り付けるだけで、外部から入る昼光の明るさを全方位に反射・倍加させ、暗い部屋を一瞬でぽかぽかの快適空間に変える省エネフィルム技術。", image: "https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=600&q=80", date: "2026-05-03", public: true }
+        ],
+        board: [
+            { id: 1, title: "Alverse掲示板へようこそ！", body: "自由にお使いいただけるBBSです！なんでも書き込んでいってくださいにゃ。😸", date: "2026-05-07 00:00" }
+        ],
+        gallery: [],
+        memo: "",
+        playlists: [
+            { name: "作業用ループ", tracks: [{ id: "dQw4w9WgXcQ", title: "Never Gonna Give You Up" }] }
+        ],
+        activePlaylistIdx: 0
     };
 
-    dmBtn.addEventListener('pointerup', cancel);
-    dmBtn.addEventListener('pointerleave', cancel);
+    // クッキー削除に耐えるlocalStorage保存 (現状維持)
+    let db = JSON.parse(localStorage.getItem('alverse_database_engine_v3')) || INITIAL_ALVERSE_DB;
 
-    dmBtn.addEventListener('click', (e) => {
-        if (longPressActive) {
-            longPressActive = false;
-            return;
-        }
-
-        const currentTheme = document.body.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-        document.body.setAttribute('data-theme', newTheme);
-
-        window.theme = newTheme;
-        saveToLocalStorage?.();
-    });
-}
-// --- 🛡️ セキュリティ & ユーティリティ ---
-function linkify(text) {
-    if (typeof text !== 'string') return '';
-
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-
-    return text.replace(urlRegex, (url) => {
-        const cleanUrl = url.replace(/[.,)]+$/, '');
-
-        if (!/^https?:\/\//i.test(cleanUrl)) {
-            return cleanUrl;
-        }
-
-        const safeUrl = cleanUrl.replace(/"/g, '&quot;');
-
-        return `<a href="${safeUrl}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style="color:#4dabf7; text-decoration:underline;">
-                    ${cleanUrl}
-                </a>`;
-    });
-}
-/**
- * 🔄 データの取得（Firebaseから最新の記事を読み込む）
- */
-    try {
-        const response = await fetch(BBS_ENDPOINT, {
-            cache: "no-store"
-        });
-
-        if (!response.ok) {
-            throw new Error('HTTP ' + response.status);
-        }
-
-        let data = null;
-
+    function saveToLocalStorage() {
         try {
-            data = await response.json();
+            localStorage.setItem('alverse_database_engine_v3', JSON.stringify(db));
         } catch (e) {
-            console.error("JSON parse failed:", e);
-            data = null;
+            alert("⚠️ ストレージ容量上限を超えました。ギャラリー画像を削除してください。");
         }
+    }
 
-        const list = (data && typeof data === 'object' && !Array.isArray(data))
-            ? Object.keys(data).map(key => ({
-                ...data[key],
-                fbKey: key
-            }))
-            : [];
+    // ----------------------------- 📰 記事・検索・ページネーション制御 -----------------------------
+    let currentPage = 1;
+    const postsPerPage = 10;
+    let computedPosts = [];
 
-        const sorted = [...list].sort(
-            (a, b) => (b.timestamp || 0) - (a.timestamp || 0)
-        );
-
-        window.AppState.posts = sorted;
-
+    function onSearchChange() {
+        currentPage = 1;
         renderArticlesGrid();
-
-        console.log("🐾 掲示板データを同期しました");
-
-    } catch (e) {
-        console.error("取得失敗:", e);
-
-        if (container) {
-            container.innerHTML =
-                '<div style="text-align:center; color:#fa5252; padding:20px;">読み込み失敗</div>';
-        }
-    }
-}
-/**
- * 🎨 掲示板のレンダリング（見た目を作る）
- */
-function renderBoard() {
-    if (!container) return;
-
-    const board = Array.isArray(list) ? list : window.AppState.posts;
-
-    if (!Array.isArray(board) || board.length === 0) {
-        container.innerHTML =
-            '<div style="text-align:center; color:#8c82; padding:40px; border:1px dashed #444; border-radius:12px;">まだ知恵がありません🐾</div>';
-        return;
-    }
-    container.innerHTML = '';
-
-    const fragment = document.createDocumentFragment();
-
-    for (const item of board) {
-        if (!item) continue;
-
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'board-post';
-
-        const title = escapeHTML(item.title ?? '');
-
-        const bodyRaw = item.body ?? '';
-        const body = linkify(escapeHTML(bodyRaw));
-
-        const titleEl = document.createElement('h3');
-        titleEl.textContent = title;
-
-        const bodyEl = document.createElement('p');
-        bodyEl.innerHTML = body;
-
-        itemDiv.appendChild(titleEl);
-        itemDiv.appendChild(bodyEl);
-
-        fragment.appendChild(itemDiv);
     }
 
-    container.appendChild(fragment);
-}
+    function renderArticlesGrid() {
+        const query = document.getElementById('search-bar').value.toLowerCase().trim();
+        const grid = document.getElementById('mainGrid');
+        grid.innerHTML = '';
 
-/**
- * 📮 新規投稿（AppState主体・完全関数化）
- */
-window.handleSubmitBbs = async function() {
-    const titleIn = document.getElementById('bbs-title');
-    const bodyIn = document.getElementById('bbs-body');
-    const submitBtn = document.getElementById('bbs-submit');
-
-    // 関数の中なので、これらの return は「正常」になります
-    if (!titleIn || !bodyIn) return;
-
-    const titleVal = titleIn.value.trim();
-    const bodyVal = bodyIn.value.trim();
-    if (!titleVal || !bodyVal) {
-        alert("内容を入力してくださいにゃ。");
-        return;
-    }
-
-    // --- 中略：newPostの作成（2013行目〜） ---
-    const newPost = {
-        title: titleVal,
-        body: bodyVal,
-        date: new Date().toISOString(),
-        timestamp: Date.now()
-    };
-
-    try {
-        const res = await fetch(BBS_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newPost),
-            cache: 'no-store'
+        computedPosts = db.posts.filter(p => {
+            const matchesQuery = p.title.toLowerCase().includes(query) || p.body.toLowerCase().includes(query) || p.category.toLowerCase().includes(query);
+            return matchesQuery && (p.public || db.isAdmin);
         });
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const totalPages = Math.ceil(computedPosts.length / postsPerPage);
+        const startIndex = (currentPage - 1) * postsPerPage;
+        const endIndex = startIndex + postsPerPage;
+        const pageSelection = computedPosts.slice(startIndex, endIndex);
 
-        // --- 中略：ID取得とAppStateへの反映 ---
-        let id = Date.now().toString();
-        try {
-            const json = await res.json();
-            if (json?.name) id = json.name;
-        } catch {}
-
-        const postWithId = { ...newPost, id };
-
-        titleIn.value = '';
-        bodyIn.value = '';
-
-        // AppState主体での更新
-        if (!Array.isArray(window.AppState.posts)) {
-            window.AppState.posts = [];
-        }
-        window.AppState.posts.unshift(postWithId);
-
-        if (typeof renderArticlesGrid === 'function') {
-            renderArticlesGrid();
-        }
-
-        alert("知恵を共有しました！🐾");
-
-    } catch (e) {
-        console.error("submit failed:", e);
-        alert("送信に失敗しました😿");
-    } finally {
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = "知恵を共有する (送信)";
-        }
-    }
-}; // ← 2050行目以降の適切な場所で、この「 }; 」を必ず入れて閉じる
-/**
- * 🔓 ログアウト（ボタンが動くように追加）
- */
-function logoutAdmin() {
-    if (!confirm("管理者モードを終了しますか？🐾")) return;
-
-window.AppState.isAdmin = false;
-    saveToLocalStorage?.();
-
-    requestAnimationFrame(() => {
-        renderArticlesGrid?.(); // 追加（重要）
-    });
-
-    alert("ログアウトしました。");
-}
-
-function toggleSecretMode() {
-    const pass = prompt("パスワードを入力してください🐾");
-
-    if (pass === "nekosuke101") {
-        window.AppState.isAdmin = true;
-        saveToLocalStorage?.();
-
-        requestAnimationFrame(() => {
-            renderArticlesGrid?.(); // 追加（重要）
-        });
-
-        alert("管理者ログインに成功しました！");
-    } else if (pass !== null) {
-        alert("パスワードが違います。");
-    }
-}
-// ----------------------------- 🖼️ フォトギャラリー (完全版) -----------------------------
-
-// 1. サーバーから最新の画像リストを取得
-async function loadServerGallery() {
-    try {
-        const response = await fetch(`gallery.json?t=${Date.now()}`, {
-            cache: 'no-store'
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const serverData = await response.json();
-
-        // ★状態は単一化（dbではなくwindowに統一）
-        window.gallery = Array.isArray(serverData) ? serverData : [];
-
-        // ★描画は必ず分離
-        if (typeof renderGallery === 'function') {
-            requestAnimationFrame(() => {
-                renderGallery(window.gallery);
-            });
-        }
-
-    } catch (e) {
-        console.error("ギャラリーの同期失敗:", e);
-    }
-}
-// 2. ギャラリーの描画 (削除ボタンを強化)
-function renderGallery(list) {
-    const container = document.getElementById('gallery-container');
-    if (!container) return;
-
-    const gallery = Array.isArray(list)
-        ? list
-        : Array.isArray(window.gallery)
-            ? window.gallery
-            : [];
-
-    container.innerHTML = '';
-
-    if (gallery.length === 0) {
-        container.innerHTML =
-            '<p style="text-align:center;color:#8c827a;">画像がありません</p>';
-        return;
-    }
-
-    const fragment = document.createDocumentFragment();
-
-    for (const g of gallery) {
-        if (!g) continue;
-
-        const fileName = g.filename || g.src?.split('/').pop();
-
-        const item = document.createElement('div');
-        item.className = 'gallery-item';
-
-        const img = document.createElement('img');
-        img.src = g.src;
-        img.alt = 'Photo';
-
-        const btn = document.createElement('button');
-        btn.className = 'gallery-delete';
-        btn.textContent = '×';
-        btn.title = '削除';
-
-        // 削除（イベント分離）
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            deleteGalleryImage(fileName);
-        });
-
-        // 拡大表示
-        item.addEventListener('click', () => {
-            openGalleryZoom(g.src);
-        });
-
-        item.appendChild(img);
-        item.appendChild(btn);
-
-        fragment.appendChild(item);
-    }
-
-    container.appendChild(fragment);
-}
-// 3. 削除機能 (サーバー同期 & 強制更新版)
-async function deleteGalleryImage(filename) {
-    if (!filename) {
-        alert("ファイル名不明");
-        return;
-    }
-
-    if (!confirm(`削除しますか: ${filename}`)) return;
-
-    try {
-        const response = await fetch('delete_gallery.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename }),
-            cache: 'no-store'
-        });
-
-        const result = await response.json();
-
-        if (!result.success) {
-            alert(result.message || '削除失敗');
+        if (pageSelection.length === 0) {
+            grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding: 60px 20px; color:#8c827a;">合致する記事が見つかりません。</div>`;
+            document.getElementById('pagination').innerHTML = '';
             return;
         }
 
-        console.log("削除成功:", filename);
+        pageSelection.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'post-card';
+            card.onclick = () => showArticleDetail(p.id);
 
-        // ★状態更新（再取得なし）
-        window.gallery = (window.gallery || []).filter(g => {
-            const f = g.filename || g.src?.split('/').pop();
-            return f !== filename;
+            const fallbackImg = 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=600&q=80';
+            const imageUrl = p.image || fallbackImg;
+
+            const adminPanelHTML = db.isAdmin ? `
+                <div style="display:flex; gap:4px; margin-top:8px;" onclick="event.stopPropagation();">
+                    <span style="background:${p.public ? '#28a745' : '#6c757d'}; color:white; padding:2px 6px; border-radius:4px; font-size:0.7rem;">${p.public ? '公開中' : '下書き'}</span>
+                    <button onclick="editArticle(${p.id})" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:4px; font-size:0.7rem;">編集</button>
+                    <button onclick="deleteArticle(${p.id})" style="background:#dc3545; color:white; border:none; padding:2px 6px; border-radius:4px; font-size:0.7rem;">削除</button>
+                </div>
+            ` : '';
+
+            card.innerHTML = `
+                <img src="${imageUrl}" alt="${p.title}" onerror="this.src='${fallbackImg}'">
+                <div class="post-content">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;">
+                        <span class="post-category">${p.category}</span>
+                    </div>
+                    <div class="post-title">${p.title}</div>
+                    ${adminPanelHTML}
+                    <div class="post-date">${p.date}</div>
+                </div>
+            `;
+            grid.appendChild(card);
         });
 
-        // ★即再描画
-        renderGallery?.(window.gallery);
-
-    } catch (e) {
-        console.error("通信エラー:", e);
-        alert('サーバーとの通信に失敗しました。');
+        buildPaginationControls(totalPages);
     }
-}
-// 3. 拡大機能
-function openGalleryZoom(src) {
-    const zoomImg = document.getElementById('zoomed-image');
-    const modal = document.getElementById('gallery-zoom-modal');
 
-    if (!zoomImg || !modal) return;
+    function buildPaginationControls(totalPages) {
+        const pagBox = document.getElementById('pagination');
+        pagBox.innerHTML = '';
+        if (totalPages <= 1) return;
 
-    zoomImg.src = src;
-
-    openModal?.('gallery-zoom-modal');
-
-    // スクロールロック（安全版）
-    document.body.style.overflow = 'hidden';
-}
-// 拡大専用の閉じる関数（これに差し替え）
-function closeGalleryZoom() {
-    const modal = document.getElementById('gallery-zoom-modal');
-    if (!modal) return;
-
-    closeModal?.('gallery-zoom-modal');
-
-    // スクロール状態を必ず復帰
-    document.body.style.overflow = '';
-}
-// 1496行目〜1521行目：アップロード機能（構造は維持しつつインデントを整理）
-async function uploadImage(input) {
-    const file = input?.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('image', file);
-
-    try {
-        const response = await fetch('upload.php', {
-            method: 'POST',
-            body: formData,
-            cache: 'no-store'
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.innerText = i;
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.onclick = () => {
+                currentPage = i;
+                renderArticlesGrid();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+            pagBox.appendChild(btn);
         }
-
-        // ★サーバー再同期（確実性優先）
-        await loadServerGallery?.();
-
-    } catch (error) {
-        console.error("upload error:", error);
-        alert("保存に失敗しました。サーバー設定を確認してください。");
-    } finally {
-        // ★入力リセット（UX安定化）
-        input.value = '';
-    }
-}
-// 5. 削除機能（サーバー同期版）
-async function deleteImage(filename) {
-    if (!filename) {
-        alert("削除に失敗しました：ファイル名が空です");
-        return;
     }
 
-    if (!confirm(`サーバーから「${filename}」を完全に削除しますか？`)) return;
-
-    try {
-        const response = await fetch('delete_gallery.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename }),
-            cache: 'no-store'
-        });
-
-        const result = await response.json();
-
-        if (!result.success) {
-            alert('削除に失敗しました: ' + (result.message || '不明なエラー'));
-            return;
-        }
-
-        console.log("削除成功:", filename);
-
-        // ★状態更新（リロード排除）
-        window.gallery = (window.gallery || []).filter(g => {
-            const f = g.filename || g.src?.split('/').pop();
-            return f !== filename;
-        });
-
-        // ★即時再描画
-        renderGallery?.(window.gallery);
-
-        // ★バックグラウンド同期（任意）
-        loadServerGallery?.();
-
-    } catch (e) {
-        console.error("通信エラー:", e);
-        alert('サーバーとの通信に失敗しました。');
-    }
-}
-document.addEventListener('DOMContentLoaded', () => {
-    loadServerGallery?.();
-});
-    // ----------------------------- 📝 自動保存メモ帳 (現状維持) -----------------------------
-function saveMemo() {
-    const textarea = document.getElementById('memo-textarea');
-    if (!textarea) return;
-
-    const value = textarea.value || '';
-
-    // 状態安全化
-    window.db = window.db || {};
-    window.AppState.memo = value;
-
-    // 保存（失敗しても止めない）
-    try {
-        saveToLocalStorage?.();
-    } catch (e) {
-        console.error("saveMemo failed:", e);
-    }
-}
-// ----------------------------- 🎸 BGMプレイヤー (世界同期版) -----------------------------
-let player;
-let isPlayerLoaded = false;
-let activeTrackIdx = 0;
-
-// サーバー同期
-async function syncBgmToServer() {
-    try {
-        const payload = window.db?.playlists || [];
-
-        const res = await fetch('api.php?type=bgm', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload),
-            cache: 'no-store'
-        });
-
-        if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-        }
-
-        console.log("BGMサーバー同期成功");
-
-    } catch (e) {
-        console.error("BGM同期失敗:", e);
-    }
-}
-    // サーバーから読み込み
-async function loadBgmFromServer() {
-    try {
-        const res = await fetch('bgm.json', {
-            cache: 'no-store'
-        });
-
-        if (!res.ok) return;
-
-        const data = await res.json();
-
-        if (!Array.isArray(data)) return;
-
-        window.db = window.db || {};
-        window.AppState.playlists = data;
-
-        initBgmPanel?.();
-
-    } catch (e) {
-        console.log("サーバーBGMなし");
-    }
-}
-function onYouTubeIframeAPIReady() {
-    try {
-        player = new YT.Player('yt-player-frame', {
-            height: '100%',
-            width: '100%',
-            videoId: '',
-            playerVars: {
-                autoplay: 0,
-                controls: 1
-            },
-            events: {
-                onReady: () => {
-                    isPlayerLoaded = true;
-                },
-                onStateChange: (e) => {
-                    if (e.data === YT.PlayerState.ENDED) {
-                        playNextTrack?.();
-                    }
-                }
-            }
-        });
-    } catch (e) {
-        console.error("YouTube API init failed:", e);
-    }
-}
-function initBgmPanel() {
-    const selector = document.getElementById('playlist-selector');
-    if (!selector) return;
-
-    selector.innerHTML = '';
-
-    window.AppState.playlists = Array.isArray(window.AppState.playlists)
-    ? window.AppState.playlists
-    : [];
-const playlists = window.AppState.playlists;
-
-Number.isInteger(window.AppState.activePlaylistIdx)
-    ? window.AppState.activePlaylistIdx
-
-window.AppState.activePlaylistIdx = activeIdx;
-    for (let i = 0; i < playlists.length; i++) {
-        const pl = playlists[i];
-        if (!pl) continue;
-
-        const opt = document.createElement('option');
-        opt.value = String(i);
-        opt.textContent = pl.name || `Playlist ${i + 1}`;
-
-        if (i === activeIdx) {
-            opt.selected = true;
-        }
-
-        selector.appendChild(opt);
-    }
-
-    // UI描画は分離・安全呼び出し
-    renderBgmTracks?.();
-}
-function renderBgmTracks() {
-    const container = document.getElementById('bgm-tracks-list');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    const playlists = window.db?.playlists;
-    const idx = window.db?.activePlaylistIdx;
-
-    const pl = Array.isArray(playlists) ? playlists[idx] : null;
-
-    if (!pl?.tracks?.length) {
-        container.innerHTML =
-            '<p style="font-size:0.85rem;color:#8c827a;">曲がありません。</p>';
-        return;
-    }
-
-    const fragment = document.createDocumentFragment();
-
-    pl.tracks.forEach((track, index) => {
-        const row = document.createElement('div');
-        row.className = 'bgm-row';
-
-        row.style.display = "flex";
-        row.style.justifyContent = "space-between";
-        row.style.alignItems = "center";
-        row.style.background = "var(--bg-color)";
-        row.style.padding = "8px 12px";
-        row.style.borderRadius = "8px";
-        row.style.border = "1px solid var(--border-color)";
-        row.style.marginBottom = "6px";
-
-        // 再生ボタン（安全）
-        const title = document.createElement('span');
-        title.textContent = `🎵 ${track?.title || 'Untitled'}`;
-        title.style.cursor = 'pointer';
-        title.style.fontWeight = '600';
-        title.style.fontSize = '0.85rem';
-        title.style.flex = '1';
-        title.style.color = '#a26d46';
-
-        title.onclick = () => triggerTrackPlay(track.id, index);
-
-        const controls = document.createElement('div');
-        controls.style.display = 'flex';
-        controls.style.gap = '4px';
-
-        const editBtn = document.createElement('button');
-        editBtn.textContent = '名変';
-        editBtn.className = 'bgm-btn';
-        editBtn.style.padding = '2px 6px';
-        editBtn.style.fontSize = '0.7rem';
-        editBtn.onclick = () => editTrackName(index);
-
-        const delBtn = document.createElement('button');
-        delBtn.textContent = '消';
-        delBtn.className = 'bgm-btn';
-        delBtn.style.padding = '2px 6px';
-        delBtn.style.fontSize = '0.7rem';
-        delBtn.style.background = '#dc3545';
-        delBtn.onclick = () => deleteTrack(index);
-
-        controls.append(editBtn, delBtn);
-        row.append(title, controls);
-
-        fragment.appendChild(row);
-    });
-
-    container.appendChild(fragment);
-}
-function triggerTrackPlay(videoId, index = 0) {
-    const box = document.getElementById('yt-player-box');
-    if (box) box.style.display = 'block';
-
-    activeTrackIdx = index;
-
-    if (isPlayerLoaded && player) {
-        player.loadVideoById(videoId);
-    }
-}
-function playNextTrack() {
-    const playlists = window.db?.playlists;
-    const idx = window.db?.activePlaylistIdx;
-
-    const pl = Array.isArray(playlists) ? playlists[idx] : null;
-    if (!pl?.tracks?.length) return;
-
-    activeTrackIdx = (activeTrackIdx + 1) % pl.tracks.length;
-
-    const next = pl.tracks[activeTrackIdx];
-    if (next?.id) {
-        triggerTrackPlay(next.id, activeTrackIdx);
-    }
-}
-    // --- 同期が必要な操作関数群 ---
-function addNewTrack() {
-    const input = document.getElementById('track-url-input');
-    if (!input) return;
-
-    const url = input.value.trim();
-    const videoId = parseYoutubeID(url);
-
-    if (!videoId) {
-        alert("YouTube動画リンクを入力してください。");
-        return;
-    }
-
-window.AppState.playlists =
-    window.AppState.playlists || [];
-
-window.AppState.activePlaylistIdx =
-    window.AppState.activePlaylistIdx ?? 0;
-const pl =
-    window.AppState.playlists[
-        window.AppState.activePlaylistIdx
-    ];
-    if (!pl) return;
-
-    pl.tracks = Array.isArray(pl.tracks) ? pl.tracks : [];
-
-    pl.tracks.push({
-        id: videoId,
-        title: `Track #${pl.tracks.length + 1}`
-    });
-
-    try {
-        saveToLocalStorage?.();
-    } catch (e) {
-        console.error("save failed:", e);
-    }
-
-    renderBgmTracks?.();
-    syncBgmToServer?.();
-
-    input.value = '';
-}
-function deleteTrack(idx) {
-const pl =
-    window.AppState.playlists?.[
-        window.AppState.activePlaylistIdx
-    ];
-    if (!pl || !Array.isArray(pl.tracks)) return;
-    if (idx < 0 || idx >= pl.tracks.length) return;
-
-    pl.tracks.splice(idx, 1);
-
-    try {
-        saveToLocalStorage?.();
-    } catch (e) {
-        console.error("save failed:", e);
-    }
-
-    renderBgmTracks?.();
-    syncBgmToServer?.();
-}
-function editTrackName(idx) {
-const pl =
-    window.AppState.playlists?.[
-        window.AppState.activePlaylistIdx
-    ];
-    if (!pl || !Array.isArray(pl.tracks)) return;
-    if (idx < 0 || idx >= pl.tracks.length) return;
-    const track = pl.tracks[idx];
-    if (!track) return;
-
-    const currentName = track.title || "";
-
-    const newName = prompt("曲名を変更：", currentName);
-    if (newName === null) return;
-
-    const trimmed = newName.trim();
-    if (!trimmed) return;
-
-    track.title = trimmed;
-
-    try {
-        saveToLocalStorage?.();
-    } catch (e) {
-        console.error("save failed:", e);
-    }
-
-    renderBgmTracks?.();
-    syncBgmToServer?.();
-}
-function createNewPlaylist() {
-    const input = document.getElementById('playlist-name-input');
-    if (!input) return;
-
-    const name = input.value.trim();
-    if (!name) {
-        alert("プレイリスト名を入力してください。");
-        return;
-    }
-
-window.AppState.playlists =
-    Array.isArray(window.AppState.playlists)
-        ? window.AppState.playlists
-        : [];
-// プレイリスト追加処理を完結させる
-    window.AppState.playlists.push({
-        name: name,
-        tracks: []
-    });
-
-    window.AppState.activePlaylistIdx = 
-        window.AppState.playlists.length - 1;
-
-    try {
-        saveToLocalStorage?.();
-    } catch (e) {
-        console.error("save failed:", e);
-    }
-
-    if (typeof initBgmPanel === 'function') initBgmPanel();
-    if (typeof syncBgmToServer === 'function') syncBgmToServer();
-
-    input.value = '';
-}
-function parseYoutubeID(url) {
-    if (typeof url !== 'string') return null;
-
-    const trimmed = url.trim();
-    if (!trimmed) return null;
-
-    const regex = /^.*(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]{11}).*/;
-
-    const match = trimmed.match(regex);
-
-    if (!match) return null;
-
-    const id = match[1];
-    if (typeof id !== 'string' || id.length !== 11) return null;
-
-    return id;
-}
-function onPlaylistSelectorChange() {
-    const selector = document.getElementById('playlist-selector');
-    if (!selector) return;
-
-window.AppState.playlists =
-    Array.isArray(window.AppState.playlists)
-        ? window.AppState.playlists
-        : [];
-    const value = parseInt(selector.value, 10);
-
-    if (Number.isNaN(value)) return;
-
-if (
-    value < 0 ||
-    value >= window.AppState.playlists.length
-) return;
-
-window.AppState.activePlaylistIdx = value;
-    try {
-        saveToLocalStorage?.();
-    } catch (e) {
-        console.error("save failed:", e);
-    }
-
-    renderBgmTracks?.();
-}
-// ===============================
-// 🥸 Stabilizer Scan Engine v2
-// 軽量化 + 制御可能 + 再利用可能設計
-// ===============================
-
-const Stabilizer = (() => {
-
-    let isRunning = false;
-    let abortFlag = false;
-
-    let logBox, bar, wisdomBox, wisdomText;
-
-    const DURATION = 2800;
-
-    const steps = [
-        { t: 0.05, msg: "SYSTEM: scanner boot" },
-        { t: 0.15, msg: "memory check..." },
-        { t: 0.35, msg: "stack scan ok" },
-        { t: 0.6, msg: "cache integrity verified" },
-        { t: 0.85, msg: "cleanup complete" },
-        { t: 1.0, msg: "system stable (100%)" }
-    ];
-
-    const wisdom = [
-        "静かな状態ほど処理は安定する。",
-        "過剰な描画は負荷になる。",
-        "UIは軽いほど長く生きる。"
-    ];
-
-    function setProgress(p) {
-        if (bar) bar.style.width = `${Math.min(100, Math.max(0, p * 100))}%`;
-    }
-
-    function log(msg) {
-        if (!logBox) return;
-        logBox.appendChild(document.createElement("div")).textContent = msg;
-        logBox.scrollTop = logBox.scrollHeight;
-    }
-
-    function reset() {
-        abortFlag = false;
-        isRunning = true;
-
-        logBox.innerHTML = "";
-        setProgress(0);
-
-        wisdomBox.style.display = "none";
-    }
-
-    function finish() {
-        setProgress(1);
-        isRunning = false;
-
-        const pick = wisdom[(Math.random() * wisdom.length) | 0];
-        wisdomText.textContent = pick;
-
-        setTimeout(() => {
-            if (!abortFlag) wisdomBox.style.display = "block";
-        }, 150);
-    }
-
-    function runStep(i = 0) {
-        if (abortFlag || !isRunning) return;
-
-        const step = steps[i];
-        if (!step) return finish();
-
-        const delay = step.t * DURATION;
-
-        setTimeout(() => {
-            if (abortFlag) return;
-
-            log(step.msg);
-            setProgress(step.t);
-
-            runStep(i + 1);
-
-        }, i === 0 ? 0 : delay - steps[i - 1].t * DURATION);
-    }
-
-    function start() {
-        logBox = document.getElementById('stabilizer-log');
-        bar = document.getElementById('stabilizer-progress-bar');
-        wisdomBox = document.getElementById('secret-wisdom-box');
-        wisdomText = document.getElementById('secret-wisdom-text');
-
-        if (!logBox || !bar || !wisdomBox || !wisdomText) return;
-
-        reset();
-        runStep(0);
-    }
-
-    function stop() {
-        abortFlag = true;
-        isRunning = false;
-    }
-
-    return { start, stop };
-})();
-// ----------------------------- 管理者制御（軽量安定版） -----------------------------
-function savePostFromAdmin() {
-    const get = (id) => document.getElementById(id);
-
-    const idRaw = get('admin-post-id-input')?.value?.trim();
-    const titleVal = get('admin-title-input')?.value?.trim();
-    const imageVal = get('admin-image-input')?.value?.trim() || '';
-    const catVal = get('admin-category-input')?.value?.trim() || '一般';
-    const bodyVal = get('admin-body-input')?.value?.trim();
-    const isPublic = !!get('admin-public')?.checked;
-
-    if (!titleVal || !bodyVal) {
-        alert("タイトルと本文は必須です。");
-        return;
-    }
-
-window.AppState.posts =
-    Array.isArray(window.AppState.posts)
-        ? window.AppState.posts
-        : [];
-    const idNum = idRaw ? Number(idRaw) : null;
-
-    // ---- 更新 / 追加 ----
-    if (Number.isFinite(idNum)) {
-const post =
-    window.AppState.posts.find(
-        p => Number(p.id) === idNum
-    );
-        if (post) {
-            post.title = titleVal;
-            post.image = imageVal;
-            post.category = catVal;
-            post.body = bodyVal;
-            post.public = isPublic;
-        }
-    } else {
-window.AppState.posts.unshift({
-            id: Date.now(),
-            title: titleVal,
-            image: imageVal,
-            category: catVal,
-            body: bodyVal,
-            public: isPublic,
-            date: new Date().toISOString().split('T')[0]
-        });
-    }
-
-    // ---- 軽量レンダリング制御（スパイク防止）----
-    if (!window.__adminRenderQueued) {
-        window.__adminRenderQueued = true;
-
-        clearTimeout(window.__adminRenderTimer);
-        window.__adminRenderTimer = setTimeout(() => {
-            window.__adminRenderQueued = false;
-
-            requestAnimationFrame(() => {
-                renderArticlesGrid?.();
-            });
-        }, 40);
-    }
-
-    // ---- 保存（安全）----
-    try {
-        saveToLocalStorage?.();
-    } catch (e) {
-        console.error("save error:", e);
-    }
-}
-// 🚩 保存処理
-saveToLocalStorage?.();
-saveDB?.();
-
-// ---- 描画制御（クラッシュ耐性あり）----
-window.__renderQueue = window.__renderQueue || 0;
-window.__renderQueue++;
-
-// すでに予約済みなら追加しない（暴発防止）
-if (!window.__renderScheduled) {
-    window.__renderScheduled = true;
-
-    clearTimeout(window.__renderTimer);
-
-    window.__renderTimer = setTimeout(() => {
-        requestAnimationFrame(() => {
-            try {
-                renderArticlesGrid?.();
-            } catch (e) {
-                console.error("renderArticlesGrid error:", e);
-            } finally {
-                window.__renderScheduled = false;
-                window.__renderQueue = 0;
-            }
-        });
-    }, 60);
-}
-
-// ---- UI処理分離（非ブロッキング）----
-queueMicrotask(() => {
-    try {
-        alert("保存が完了しました。メイン画面に戻ります。🐾");
-        closeModal?.('admin-modal');
-        clearAdminForm?.();
-    } catch (e) {
-        console.error("UI error:", e);
-    }
-});
-// 管理者メニューの表示状態を更新する関数（安定・軽量・状態分離版）
-function updateAdminUI() {
-const isAdmin =
-    !!(
-        window.AppState.isAdmin ??
-        db?.isAdmin
-    );
-    const newPostMenu = document.getElementById('admin-new-post-menu');
-    const logoutMenu = document.getElementById('admin-logout-menu');
-
-    if (!newPostMenu || !logoutMenu) return;
-
-    // 状態を論理値で保持（CSS値と分離）
-    if (newPostMenu.dataset.adminState === String(isAdmin)) return;
-
-    newPostMenu.dataset.adminState = String(isAdmin);
-    logoutMenu.dataset.adminState = String(isAdmin);
-
-    const display = isAdmin ? 'block' : 'none';
-
-    requestAnimationFrame(() => {
-        newPostMenu.style.display = display;
-        logoutMenu.style.display = display;
-    });
-}
-// ページ読み込み完了時に管理UI状態を復元
-window.addEventListener('load', () => {
-    requestAnimationFrame(updateAdminUI);
-});
-
-function editArticle(id) {
-    const p = db?.posts?.find(item => item.id === id);
+    // 記事の詳細表示 (見え方改善＆カテゴリー変更機能)
+    let currentDetailArticleId = null; // カテゴリー保存用
+
+function showArticleDetail(id) {
+    currentDetailArticleId = id;
+    const p = db.posts.find(item => item.id === id);
     if (!p) return;
 
-    const set = (id, val) => {
-        const el = document.getElementById(id);
-        if (el) el.value = val ?? '';
-    };
-
-    set('admin-post-id-input', p.id);
-    set('admin-title-input', p.title);
-    set('admin-category-input', p.category);
-    set('admin-body-input', p.body);
-
-    const pub = document.getElementById('admin-public');
-    if (pub) pub.checked = !!p.public;
-
-    openModal?.('admin-modal');
-}
-function deleteArticle(id) {
-    if (!confirm("この記事を削除しますか？")) return;
-
-    db.posts = (db.posts || []).filter(p => p.id !== id);
-
-    saveToLocalStorage?.();
-
-    requestAnimationFrame(() => {
-        renderArticlesGrid?.();
-    });
-}
-function clearAdminForm() {
-    const ids = [
-        'admin-title-input',
-        'admin-body-input',
-        'admin-category-input',
-        'memo-textarea'
-    ];
-
-    for (const id of ids) {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
+    // 🖼️ 1. 画像の表示処理 (HTMLになければ自動でタイトルの上に追加)
+    let imgEl = document.getElementById('detail-image');
+    if (!imgEl) {
+        imgEl = document.createElement('img');
+        imgEl.id = 'detail-image';
+        // 💡 画像のスタイル設定（横幅いっぱいに広げ、角を丸くし、高さを制限して綺麗に収めます）
+        imgEl.style = "width: 100%; border-radius: 12px; margin-bottom: 15px; max-height: 250px; object-fit: cover; display: none;";
+        const titleEl = document.getElementById('detail-title');
+        if (titleEl) {
+            titleEl.parentNode.insertBefore(imgEl, titleEl);
+        }
     }
 
-    const pub = document.getElementById('admin-public');
-    if (pub) pub.checked = true;
+    // 画像URLがデータベースにあれば表示、なければ非表示に
+    if (p.image) {
+        imgEl.src = p.image;
+        imgEl.style.display = 'block';
+    } else {
+        imgEl.style.display = 'none';
+    }
 
-    console.log("フォームリセット完了");
+    // 📂 2. カテゴリーのドロップダウン設定
+    const selector = document.getElementById('detail-category-selector');
+    if (selector) {
+        selector.innerHTML = '';
+        const allCategories = [...new Set(db.posts.map(post => post.category))].filter(Boolean);
+
+        allCategories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.innerText = cat;
+            if (cat === p.category) opt.selected = true;
+            selector.appendChild(opt);
+        });
+
+        // 👑 【ここがポイント】管理者なら「変更可能な枠線付き」、一般ユーザーなら「ただの文字」に見せる
+        if (db.isAdmin) {
+            selector.style.border = "1px solid #555";
+            selector.style.background = "#222";
+            selector.style.pointerEvents = "auto";
+            selector.style.appearance = "auto"; // 矢印を出す
+            selector.style.padding = "4px 8px";
+            selector.style.color = "var(--accent-color)";
+        } else {
+            selector.style.border = "none";
+            selector.style.background = "transparent";
+            selector.style.pointerEvents = "none"; // クリックできないようにする
+            selector.style.appearance = "none";     // 矢印（プルダウンの三角マーク）を消す
+            selector.style.padding = "0";
+            selector.style.color = "var(--accent-color)";
+            selector.style.fontWeight = "bold";
+        }
+
+// カテゴリー 変更イベント（管理者がドロップダウンを変えた時だけ動作）
+selector.onchange = function() {
+    if (currentDetailArticleId) {
+        const newCategory = this.value;
+        const post = db.posts.find(item => item.id === currentDetailArticleId);
+        if (post && post.category !== newCategory) {
+            if (confirm("この 記事のカテゴリー を変更しますか？")) {
+                post.category = newCategory;
+                saveToLocalStorage();
+                renderArticlesGrid(); // メイン画面を再描画
+            } else {
+                this.value = post.category; // キャンセル時は元に戻す
+            }
+        }
+    }
+};
+
+    // ✍ 3. タイトル、日付、本文の書き込み
+    document.getElementById('detail-title').innerText = p.title;
+    document.getElementById('detail-body').innerHTML = p.body;
+    openModal('detail-modal');
+  }
 }
-// ----------------------------- ⚙️ ギアメニュー（軽量・安定版） -----------------------------
 
-const gearMenu = document.getElementById('gear-menu');
-const gearBtn = document.querySelector('.gear-btn');
-
-function openGearMenu() {
-    if (!gearMenu) return;
-    gearMenu.classList.add('show');
-}
-
-function closeGearMenu() {
-    if (!gearMenu) return;
-    gearMenu.classList.remove('show');
-    gearMenu.style.display = 'none';
-}
-
+// ⚙️ ドロップダウン制御：絶対に動く安全版
 function toggleGearMenu(e) {
     if (e) e.stopPropagation();
-    if (!gearMenu) return;
-
-    gearMenu.classList.toggle('show');
+    const menu = document.getElementById('gear-menu');
+    if (!menu) {
+        console.error("gear-menuが見つかりません。HTMLのIDを確認してください。");
+        return;
+    }
+    menu.classList.toggle('show');
 }
 
-// 外側クリックで閉じる（1イベント・軽量版）
-document.addEventListener('click', (e) => {
-    if (!gearMenu || !gearBtn) return;
+// 画面外クリックで閉じる処理
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('gear-menu');
+    if (menu && menu.classList.contains('show')) {
+        // クリックされたのがメニュー自体やボタンでない場合のみ閉じる
+        if (!menu.contains(e.target)) {
+            menu.classList.remove('show');
+        }
+    }
+});
+    // ----------------------------- 🌛 ダークモード＆管理者長押し (現状維持) -----------------------------
+    let pressTimer;
+    const dmBtn = document.getElementById('dark-mode-btn');
 
-    // 開いていない場合は完全スキップ
-    if (!gearMenu.classList.contains('show')) return;
-
-    // モーダル操作中は無視（UI競合防止）
-    if (e.target.closest('.modal')) return;
-
-    // 内部クリックは無視
-    if (gearMenu.contains(e.target) || gearBtn.contains(e.target)) return;
-
-    requestAnimationFrame(() => {
-        closeGearMenu();
+    dmBtn.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+    pressTimer = setTimeout(() => {
+                const pass = prompt("🔑 パスワードを入力してください：");
+                if (pass === "nekosuke101") {
+                    db.isAdmin = true;
+                    saveToLocalStorage();
+                    renderArticlesGrid();
+                    document.getElementById('admin-logout-item').style.display = 'block';
+                    alert("認証成功：管理者コントロール解放！");
+                    openModal('admin-modal');
+                } else if (pass !== null) {
+                    alert("パスワードが違います。");
+                }
+            }, 1100);
+        });
+    dmBtn.addEventListener('pointerup', function() { clearTimeout(pressTimer); });
+    dmBtn.addEventListener('pointerleave', function() { clearTimeout(pressTimer); });
+    dmBtn.addEventListener('click', function() {
+        const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.body.setAttribute('data-theme', theme);
+        db.theme = theme;
+        saveToLocalStorage();
     });
-});
-// =========================================================
-// 🌐 AIverse i18n SYSTEM (Final Optimized Edition)
-// =========================================================
 
-window.i18n = window.i18n || (function () {
+// --- ⚙️ 設定: Firebase BBSパス ---
+const BBS_ENDPOINT = 'https://alverse-project-default-rtdb.firebaseio.com/alverse_pro_v3/articles.json';
 
-    const state = {
-        lang: (localStorage.getItem('lang')
-            || navigator.language?.slice(0, 2)
-            || 'ja'),
-
-        cache: new Map(),
-
-        dict: {
-            ja: {
-                save_done: "保存が完了しました。",
-                post_empty: "内容を入力してください。",
-                delete_confirm: "削除しますか？",
-                error: "エラーが発生しました",
-                language: "言語",
-                board: "掲示板",
-                saving: "保存中..."
-            },
-            en: {
-                save_done: "Saved successfully.",
-                post_empty: "Please enter content.",
-                delete_confirm: "Delete this item?",
-                error: "An error occurred",
-                language: "Language",
-                board: "Board",
-                saving: "Saving..."
-            },
-            zh: {
-                save_done: "保存完成",
-                post_empty: "请输入内容",
-                delete_confirm: "确认删除？",
-                error: "发生错误",
-                language: "语言",
-                board: "留言板",
-                saving: "保存中..."
-            }
-        }
-    };
-
-    const order = ['ja', 'en', 'zh'];
-
-    // -----------------------------
-    // 🌐 翻訳取得（超軽量キャッシュ）
-    // -----------------------------
-    function t(key) {
-        const k = state.lang + ':' + key;
-
-        if (state.cache.has(k)) return state.cache.get(k);
-
-        const value =
-            (state.dict[state.lang] && state.dict[state.lang][key]) ||
-            (state.dict.ja && state.dict.ja[key]) ||
-            key;
-
-        state.cache.set(k, value);
-
-        return value;
-    }
-
-    // -----------------------------
-    // 🌐 言語設定
-    // -----------------------------
-    function set(lang) {
-        if (!lang || state.lang === lang) return;
-
-        state.lang = lang;
-        localStorage.setItem('lang', lang);
-
-        state.cache.clear();
-        scheduleUIUpdate();
-    }
-
-    // -----------------------------
-    // 🔁 トグル（軽量）
-    // -----------------------------
-    function toggle() {
-        const idx = order.indexOf(state.lang);
-        const next = order[(idx === -1 ? 0 : idx + 1) % order.length];
-        set(next);
-    }
-
-    // -----------------------------
-    // 🔄 UI更新（バッチ処理）
-    // -----------------------------
-    let pending = false;
-
-    function scheduleUIUpdate() {
-        if (pending) return;
-        pending = true;
-
-        requestAnimationFrame(() => {
-            pending = false;
-
-            const nodes = document.querySelectorAll('[data-i18n]');
-            const len = nodes.length;
-
-            for (let i = 0; i < len; i++) {
-                const el = nodes[i];
-                const key = el.dataset.i18n;
-                if (!key) continue;
-
-                const value = t(key);
-
-                if (el.textContent !== value) {
-                    el.textContent = value;
-                }
-            }
-        });
-    }
-
-    // -----------------------------
-    // 🚀 初期化
-    // -----------------------------
-    function init() {
-        scheduleUIUpdate();
-    }
-
-    // -----------------------------
-    // 公開API
-    // -----------------------------
-    return {
-        t,
-        set,
-        toggle,
-        init,
-        get lang() {
-            return state.lang;
-        }
-    };
-
-})();
-
-// =========================================================
-// 🚀 自動初期化
-// =========================================================
-window.addEventListener('load', () => {
-    i18n.init();
-});
-// ----------------------------- 🪟 Modal System (Final Stable Edition) -----------------------------
-
-const ModalSystem = (() => {
-
-    // 現在開いているモーダルを管理（DOM依存を排除）
-    const state = {
-        openStack: [],
-        lockScroll: false
-    };
-
-    // -----------------------------
-    // 🚀 スクロール制御
-    // -----------------------------
-    function setScrollLock(enable) {
-        if (enable && !state.lockScroll) {
-            document.body.classList.add('modal-open');
-            state.lockScroll = true;
-        }
-
-        if (!enable && state.lockScroll && state.openStack.length === 0) {
-            document.body.classList.remove('modal-open');
-            state.lockScroll = false;
-        }
-    }
-
-    // -----------------------------
-    // 🚀 開く
-    // -----------------------------
-    function open(id) {
-        const modal = document.getElementById(id);
-        if (!modal) return;
-
-        // すでに開いている場合は重複防止
-        if (state.openStack.includes(id)) return;
-
-        modal.style.display = 'flex';
-        state.openStack.push(id);
-
-        setScrollLock(true);
-
-        // 軽量再描画
-        switch (id) {
-
-            case 'gallery-modal':
-                renderGallery?.();
-                break;
-
-            case 'bgm-modal':
-                initBgmPanel?.();
-                break;
-        }
-    }
-
-    // -----------------------------
-    // 🚀 閉じる
-    // -----------------------------
-    function close(id) {
-        const modal = document.getElementById(id);
-        if (!modal) return;
-
-        modal.style.display = 'none';
-
-        const idx = state.openStack.indexOf(id);
-        if (idx !== -1) state.openStack.splice(idx, 1);
-
-        setScrollLock(false);
-
-        // 画像モーダル → ギャラリー復帰
-        if (id === 'photo-modal') {
-            const gallery = document.getElementById('gallery-modal');
-            if (gallery) {
-                gallery.style.display = 'flex';
-
-                if (!state.openStack.includes('gallery-modal')) {
-                    state.openStack.push('gallery-modal');
-                }
-
-                setScrollLock(true);
-            }
-        }
-    }
-
-    // -----------------------------
-    // 🚀 全閉じ
-    // -----------------------------
-    function closeAll() {
-        document.querySelectorAll('.modal').forEach(m => {
-            m.style.display = 'none';
-        });
-
-        state.openStack.length = 0;
-
-        setScrollLock(false);
-    }
-
-    // -----------------------------
-    // API
-    // -----------------------------
-    return {
-        open,
-        close,
-        closeAll
-    };
-
-})();
-// =========================================================
-// 🪟 Modal System (Final Stable Edition)
-// =========================================================
-
-const ModalSystem = (() => {
-    const openModals = new Set();
-
-    function syncScrollLock() {
-        if (openModals.size > 0) {
-            document.body.classList.add('modal-open');
-        } else {
-            document.body.classList.remove('modal-open');
-        }
-    }
-
-    function open(id) {
-        const modal = document.getElementById(id);
-        if (!modal) return;
-
-        modal.style.display = 'flex';
-        openModals.add(id);
-        syncScrollLock();
-
-        requestAnimationFrame(() => {
-            if (id === 'gallery-modal') renderGallery?.();
-            if (id === 'bgm-modal') initBgmPanel?.();
-        });
-    }
-
-    function close(id) {
-        const modal = document.getElementById(id);
-        if (!modal) return;
-
-        modal.style.display = 'none';
-        openModals.delete(id);
-
-        if (id === 'photo-modal') {
-            const gallery = document.getElementById('gallery-modal');
-            if (gallery) {
-                gallery.style.display = 'flex';
-                openModals.add('gallery-modal');
-            }
-        }
-
-        syncScrollLock();
-    }
-
-    function closeAll() {
-        document.querySelectorAll('.modal').forEach(m => {
-            m.style.display = 'none';
-        });
-        openModals.clear();
-        syncScrollLock();
-    }
-
-    return { open, close, closeAll };
-})();
-
-function openModal(id) {
-    ModalSystem.open(id);
-}
-
-function closeModal(id) {
-    ModalSystem.close(id);
-}
-
-function openNewPost() {
-    openModal('admin-modal');
-}
-
+// --- 🛡️ セキュリティ & ユーティリティ ---
 function escapeHTML(str) {
-    if (str == null) return "";
-    return String(str).replace(/[&<>'"]/g, m => ({
+    if (!str) return '';
+    return str.replace(/[&<>'"]/g, m => ({
         '&': '&amp;',
         '<': '&lt;',
         '>': '&gt;',
@@ -3377,1067 +1295,1149 @@ function escapeHTML(str) {
         '"': '&quot;'
     }[m]));
 }
-// =========================================================
-// ⚙️ Gear Menu System (Final Stable Edition)
-// =========================================================
 
-const GearMenu = (() => {
+function linkify(text) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlRegex, url => `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:#4dabf7; text-decoration:underline;">${url}</a>`);
+}
 
-    function getMenu() {
-        return document.getElementById('gear-menu');
+/**
+ * 🔄 データの取得（Firebaseから最新の記事を読み込む）
+ */
+async function loadBoardFromServer() {
+    const container = document.getElementById('board-posts-container');
+    try {
+        const response = await fetch(BBS_ENDPOINT);
+        if (!response.ok) throw new Error(`status: ${response.status}`);
+        const data = await response.json();
+
+        // データを配列に変換し、最新順に並べ替える
+        db.board = data ? Object.keys(data).map(key => ({
+            ...data[key],
+            fbKey: key
+        })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)) : [];
+
+        renderBoard(); // 画面に描画
+        console.log("🐾 掲示板データを同期しました");
+    } catch (e) {
+        console.error("取得失敗:", e);
+        if (container) container.innerHTML = `<div style="text-align:center; color:#fa5252; padding:20px;">知恵の読み込みに失敗しました😿</div>`;
+    }
+}
+/**
+ * 🎨 掲示板のレンダリング（見た目を作る）
+ */
+function renderBoard() {
+    const container = document.getElementById('board-posts-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (db.board.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:#8c827a; padding:40px; border:1px dashed #444; border-radius:12px;">まだ知恵がありません🐾</div>`;
+        return;
     }
 
-    function isOpen(menu) {
-        return menu?.classList.contains('show') === true;
+    const fragment = document.createDocumentFragment();
+    db.board.forEach((item, index) => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'board-post';
+
+        const safeTitle = escapeHTML(item.title);
+        const safeBody = linkify(escapeHTML(item.body));
+
+        // 管理者用のボタン（isAdminがtrueの時だけ表示）
+const adminControls = db.isAdmin ? `
+    <div style="display:flex; gap:10px; margin-top:12px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
+        <button onclick="editBoardEntry('${item.fbKey}')" style="background:#228be6; color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer; font-size:0.75rem;">📝 編集</button>
+        <button onclick="deleteBoardEntry('${item.fbKey}')" style="background:#fa5252; color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer; font-size:0.75rem;">🗑️ 削除</button>
+    </div>` : '';
+        itemDiv.innerHTML = `
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#8c827a; margin-bottom:8px;">
+                <span>No.${db.board.length - index} <strong>名無しにゃんこ</strong></span>
+                <span>${item.date || ''}</span>
+            </div>
+            <div style="font-weight:bold; color:#ffcc33; margin-bottom:10px; font-size:1.1rem;">🐾 ${safeTitle}</div>
+            <div style="line-height:1.7; font-size:0.95rem; white-space:pre-wrap; color:var(--text-color, #444); word-break:break-word;">${safeBody}</div>
+            ${adminControls}
+        `;
+        fragment.appendChild(itemDiv);
+    });
+    container.appendChild(fragment);
+}
+
+/**
+ * 📮 新規投稿（ボタンが押せるように修正）
+ */
+async function submitBoardPost() {
+    const titleIn = document.getElementById('board-title-input');
+    const bodyIn = document.getElementById('board-body-input');
+    const submitBtn = document.querySelector('.board-submit-btn');
+
+    if (!titleIn || !bodyIn) return;
+
+    const titleVal = titleIn.value.trim();
+    const bodyVal = bodyIn.value.trim();
+
+    if (titleVal.length < 1 || bodyVal.length < 1) return alert("内容を入力してくださいにゃ。");
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "🐾 送信中...";
     }
 
-    function open(menu) {
-        if (!menu) return;
-
-        menu.classList.add('show');
-        menu.style.display = 'block';
-    }
-
-    function close(menu) {
-        if (!menu) return;
-
-        menu.classList.remove('show');
-        menu.style.display = 'none';
-    }
-
-    function toggle(e) {
-        if (e) e.stopPropagation();
-
-        const menu = getMenu();
-        if (!menu) return;
-
-        if (isOpen(menu)) {
-            close(menu);
-        } else {
-            open(menu);
-        }
-    }
-
-    function forceClose() {
-        close(getMenu());
-    }
-
-    return {
-        toggle,
-        close: forceClose,
-        isOpen: () => isOpen(getMenu())
+    const newPost = {
+        title: titleVal,
+        body: bodyVal,
+        date: new Date().toLocaleString('ja-JP'),
+        timestamp: Date.now()
     };
 
-})();
+    try {
+        const res = await fetch(BBS_ENDPOINT, {
+            method: 'POST',
+            body: JSON.stringify(newPost)
+        });
+        if (!res.ok) throw new Error();
 
-// 互換用
-function toggleGearMenu(e) {
-    GearMenu.toggle(e);
+        titleIn.value = '';
+        bodyIn.value = '';
+        await loadBoardFromServer(); // 投稿後にデータを再取得
+        alert("知恵を共有しました！🐾");
+    } catch (e) {
+        alert("送信に失敗しました😿 サーバーの状態を確認してください。");
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "知恵を共有する (送信)";
+        }
+    }
 }
-// =========================================================
-// 🗑️ Board Delete (Final Stable Edition)
-// =========================================================
 
-const BOARD_ENDPOINT =
-    'https://alverse-project-default-rtdb.firebaseio.com/chiebukuro/posts';
+/**
+ * 🔓 ログアウト（ボタンが動くように追加）
+ */
+function logoutAdmin() {
+    if (!confirm("管理者モードを終了しますか？🐾")) return;
+    db.isAdmin = false;
+    renderBoard();
+    alert("ログアウトしました。");
+}
 
-const BoardDelete = (() => {
-
-    let lock = false;
-
-    function setLock(v) {
-        lock = v;
+/**
+ * 🕶️ パスワード入力（既存のボタンと紐付け）
+ */
+function toggleSecretMode() {
+    const pass = prompt("パスワードを入力してください🐾");
+    if (pass === "nekosuke101") { // パスワード
+        db.isAdmin = true;
+        renderBoard();
+        alert("管理者ログインに成功しました！");
+    } else {
+        alert("パスワードが違います。");
     }
+}
 
-    function isLocked() {
-        return lock;
+// ----------------------------- 🖼️ フォトギャラリー (同期・自動更新版) -----------------------------
+
+// 1. サーバーから画像リストを取得（キャッシュ対策済み）
+async function loadServerGallery() {
+    try {
+        // ?t=... を付けてブラウザキャッシュを強制回避
+        const response = await fetch(`gallery.json?t=${Date.now()}`);
+        if (response.ok) {
+            const serverData = await response.json();
+            db.gallery = serverData || []; // サーバーの最新リストを反映
+            renderGallery();
+        }
+    } catch (e) {
+        console.error("ギャラリーの読み込み失敗:", e);
     }
+}
 
-    async function run(fbKey) {
+    // 2. ギャラリーの描画
+    function renderGallery() {
+        const container = document.getElementById('gallery-container');
+        if (!container) return;
+        container.innerHTML = '';
 
-        if (!fbKey) {
-            alert("キーが存在しません");
+        if (!db.gallery || db.gallery.length === 0) {
+            container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#8c827a;">画像はありません。</p>`;
             return;
         }
 
-        if (lock) return;
+        db.gallery.forEach((g, index) => {
+            const div = document.createElement('div');
+            div.className = 'gallery-item';
+            div.onclick = () => openGalleryZoom(g.src);
+            div.innerHTML = `
+                <img src="${g.src}" alt="Photo">
+                <button class="gallery-delete" onclick="event.stopPropagation(); removeGalleryImage(${index})">×</button>
+            `;
+            container.appendChild(div);
+        });
+    }
 
-        if (!confirm("この知恵を消去してもよろしいですか？🐾")) return;
+// 3. 拡大機能
+function openGalleryZoom(src) {
+    const zoomImg = document.getElementById('zoomed-image');
+    const modal = document.getElementById('gallery-zoom-modal');
+    if (zoomImg && modal) {
+        zoomImg.src = src;
 
-        lock = true;
+        // 既存の関数で開く
+        openModal('gallery-zoom-modal');
+
+        // ★念のため：スクロールを止める
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// 拡大専用の閉じる関数（これに差し替え）
+function closeGalleryZoom() {
+    const modal = document.getElementById('gallery-zoom-modal');
+    if (modal) {
+        modal.style.display = 'none'; // 強制非表示
+        document.body.style.overflow = ''; // スクロール復帰
+    }
+}
+
+    // 4. アップロード機能 (サーバー保存版)
+    async function uploadImage(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('image', file);
 
         try {
-            const url = `${BOARD_ENDPOINT}/${fbKey}.json`;
-
-            const res = await fetch(url, { method: 'DELETE' });
-
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(text || '削除失敗');
-            }
-
-            // 軽量更新優先
-            if (typeof loadBoardFromServer === 'function') {
-                await loadBoardFromServer();
-            } else {
-window.AppState.posts =
-    (window.AppState.posts || []).filter(...);
-
-            renderArticlesGrid();
-            }
-
-            queueMicrotask(() => {
-                alert("消去完了しました 🐱");
+            const response = await fetch('upload.php', {
+                method: 'POST',
+                body: formData
             });
 
-        } catch (e) {
-            console.error("削除エラー:", e);
-            alert("消去に失敗しました😿：" + (e?.message || 'unknown'));
-        } finally {
-            lock = false;
+            if (!response.ok) throw new Error('アップロード失敗');
+
+            const data = await response.json();
+
+            // サーバーのリストを再取得して最新状態にする
+            await loadServerGallery();
+
+        } catch (error) {
+            console.error(error);
+            alert("保存に失敗しました。PHPと権限設定を確認してください。");
         }
     }
 
-    return { run };
+// 5. 削除機能（サーバー同期版）
+async function removeGalleryImage(index) {
+    if (confirm("サーバーからこの画像を完全に削除しますか？")) {
+        try {
 
-})();
+            // サーバー側の削除用プログラム(PHP)にインデックスを送る
+            const response = await fetch('delete_gallery.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ index: index })
+            });
 
-// 互換ラッパー
-function deleteBoardEntry(fbKey) {
-    return BoardDelete.run(fbKey);
+            const result = await response.json();
+
+            if (result.success) {
+
+                // サーバーで消せたら、最新のリストを再取得して表示を更新
+                await loadServerGallery();
+                console.log("サーバー上のデータを更新しました");
+            } else {
+                alert('削除に失敗しました: ' + result.message);
+            }
+        } catch (e) {
+            console.error("通信エラー:", e);
+            alert('サーバーとの通信に失敗しました。');
+        }
+    }
+}
+    // 最後に：ページ読み込み時に実行
+    loadServerGallery();
+
+    // ----------------------------- 📝 自動保存メモ帳 (現状維持) -----------------------------
+    function saveMemo() {
+        db.memo = document.getElementById('memo-textarea').value;
+        saveToLocalStorage();
+    }
+
+// ----------------------------- 🎸 BGMプレイヤー (世界同期版) -----------------------------
+    let player;
+    let isPlayerLoaded = false;
+    let activeTrackIdx = 0;
+
+    // サーバーへ同期
+    async function syncBgmToServer() {
+        try {
+            await fetch('api.php?type=bgm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(db.playlists)
+            });
+            console.log("BGMサーバー同期成功");
+        } catch (e) { console.error("BGM同期失敗:", e); }
+    }
+
+    // サーバーから読み込み
+    async function loadBgmFromServer() {
+        try {
+            const res = await fetch('bgm.json');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && Array.isArray(data)) {
+                    db.playlists = data;
+                    initBgmPanel();
+                }
+            }
+        } catch (e) { console.log("サーバーBGMなし"); }
+    }
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('yt-player-frame', {
+            height: '100%', width: '100%', videoId: '',
+            playerVars: { 'autoplay': 0, 'controls': 1 },
+            events: {
+                'onReady': () => { isPlayerLoaded = true; },
+                'onStateChange': (e) => { if (e.data === YT.PlayerState.ENDED) playNextTrack(); }
+            }
+        });
+    }
+
+    function initBgmPanel() {
+        const selector = document.getElementById('playlist-selector');
+        if (!selector) return;
+        selector.innerHTML = '';
+        if (!db.playlists) db.playlists = [];
+        db.playlists.forEach((pl, index) => {
+            const opt = document.createElement('option');
+            opt.value = index; opt.innerText = pl.name;
+            if (index === db.activePlaylistIdx) opt.selected = true;
+            selector.appendChild(opt);
+        });
+        renderBgmTracks();
+    }
+
+    function renderBgmTracks() {
+        const container = document.getElementById('bgm-tracks-list');
+        if (!container) return;
+        container.innerHTML = '';
+        const pl = db.playlists[db.activePlaylistIdx];
+        if (!pl || !pl.tracks || pl.tracks.length === 0) {
+            container.innerHTML = `<p style="font-size:0.85rem; color:#8c827a;">曲がありません。</p>`;
+            return;
+        }
+        pl.tracks.forEach((track, index) => {
+            const row = document.createElement('div');
+            row.style = "display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:8px 12px; border-radius:8px; border:1px solid var(--border-color); margin-bottom:4px;";
+            row.innerHTML = `
+                <span onclick="triggerTrackPlay('${track.id}', ${index})" style="cursor:pointer; font-weight:600; font-size:0.85rem; flex:1; color:#a26d46;">🎵 ${track.title}</span>
+                <div style="display:flex; gap:4px;">
+                    <button onclick="editTrackName(${index})" class="bgm-btn" style="padding:2px 6px; font-size:0.7rem;">名変</button>
+                    <button onclick="deleteTrack(${index})" class="bgm-btn" style="padding:2px 6px; font-size:0.7rem; background:#dc3545;">消</button>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function triggerTrackPlay(videoId, index = 0) {
+        document.getElementById('yt-player-box').style.display = 'block';
+        activeTrackIdx = index;
+        if (isPlayerLoaded && player) { player.loadVideoById(videoId); }
+    }
+
+    function playNextTrack() {
+        const pl = db.playlists[db.activePlaylistIdx];
+        if (!pl || pl.tracks.length === 0) return;
+        activeTrackIdx = (activeTrackIdx + 1) % pl.tracks.length;
+        triggerTrackPlay(pl.tracks[activeTrackIdx].id, activeTrackIdx);
+    }
+
+    // --- 同期が必要な操作関数群 ---
+    function addNewTrack() {
+        const urlInput = document.getElementById('track-url-input').value.trim();
+        const videoId = parseYoutubeID(urlInput);
+        if (!videoId) return alert("YouTube動画リンクを入力してください。");
+        const pl = db.playlists[db.activePlaylistIdx];
+        pl.tracks.push({ id: videoId, title: `Track #${pl.tracks.length + 1}` });
+        saveToLocalStorage(); renderBgmTracks(); syncBgmToServer();
+        document.getElementById('track-url-input').value = '';
+    }
+
+    function deleteTrack(idx) {
+        const pl = db.playlists[db.activePlaylistIdx];
+        pl.tracks.splice(idx, 1);
+        saveToLocalStorage(); renderBgmTracks(); syncBgmToServer();
+    }
+
+    function editTrackName(idx) {
+        const pl = db.playlists[db.activePlaylistIdx];
+        const newName = prompt("曲名を変更：", pl.tracks[idx].title);
+        if (newName && newName.trim()) {
+            pl.tracks[idx].title = newName.trim();
+            saveToLocalStorage(); renderBgmTracks(); syncBgmToServer();
+        }
+    }
+
+    function createNewPlaylist() {
+        const nameInput = document.getElementById('playlist-name-input').value.trim();
+        if (!nameInput) return alert("プレイリスト名を入力してください。");
+        db.playlists.push({ name: nameInput, tracks: [] });
+        db.activePlaylistIdx = db.playlists.length - 1;
+        saveToLocalStorage(); initBgmPanel(); syncBgmToServer();
+        document.getElementById('playlist-name-input').value = '';
+    }
+
+    function parseYoutubeID(url) {
+        const regex = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regex);
+        return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    function onPlaylistSelectorChange() {
+        db.activePlaylistIdx = parseInt(document.getElementById('playlist-selector').value);
+        saveToLocalStorage(); renderBgmTracks();
+    }
+
+    // ----------------------------- 🥸 秘密機能 (現状維持) -----------------------------
+    function executeStabilizerScan() {
+        const logBox = document.getElementById('stabilizer-log');
+        const bar = document.getElementById('stabilizer-progress-bar');
+        const wisdomBox = document.getElementById('secret-wisdom-box');
+        const wisdomText = document.getElementById('secret-wisdom-text');
+
+        wisdomBox.style.display = 'none'; logBox.innerHTML = ''; bar.style.width = '0%';
+
+        const steps = [
+            { t: 100, msg: "＞ [SYSTEM] AI Neko-Core Quantum スキャナーをロード。" },
+            { t: 500, msg: "＞ [SYSTEM] ブラウザスタック領域の走査を開始..." },
+            { t: 900, msg: "＞ [RUN] メモリリーク検出テスト中..." },
+            { t: 1200, msg: "＞ [SCAN] scan_address 0x7FFA... [OK]" },
+            { t: 1800, msg: "＞ [SCAN] scan_address 0x4D2A... [CLEAN]" },
+            { t: 2400, msg: "＞ [SUCCESS] ウイルス検知プロセス完了。バグゼロ。" },
+            { t: 3000, msg: "＞ [STABLE] 同期率：100% (環境安定を確認)" }
+        ];
+
+        steps.forEach(step => {
+            setTimeout(() => {
+                logBox.innerHTML += `<div>${step.msg}</div>`; logBox.scrollTop = logBox.scrollHeight;
+                if (step.t === 3000) { bar.style.width = '100%'; displayNekoWisdom(); }
+                else { bar.style.width = `${Math.round((step.t / 3000) * 100)}%`; }
+            }, step.t);
+        });
+
+        function displayNekoWisdom() {
+            const list = [
+                "「猫が眠る日は、宇宙もまた安定している。心配せず休むにゃ。」",
+                "「悩んだら暖かい場所で丸くなり、体温を上げるだけで知恵が湧くにゃ。」",
+                "「ネットの海を泳ぎ疲れたら、ねこちゃんねるを見てリラックスするにゃ。」"
+            ];
+            wisdomText.innerText = list[Math.floor(Math.random() * list.length)];
+            setTimeout(() => { wisdomBox.style.display = 'block'; }, 300);
+        }
+    }
+
+    // ----------------------------- 管理者制御 (現状維持) -----------------------------
+function savePostFromAdmin() {
+    const id = document.getElementById('admin-post-id-input')?.value;
+    const titleVal = document.getElementById('admin-title-input')?.value.trim();
+    const catVal = document.getElementById('admin-category-input')?.value.trim() || '一般';
+    const bodyVal = document.getElementById('admin-body-input')?.value.trim();
+    const isPublic = document.getElementById('admin-public')?.checked;
+
+    if (!titleVal || !bodyVal) return alert("タイトルと本文は入力必須です。");
+
+    if (id) {
+        const post = db.posts.find(p => p.id === parseInt(id));
+        if (post) {
+            post.title = titleVal; post.category = catVal; post.body = bodyVal; post.public = isPublic;
+        }
+    } else {
+        db.posts.unshift({
+            id: Date.now(),
+            title: titleVal,
+            category: catVal,
+            body: bodyVal,
+            public: isPublic,
+            date: new Date().toISOString().split('T')[0]
+        });
+    }
+
+    saveToLocalStorage();
+    renderArticlesGrid();
+    alert("保存が完了しました。メイン画面に戻ります。");
+    closeModal('admin-modal');
+    clearAdminForm();
+}
+
+// 管理者メニューの表示状態を更新する関数
+function updateAdminUI() {
+    if (db.isAdmin) {
+        // HTML側で設定したID名（admin-new-post-menu / admin-logout-menu）に合わせて表示を切り替えます
+        const newPostMenu = document.getElementById('admin-new-post-menu');
+        const logoutMenu = document.getElementById('admin-logout-menu');
+
+        if (newPostMenu) newPostMenu.style.display = 'block';
+        if (logoutMenu) logoutMenu.style.display = 'block';
+
+        console.log("管理者メニューを有効化しました 😸");
+    }
+}
+// ページ読み込み完了時に実行して、ログイン状態を復元する
+window.addEventListener('load', updateAdminUI);
+  function editArticle(id) {
+    const p = db.posts.find(item => item.id === id);
+    if (!p) return;
+    if(document.getElementById('admin-post-id-input')) document.getElementById('admin-post-id-input').value = p.id;
+    if(document.getElementById('admin-title-input')) document.getElementById('admin-title-input').value = p.title;
+    if(document.getElementById('admin-category-input')) document.getElementById('admin-category-input').value = p.category;
+    if(document.getElementById('admin-body-input')) document.getElementById('admin-body-input').value = p.body;
+    if(document.getElementById('admin-public')) document.getElementById('admin-public').checked = p.public;
+    openModal('admin-modal');
+}
+  function deleteArticle(id) {
+    if (confirm("この記事を削除しますか？")) {
+        db.posts = db.posts.filter(p => p.id !== id);
+        saveToLocalStorage();
+        renderArticlesGrid();
+    }
+}
+  function clearAdminForm() {
+    // 存在する入力欄だけを安全に空にする
+    const ids = [
+        'admin-title-input',
+        'admin-body-input',
+        'admin-category-input',
+        'memo-textarea'
+    ];
+
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+
+    const publicCheck = document.getElementById('admin-public');
+    if (publicCheck) publicCheck.checked = true;
+
+    console.log("フォームを安全にリセットしました");
+}
+
+// 🌌 画面のどこかをクリックした時の処理（1830行目付近）
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('gear-menu');
+    const gearBtn = document.querySelector('.gear-btn');
+
+    if (!menu || !gearBtn) return;
+
+    // もしクリックされたのが「モーダルの背景や中身」だったら、
+    // ドロップダウンメニューの判定をスキップする
+    if (e.target.closest('.modal') || e.target.closest('.modal-content')) {
+        return;
+    }
+
+    if (menu.classList.contains('show') || menu.style.display === 'block') {
+        if (!menu.contains(e.target) && !gearBtn.contains(e.target)) {
+            menu.classList.remove('show');
+            menu.style.display = 'none';
+        }
+    }
+});
+  // ----------------------------- 言語アシスタント -----------------------------
+  function toggleLanguage() {
+    alert("Alverseは標準ブラウザ翻訳に対応する「多言語アシスト仕様」で組まれています。日本語・英語以外のデバイスからも美しく表示されます。");
+}
+
+// ----------------------------- モーダル開閉 (完全版) -----------------------------
+function openModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.style.display = 'flex';
+        // 🚀 震え対策：スクロールを封印
+        document.body.classList.add('modal-open');
+
+        if (id === 'board-modal') renderBoard();
+        if (id === 'gallery-modal') renderGallery();
+        if (id === 'bgm-modal') initBgmPanel();
+    }
+}
+
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.style.display = 'none';
+        // 🚀 固定を解除
+        document.body.classList.remove('modal-open');
+        // ✨ 拡大画像(photo-modal)を閉じたらギャラリーへ戻る
+        if (id === 'photo-modal') {
+            const gallery = document.getElementById('gallery-modal');
+            if (gallery) {
+                gallery.style.display = 'flex';
+                document.body.classList.add('modal-open');
+            }
+        }
+    }
+}
+
+// 📝 修正：IDを 'admin-modal' に合わせる
+function openNewPost() {
+    // HTML側の <div id="admin-modal"> を開くように指定
+    openModal('admin-modal');
+}
+// 文字列を安全に変換する関数
+function escapeHTML(str) {
+    if (!str) return "";
+    return str.replace(/[&<>'"]/g, m => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[m]));
+}
+/**
+ * ⚙️ 歯車メニューの切り替え
+ */
+function toggleGearMenu(e) {
+    if (e) e.stopPropagation(); // 画面クリックで閉じる処理との衝突を防ぐ
+
+    const menu = document.getElementById('gear-menu');
+    if (menu) {
+        // CSSの .show クラスを付け外しする
+        menu.classList.toggle('show');
+        console.log("Menu Toggle: ", menu.classList.contains('show'));
+    } else {
+        console.error("エラー: gear-menu が見つかりません");
+    }
+}
+
+/**
+ * 🗑️ 掲示板（猫の知恵袋）の投稿削除機能
+ */
+async function deleteBoardEntry(fbKey) {
+    if (!confirm("この知恵を消去してもよろしいですか？🐾")) return;
+
+    try {
+        // ★修正ポイント：URLを正しく結合しました
+        const deleteUrl = `https://alverse-project-default-rtdb.firebaseio.com/alverse_pro_v3/articles/${postId}.json`;
+        const res = await fetch(deleteUrl, { method: 'DELETE' });
+
+        if (!res.ok) throw new Error("削除リクエストに失敗しました");
+
+        alert("消去完了しました 🐱");
+        if (typeof loadBoardFromServer === 'function') {
+            await loadBoardFromServer(); // 画面を更新
+        } else {
+            location.reload(); // 関数がない場合はリロード
+        }
+    } catch (e) {
+        console.error("削除エラー:", e);
+        alert("消去に失敗しました😿：" + e.message);
+    }
 }
 // =========================================================
-// 💾 Backup & Export System (Final Stable Edition)
+// 💾 バックアップ ＆ 🌐 サーバー共有システム
 // =========================================================
 
-let __exportLock = false;
-
-async function exportData(type = 'all') {
-
-    if (__exportLock) return;
-    __exportLock = true;
+async function exportData(type = 'posts') {
 
     try {
 
-        const dbSafe = (typeof db !== 'undefined' && db) ? db : {};
+        const currentData =
+            (typeof db !== 'undefined' && db)
+                ? db
+                : {};
 
-        const dateStr = new Date()
+        let exportObj = {};
+        let filename = "";
+
+        const dateStr =
+            new Date()
             .toISOString()
             .replace(/[:.]/g, '-');
 
-        let exportObj;
-        let filename;
+        // -------------------------------------------------
+        // 📦 データ振り分け
+        // -------------------------------------------------
 
         switch (type) {
 
             case 'posts':
-                exportObj = { posts: dbSafe.posts || [] };
-                filename = `posts-${dateStr}.json`;
+
+                exportObj = {
+                    posts: currentData.posts || [],
+                    exportedAt: new Date().toISOString(),
+                    version: "AIverse-Backup-v2"
+                };
+
+                filename =
+                    `aiverse_articles_${dateStr}.json`;
+
                 break;
 
-            case 'gallery':
-                exportObj = { gallery: dbSafe.gallery || [] };
-                filename = `gallery-${dateStr}.json`;
-                break;
+            case 'config':
 
-            case 'bgm':
-                exportObj = { playlists: dbSafe.playlists || [] };
-                filename = `bgm-${dateStr}.json`;
+                for (const key in currentData) {
+
+                    if (
+                        currentData.hasOwnProperty(key) &&
+                        key !== 'posts'
+                    ) {
+                        exportObj[key] = currentData[key];
+                    }
+                }
+
+                exportObj.exportedAt =
+                    new Date().toISOString();
+
+                exportObj.version =
+                    "AIverse-Config-v2";
+
+                filename =
+                    `aiverse_config_${dateStr}.json`;
+
                 break;
 
             default:
-                exportObj = {
-                    posts: dbSafe.posts || [],
-                    gallery: dbSafe.gallery || [],
-                    bgm: dbSafe.playlists || [],
-                    memo: dbSafe.memo || ""
-                };
-                filename = `aiverse-full-${dateStr}.json`;
+
+                throw new Error("未知のエクスポート形式");
         }
 
-        // -----------------------------
-        // 💾 Blob生成（軽量）
-        // -----------------------------
-        const json = JSON.stringify(exportObj);
-        const blob = new Blob([json], { type: 'application/json' });
+        // -------------------------------------------------
+        // 💾 JSON生成
+        // -------------------------------------------------
 
-        const url = URL.createObjectURL(blob);
+        const json =
+            JSON.stringify(exportObj, null, 2);
 
-        const a = document.createElement('a');
+        const blob =
+            new Blob(
+                [json],
+                { type: 'application/json' }
+            );
+
+        const url =
+            URL.createObjectURL(blob);
+
+        const a =
+            document.createElement('a');
+
         a.href = url;
         a.download = filename;
 
-        // DOM依存最小化
         document.body.appendChild(a);
 
-        requestAnimationFrame(() => {
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-        });
+        a.click();
 
-        console.log("Export completed:", filename);
+        document.body.removeChild(a);
+
+        URL.revokeObjectURL(url);
+
+        // -------------------------------------------------
+        // 🌐 サーバー同期
+        // -------------------------------------------------
+
+        if (typeof syncWithServer === 'function') {
+
+            const syncType =
+                (type === 'posts')
+                    ? 'articles'
+                    : 'config';
+
+            await syncWithServer(
+                syncType,
+                exportObj
+            );
+
+            showToast(
+                '✅ サーバー同期完了'
+            );
+        } else {
+
+            console.warn(
+                'syncWithServer が存在しません'
+            );
+        }
 
     } catch (e) {
-        console.error("Export error:", e);
-        alert("バックアップに失敗しました");
-    } finally {
-        __exportLock = false;
+
+        console.error(
+            'Export Error:',
+            e
+        );
+
+        alert(
+            '保存失敗: ' + e.message
+        );
     }
 }
-// =========================================================
-// ⚙️ Gear Menu (Ultimate Stable + Lightweight)
-// =========================================================
 
-const GearMenu = (() => {
+// ---------------------------------------------------------
+// ⚙️ 歯車ドロップダウン制御（ID: gear-menu 専用）
+// ---------------------------------------------------------
 
-    let menu = null;
-    let btn = null;
-
-    function init() {
-        menu = document.getElementById('gear-menu');
-        btn = document.querySelector('.gear-btn');
+function toggleGearMenu(event = null) {
+    if (event) {
+        event.stopPropagation(); // 画面クリックイベントとの衝突防止
     }
 
-    function isOpen() {
-        return menu?.classList.contains('show') === true;
+    // HTMLで設定した <div id="gear-menu" ...> を探す
+    const menu = document.getElementById('gear-menu');
+
+    if (!menu) {
+        console.error("ID 'gear-menu' が見つかりません。HTMLを確認してください。");
+        return;
     }
 
-    function open() {
-        if (!menu) return;
+    // 現在の状態をチェック
+    const isShowing = menu.classList.contains('show');
 
+    if (!isShowing) {
+        // メニューを開く
         menu.classList.add('show');
-        menu.style.display = 'block';
-    }
-
-    function close() {
-        if (!menu) return;
-
+        menu.style.display = 'block'; // 強制表示
+    } else {
+        // メニューを閉じる
         menu.classList.remove('show');
         menu.style.display = 'none';
     }
+}
+// 🌌 画面のどこかをクリックした時の処理
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('gear-menu');
+    const gearBtn = document.querySelector('.gear-btn');
 
-    function toggle(e) {
-        if (e) e.stopPropagation();
+    // メニューが開いている時だけ判定
+    if (menu && (menu.classList.contains('show') || menu.style.display === 'block')) {
 
-        if (!menu) init();
-        if (!menu) return;
+        // クリックされた場所が「メニュー自体」でも「歯車ボタン」でもない場合
+        if (!menu.contains(e.target) && !gearBtn.contains(e.target)) {
+            menu.classList.remove('show');
+            menu.style.display = 'none';
+            console.log("Menu closed by outside click");
+        }
+    }
+});
+// ---------------------------------------------------------
+// 🌌 モーダル制御
+// ---------------------------------------------------------
 
-        isOpen() ? close() : open();
+function openModal(id) {
+
+    const modal =
+        document.getElementById(id);
+
+    if (!modal) {
+        console.warn(
+            'Modal not found:',
+            id
+        );
+        return;
     }
 
-    function handleOutsideClick(e) {
-        if (!menu) init();
-        if (!menu || !btn) return;
+    modal.style.display = 'flex';
 
-        if (!isOpen()) return;
+    document.documentElement
+        .classList.add('modal-open');
 
-        if (menu.contains(e.target) || btn.contains(e.target)) return;
-
-        close();
-    }
-
-    return {
-        toggle,
-        close,
-        handleOutsideClick,
-        init
-    };
-
-})();
-
-// -----------------------------
-// 互換API
-// -----------------------------
-function toggleGearMenu(e) {
-    GearMenu.toggle(e);
+    document.body
+        .classList.add('modal-open');
 }
 
-// -----------------------------
-// 初期化（重要：1回だけDOM取得）
-// -----------------------------
-window.addEventListener('load', () => {
-    GearMenu.init();
-});
+function closeModal(id) {
 
-// -----------------------------
-// 外側クリック
-// -----------------------------
-document.addEventListener('click', (e) => {
-    GearMenu.handleOutsideClick(e);
-});
+    const modal =
+        document.getElementById(id);
+
+    if (!modal) return;
+
+    modal.style.display = 'none';
+
+    document.documentElement
+        .classList.remove('modal-open');
+
+    document.body
+        .classList.remove('modal-open');
+}
+
 // =========================================================
-// 🌌 Modal System (Final Stable Kernel)
-// =========================================================
-
-const ModalSystem = (() => {
-
-    let openCount = 0;
-
-    function get(id) {
-        return document.getElementById(id);
-    }
-
-    function isVisible(modal) {
-        return modal?.style.display === 'flex';
-    }
-
-    function applyLock() {
-        document.documentElement.classList.add('modal-open');
-        document.body.classList.add('modal-open');
-    }
-
-    function releaseLock() {
-        document.documentElement.classList.remove('modal-open');
-        document.body.classList.remove('modal-open');
-    }
-
-    function syncState() {
-        // DOM状態から再計算（ズレ防止）
-        const modals = document.querySelectorAll('.modal');
-
-        let count = 0;
-
-        modals.forEach(m => {
-            if (isVisible(m)) count++;
-        });
-
-        openCount = count;
-
-        if (openCount > 0) applyLock();
-        else releaseLock();
-    }
-
-    function open(id) {
-
-        const modal = get(id);
-        if (!modal) {
-            console.warn('Modal not found:', id);
-            return;
-        }
-
-        modal.style.display = 'flex';
-
-        openCount++;
-        applyLock();
-    }
-
-    function close(id) {
-
-        const modal = get(id);
-        if (!modal) return;
-
-        modal.style.display = 'none';
-
-        openCount = Math.max(0, openCount - 1);
-
-        if (openCount <= 0) {
-            openCount = 0;
-            releaseLock();
-        }
-    }
-
-    function closeAll() {
-
-        const modals = document.querySelectorAll('.modal');
-
-        for (let i = 0; i < modals.length; i++) {
-            modals[i].style.display = 'none';
-        }
-
-        openCount = 0;
-        releaseLock();
-    }
-
-    return {
-        open,
-        close,
-        closeAll,
-        syncState
-    };
-
-})();
-// =========================================================
-// 🕶️ Admin Menu Inject (Final Stable Edition)
+// 🕶️ 管理者メニュー注入
 // =========================================================
 
-const AdminMenu = (() => {
-
-    let injected = false;
-    let menuList = null;
-
-    function init() {
-        menuList = document.querySelector('.settings-dropdown');
-    }
-
-    function inject() {
-
-        if (injected) return;
-
-        if (!menuList) init();
-        if (!menuList) return;
-
-        injected = true;
-
-        const postLi = document.createElement('li');
-        postLi.id = 'admin-added-post';
-
-        const link = document.createElement('a');
-        link.href = '#';
-        link.textContent = '✍️ 管理投稿';
-
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-
-            toggleGearMenu?.();
-            openModal?.('admin-modal');
-        });
-
-        postLi.appendChild(link);
-        menuList.appendChild(postLi);
-    }
-
-    function reset() {
-        injected = false;
-        menuList = null;
-    }
-
-    return {
-        inject,
-        init,
-        reset
-    };
-
-})();
-
-// -----------------------------
-// 互換API
-// -----------------------------
 function injectAdminMenu() {
-    AdminMenu.inject();
-}
-// ---------------------------------------------------------
-// 💾 Admin Backup Menu (Final Stable Kernel)
-// ---------------------------------------------------------
 
-const AdminBackupMenu = (() => {
-
-    let injected = false;
-
-    function getMenu() {
-        return document.querySelector('.settings-dropdown');
-    }
-
-    function exists() {
-        return !!document.getElementById('admin-added-backup');
-    }
-
-    function inject() {
-
-        if (injected || exists()) return;
-
-        const menuList = getMenu();
-        if (!menuList) return;
-
-        injected = true;
-
-        const backupLi = document.createElement('li');
-        backupLi.id = 'admin-added-backup';
-
-        const link = document.createElement('a');
-        link.href = '#';
-        link.textContent = '💾 記事バックアップ';
-
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-
-            exportData?.('posts');
-        });
-
-        backupLi.appendChild(link);
-        menuList.appendChild(backupLi);
-    }
-
-    function reset() {
-        injected = false;
-    }
-
-    function ensure() {
-        // UI再生成対策（重要）
-        injected = false;
-        inject();
-    }
-
-    return {
-        inject,
-        reset,
-        ensure
-    };
-
-})();
-
-// -----------------------------
-// 互換API
-// -----------------------------
-function injectAdminBackupMenu() {
-    AdminBackupMenu.inject();
-}
-// -------------------------------------------------
-// 🚪 Admin Menu Builder (Ultra Stable Kernel)
-// -------------------------------------------------
-
-const AdminMenuKernel = (() => {
-
-    const IDS = {
-        post: 'admin-added-post',
-        backup: 'admin-added-backup',
-        logout: 'admin-added-logout'
-    };
-
-    function getMenu() {
-        return document.querySelector('.settings-dropdown');
-    }
-
-    function createItem(id, text, onClick, style = {}) {
-
-        const li = document.createElement('li');
-        li.id = id;
-
-        const a = document.createElement('a');
-        a.href = '#';
-        a.textContent = text;
-
-        Object.assign(a.style, style);
-
-        a.addEventListener('click', (e) => {
-            e.preventDefault();
-            onClick?.();
-        });
-
-        li.appendChild(a);
-        return li;
-    }
-
-    // -----------------------------
-    // 🔧 単体修復型チェック
-    // -----------------------------
-    function ensureItem(menu, id, builder) {
-        if (!menu) return;
-
-        if (document.getElementById(id)) return;
-
-        const item = builder();
-        menu.appendChild(item);
-    }
-
-    function inject() {
-
-        const menu = getMenu();
-        if (!menu) return;
-
-        // -----------------------------
-        // ✍️ 管理投稿
-        // -----------------------------
-        ensureItem(menu, IDS.post, () =>
-            createItem(
-                IDS.post,
-                '✍️ 管理投稿',
-                () => {
-                    toggleGearMenu?.();
-                    openModal?.('admin-modal');
-                }
-            )
+    const menuList =
+        document.querySelector(
+            '.settings-dropdown'
         );
 
-        // -----------------------------
-        // 💾 バックアップ
-        // -----------------------------
-        ensureItem(menu, IDS.backup, () =>
-            createItem(
-                IDS.backup,
-                '💾 記事バックアップ',
-                () => exportData?.('posts')
-            )
-        );
+    if (!menuList) return;
 
-        // -----------------------------
-        // 🚪 ログアウト
-        // -----------------------------
-        ensureItem(menu, IDS.logout, () =>
-            createItem(
-                IDS.logout,
-                '🚪 ログアウト',
-                () => logoutAdmin?.(),
-                {
-                    color: '#fa5252',
-                    fontWeight: 'bold'
-                }
-            )
-        );
+    // 重複防止
+    if (
+        document.getElementById(
+            'admin-added-post'
+        )
+    ) {
+        return;
     }
 
-    function reset() {
-        Object.values(IDS).forEach(id => {
-            document.getElementById(id)?.remove();
-        });
-    }
+    // -------------------------------------------------
+    // ✍️ 管理投稿
+    // -------------------------------------------------
 
-    return {
-        inject,
-        reset
-    };
+    const postLi =
+        document.createElement('li');
 
-})();
+    postLi.id =
+        'admin-added-post';
 
-// 互換API
-function injectAdminMenuItems() {
-    AdminMenuKernel.inject();
+    postLi.innerHTML = `
+        <a href="#"
+           onclick="
+               toggleGearMenu();
+               openModal('admin-modal');
+               return false;
+           ">
+           ✍️ 管理投稿
+        </a>
+    `;
+
+    // -------------------------------------------------
+    // 💾 バックアップ
+    // -------------------------------------------------
+
+    const backupLi =
+        document.createElement('li');
+
+    backupLi.id =
+        'admin-added-backup';
+
+    backupLi.innerHTML = `
+        <a href="#"
+           onclick="
+               exportData('posts');
+               return false;
+           ">
+           💾 記事バックアップ
+        </a>
+    `;
+
+    // -------------------------------------------------
+    // 🚪 ログアウト
+    // -------------------------------------------------
+
+    const logoutLi =
+        document.createElement('li');
+
+    logoutLi.id =
+        'admin-added-logout';
+
+    logoutLi.innerHTML = `
+        <a href="#"
+           onclick="
+               logoutAdmin();
+               return false;
+           "
+           style="
+               color:#fa5252;
+               font-weight:bold;
+           ">
+           🚪 ログアウト
+        </a>
+    `;
+
+    menuList.appendChild(postLi);
+    menuList.appendChild(backupLi);
+    menuList.appendChild(logoutLi);
 }
+
 // =========================================================
-// 🔐 Admin Mode (Final Stable Kernel)
+// 🔐 管理者モード
 // =========================================================
 
-const AdminAuth = (() => {
-
-    const STORAGE_KEY = 'aiverse_admin';
-    const PASS = 'nekosuke101';
-
-    // -----------------------------
-    // 🧠 状態取得（単一真実）
-    // -----------------------------
-    function isAdmin() {
-        return localStorage.getItem(STORAGE_KEY) === 'true';
-    }
-
-    // -----------------------------
-    // 🔄 状態同期（唯一の書き込み口）
-    // -----------------------------
-    function setState(state) {
-
-        localStorage.setItem(STORAGE_KEY, state ? 'true' : 'false');
-
-        if (typeof db !== 'undefined') {
-            db.isAdmin = state;
-        }
-
-        // UI同期（順序固定）
-        queueMicrotask(() => {
-            updateAdminUI?.();
-            injectAdminMenuItems?.();
-        });
-    }
-
-    // -----------------------------
-    // 🔓 ENABLE
-    // -----------------------------
-    function enable() {
-        setState(true);
-        showToast?.("🐱 管理者モード ON");
-    }
-
-    // -----------------------------
-    // 🔒 DISABLE
-    // -----------------------------
-    function disable() {
-        setState(false);
-        showToast?.("管理者モード OFF");
-    }
-
-    // -----------------------------
-    // 🔑 LOGIN
-    // -----------------------------
-    function promptLogin() {
-
-        const pass = prompt("管理者パスワードを入力してください🐾");
-
-        if (pass === null) return;
-
-        if (pass === PASS) {
-            enable();
-        } else {
-            showToast?.("❌ パスワードが違います");
-        }
-    }
-
-    // -----------------------------
-    // ♻️ RESTORE
-    // -----------------------------
-    function restore() {
-
-        if (!isAdmin()) return;
-
-        if (typeof db !== 'undefined') {
-            db.isAdmin = true;
-        }
-
-        setState(true);
-    }
-
-    // -----------------------------
-    // 🚪 LOGOUT
-    // -----------------------------
-    function logout() {
-        setState(false);
-    }
-
-    return {
-        promptLogin,
-        enable,
-        disable,
-        logout,
-        restore,
-        isAdmin
-    };
-
-})();
-
-// -----------------------------
-// 互換API
-// -----------------------------
 function toggleSecretMode() {
-    AdminAuth.promptLogin();
+
+    const pass =
+        prompt(
+            "管理者パスワードを入力してください🐾"
+        );
+
+    if (pass === null) {
+        return;
+    }
+
+    // -------------------------------------------------
+    // 🔑 認証
+    // -------------------------------------------------
+
+    if (pass === "nekosuke101") {
+
+        if (typeof db !== 'undefined') {
+
+            db.isAdmin = true;
+
+            // 永続化
+            localStorage.setItem(
+                'aiverse_admin',
+                'true'
+            );
+        }
+
+        injectAdminMenu();
+
+        showToast(
+            "🐱 管理者モード ON"
+        );
+
+    } else {
+
+        showToast(
+            "❌ パスワードが違います"
+        );
+    }
 }
 
-// -----------------------------
-// 起動復元
-// -----------------------------
-window.addEventListener('load', () => {
-    AdminAuth.restore();
-});
 // =========================================================
-// 🚪 Admin Logout (State-Driven Stable Edition)
+// 🚪 ログアウト
 // =========================================================
 
-function logoutAdmin(options = {}) {
+function logoutAdmin() {
 
-    const {
-        reload = false,
-        silent = false
-    } = options;
+    const ok =
+        confirm(
+            "管理者モードを終了しますか？🐾"
+        );
 
-    const ok = confirm("管理者モードを終了しますか？🐾");
     if (!ok) return;
 
-    // -----------------------------
-    // 🧠 状態変更（単一責務）
-    // -----------------------------
-    const setState = (state) => {
+    if (typeof db !== 'undefined') {
 
-        if (typeof AdminAuth !== 'undefined') {
-            AdminAuth.logout?.();
-        } else {
-            localStorage.setItem('aiverse_admin', state ? 'true' : 'false');
-
-            if (typeof db !== 'undefined') {
-                db.isAdmin = state;
-            }
-        }
-    };
-
-    setState(false);
-
-    // -----------------------------
-    // 🎨 UI同期（次フレーム統一）
-    // -----------------------------
-    requestAnimationFrame(() => {
-        updateAdminUI?.();
-    });
-
-    // injectは「初期化専用」に寄せる（再実行しない設計が理想）
-    // injectAdminMenuItemsはここでは呼ばないのが安定
-
-    // -----------------------------
-    // 🔔 通知
-    // -----------------------------
-    if (!silent) {
-        showToast?.("🚪 ログアウトしました");
+        db.isAdmin = false;
     }
 
-    // -----------------------------
-    // 🔁 リロード（外部制御）
-    // -----------------------------
-    if (reload) {
-        setTimeout(() => location.reload(), 200);
-    }
+    localStorage.removeItem(
+        'aiverse_admin'
+    );
+
+    showToast(
+        "🚪 ログアウトしました"
+    );
+
+    setTimeout(() => {
+
+        location.reload();
+
+    }, 400);
 }
+
 // =========================================================
-// 🍞 Toast System (Stable Kernel + State-Safe Edition)
+// 🍞 トースト通知
 // =========================================================
 
-const Toast = (() => {
+function showToast(message = "") {
 
-    let el = null;
-    let timer = null;
-    let state = {
-        visible: false,
-        lastMessage: null
-    };
+    let toast =
+        document.getElementById(
+            'aiverse-toast'
+        );
 
-    function create() {
+    if (!toast) {
 
-        const t = document.createElement('div');
-        t.id = 'aiverse-toast';
+        toast =
+            document.createElement('div');
 
-        t.style.cssText = `
+        toast.id =
+            'aiverse-toast';
+
+        toast.style.cssText = `
             position:fixed;
             bottom:20px;
             left:50%;
             transform:translateX(-50%);
             background:#111;
-            color:#fff;
+            color:white;
             padding:12px 18px;
             border-radius:12px;
             z-index:999999;
             font-size:0.9rem;
             box-shadow:0 8px 24px rgba(0,0,0,0.35);
             opacity:0;
-            transition:opacity 0.25s ease;
+            transition:0.25s;
             pointer-events:none;
         `;
 
-        document.body.appendChild(t);
-        return t;
+        document.body.appendChild(toast);
     }
 
-    function get() {
-        if (!el) el = document.getElementById('aiverse-toast') || create();
-        return el;
-    }
+    toast.textContent = message;
 
-    function show(message = "", duration = 2200) {
+    toast.style.opacity = '1';
 
-        const toast = get();
+    clearTimeout(
+        window.__toastTimer
+    );
 
-        state.lastMessage = message;
-        state.visible = true;
+    window.__toastTimer =
+        setTimeout(() => {
 
-        // -----------------------------
-        // 🔁 同一メッセージでも再描画保証
-        // -----------------------------
-        if (toast.textContent === message) {
-            toast.style.transition = 'none';
             toast.style.opacity = '0';
 
-            requestAnimationFrame(() => {
-                toast.style.transition = 'opacity 0.25s ease';
-                toast.textContent = message;
-                toast.style.opacity = '1';
-            });
-
-        } else {
-            toast.textContent = message;
-            toast.style.opacity = '1';
-        }
-
-        if (timer) clearTimeout(timer);
-
-        timer = setTimeout(() => hide(), duration);
-    }
-
-    function hide() {
-
-        const toast = get();
-
-        if (!state.visible) return;
-
-        state.visible = false;
-
-        toast.style.opacity = '0';
-
-        if (timer) {
-            clearTimeout(timer);
-            timer = null;
-        }
-    }
-
-    function isVisible() {
-        return state.visible;
-    }
-
-    function reset() {
-        state.visible = false;
-        state.lastMessage = null;
-        if (timer) clearTimeout(timer);
-    }
-
-    return {
-        show,
-        hide,
-        isVisible,
-        reset
-    };
-
-})();
-
-// 互換API
-function showToast(message) {
-    Toast.show(message);
+        }, 2200);
 }
+
 // =========================================================
-// 🖱️ Outside Click Close (Kernel Stable Final)
-// =========================================================
-
-const OutsideClickCloser = (() => {
-
-    let menu = null;
-    let gear = null;
-
-    function resolve() {
-        menu = document.querySelector('.settings-dropdown');
-        gear = document.querySelector('.gear-btn');
-    }
-
-    function ensure() {
-        if (!menu || !gear) resolve();
-        return menu && gear;
-    }
-
-    function isOpen() {
-        return menu?.classList.contains('open') ||
-               menu?.classList.contains('show');
-    }
-
-    function close() {
-        if (!menu) return;
-
-        menu.classList.remove('open', 'show');
-
-        requestAnimationFrame(() => {
-            menu.style.display = 'none';
-        });
-    }
-
-    function handle(event) {
-
-        if (!ensure()) return;
-
-        if (!isOpen()) return;
-
-        const target = event.target;
-
-        // 内部クリックは無視
-        if (menu.contains(target) || gear.contains(target)) return;
-
-        close();
-    }
-
-    // 初期化を早期実行（初回クリック問題を潰す）
-    resolve();
-
-    document.addEventListener('click', handle, { passive: true });
-
-    return {
-        close
-    };
-
-})();
-// =========================================================
-// 🚀 Admin State (Kernel Stable Final Architecture)
+// 🖱️ 外側クリックで閉じる
 // =========================================================
 
-const AdminState = (() => {
+document.addEventListener(
+    'click',
+    function(event) {
 
-    const KEY = 'aiverse_admin';
-
-    function isAdmin() {
-        return localStorage.getItem(KEY) === 'true';
-    }
-
-    // -----------------------------
-    // 🧠 状態変更（唯一の正規入口）
-    // -----------------------------
-    function set(state, silent = false) {
-
-        localStorage.setItem(KEY, state ? 'true' : 'false');
-
-        if (typeof db !== 'undefined') {
-            db.isAdmin = state;
-        }
-
-        if (!silent) {
-            window.dispatchEvent(
-                new CustomEvent('admin:change', {
-                    detail: { state }
-                })
+        const menu =
+            document.querySelector(
+                '.settings-dropdown'
             );
+
+        const gear =
+            document.querySelector(
+                '.gear-btn'
+            );
+
+        if (
+            menu &&
+            !menu.contains(event.target) &&
+            gear &&
+            !gear.contains(event.target)
+        ) {
+            menu.classList.remove('open');
+            menu.style.display = 'none';
         }
     }
-
-    // -----------------------------
-    // 🎨 UI反映（唯一の描画責務）
-    // -----------------------------
-    function applyUI(state) {
-
-        const section = document.getElementById('admin-menu-section');
-        if (!section) return;
-
-        section.classList.toggle('is-admin', state);
-        section.style.display = state ? 'block' : 'none';
-    }
-
-    // -----------------------------
-    // 🚀 初期復元
-    // -----------------------------
-    function restore() {
-
-        const state = isAdmin();
-
-        set(state, true); // silentで二重イベント防止
-
-        applyUI(state);
-
-        if (state) {
-            injectAdminMenu?.();
-        }
-    }
-
-    // -----------------------------
-    // 🔓 ON
-    // -----------------------------
-    function enable() {
-        set(true);
-        applyUI(true);
-        injectAdminMenu?.();
-    }
-
-    // -----------------------------
-    // 🔒 OFF
-    // -----------------------------
-    function disable() {
-        set(false);
-        applyUI(false);
-    }
-
-    return {
-        restore,
-        isAdmin,
-        enable,
-        disable,
-        set,
-        applyUI
-    };
-
-})();
+);
 
 // =========================================================
-// 🚀 起動フック
+// 🚀 自動復元
 // =========================================================
-
 window.addEventListener('load', () => {
-    AdminState.restore();
-});
+    // 記事を読むための「基盤」は全員が使えるようにする
+    if (typeof db !== 'undefined') {
+        // ここでデータの読み込み（fetch）を開始する関数を呼ぶ
+        loadAllArticles(); 
+    }
 
-// =========================================================
-// 🔁 イベント駆動UI同期（完全分離）
-window.addEventListener('admin:change', (e) => {
-    AdminState.applyUI(e.detail.state);
+    // 「管理者メニュー」だけは、今まで通り合言葉がある時だけ表示する
+    if (localStorage.getItem('aiverse_admin') === 'true') {
+        if (typeof db !== 'undefined') { db.isAdmin = true; }
+        injectAdminMenu();
+    }
 });
-// =========================================================
-// 📚 AIVERSE Category Master (Stable Kernel Edition)
-// =========================================================
-
+// --- ここから追加：カテゴリーマスターリスト ---
 const AIVERSE_CATEGORIES = [
-    { id: "news", label: "📢 ニュース " },
+    { id: "news", label: "📢 ニュース" },
     { id: "ent", label: "🎭 エンタメ" },
     { id: "game", label: "🎮 ゲーム" },
     { id: "anime", label: "🎨 アニメ・漫画" },
@@ -4470,901 +2470,218 @@ const AIVERSE_CATEGORIES = [
     { id: "special", label: "✨ 特集" }
 ];
 
-
-// =========================================================
-// 🧩 セレクト初期化（安定・軽量版）
-// =========================================================
-
-let __categoryInitDone = false;
-
 function initCategorySelect() {
-
     const select = document.getElementById('admin-category-input');
-    if (!select) return;
-
-    // 二重初期化防止
-    if (__categoryInitDone || select.dataset.initialized === 'true') return;
-
-    const prev = select.value;
-
-    // 既存ノード削除（軽量・高速）
-    while (select.firstChild) {
-        select.removeChild(select.firstChild);
+    if (select) {
+        select.innerHTML = AIVERSE_CATEGORIES.map(cat =>
+            `<option value="${cat.id}">${cat.label}</option>`
+        ).join('');
     }
-
-    const frag = document.createDocumentFragment();
-
-    for (let i = 0; i < AIVERSE_CATEGORIES.length; i++) {
-
-        const cat = AIVERSE_CATEGORIES[i];
-
-        const option = document.createElement('option');
-        option.value = cat.id;
-        option.textContent = cat.label;
-
-        frag.appendChild(option);
-    }
-
-    select.appendChild(frag);
-
-    // 値復元（安全チェック付き）
-    if (
-        prev &&
-        AIVERSE_CATEGORIES.some(c => c.id === prev)
-    ) {
-        select.value = prev;
-    }
-
-    // 初期化完了フラグ
-    select.dataset.initialized = 'true';
-    __categoryInitDone = true;
 }
-// =========================================================
-// 💾 Draft Auto Save & Preview Sync (Kernel Stable ++)
-// =========================================================
 
-const DraftSystem = (() => {
-
-    let initialized = false;
-
-    function getEls() {
-        return {
-            title: document.getElementById('admin-title-input'),
-            body: document.getElementById('admin-body-input'),
-            category: document.getElementById('admin-category-input')
-        };
-    }
-
-    function handleChange() {
-
-        // プレビュー更新（軽量優先）
-        requestAnimationFrame(() => {
-            updateAdminPreview?.();
-        });
-
-        // 保存は非同期分離
-        queueMicrotask(() => {
-            saveDraft?.();
-        });
-    }
-
-    function bind(el, type) {
-        if (!el || el.dataset.bound === '1') return;
-
-        el.addEventListener(type, handleChange, { passive: true });
-        el.dataset.bound = '1';
-    }
-
-    function init() {
-
-        if (initialized) return;
-
-        const { title, body, category } = getEls();
-
-        if (!title || !body || !category) return;
-
-        bind(title, 'input');
-        bind(body, 'input');
-        bind(category, 'change');
-
-        loadDraft?.();
-
-        initialized = true;
-    }
-
-    function reset() {
-        initialized = false;
-    }
-
-    return {
-        init,
-        reset
-    };
-
-})();
-
-// 互換API
+// 💾 自動保存 ＆ プレビュー連動システム
 function setupDraftSystem() {
-    DraftSystem.init();
+    const titleInp = document.getElementById('admin-title-input');
+    const bodyInp = document.getElementById('admin-body-input');
+    const categoryInp = document.getElementById('admin-category-input');
+
+    if (!titleInp || !bodyInp || !categoryInp) return;
+    // 入力・変更があったら実行
+    const handleInput = () => {
+        updateAdminPreview(); // プレビュー更新
+        saveDraft();          // 下書き保存
+    };
+    titleInp.addEventListener('input', handleInput);
+    bodyInp.addEventListener('input', handleInput);
+    categoryInp.addEventListener('change', handleInput);
+    // ページ読み込み時に下書きがあれば復元
+    loadDraft();
 }
-// =========================================================
-// 👁️ Admin Preview System (Kernel Stable ++ Hardened)
-// =========================================================
-
-const AdminPreview = (() => {
-
-    const DEFAULT_IMAGE =
-        "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=300&auto=format&fit=crop";
-
-    const MAX_BODY_LENGTH = 400;
-
-    function el(id) {
-        return document.getElementById(id);
-    }
-
-    function safeText(v, fallback) {
-        const s = (v ?? "").toString().trim();
-        return s.length ? s : fallback;
-    }
-
-    function escapeHTML(str) {
-        return String(str ?? "").replace(/[&<>'"]/g, m => ({
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            "'": "&#39;",
-            '"': "&quot;"
-        }[m]));
-    }
-
-    function safeUrl(url) {
-        try {
-            const u = new URL(url);
-            if (!["http:", "https:"].includes(u.protocol)) return DEFAULT_IMAGE;
-            return url;
-        } catch {
-            return DEFAULT_IMAGE;
-        }
-    }
-
-    function getValues() {
-        return {
-            title: safeText(el('admin-title-input')?.value, "タイトル未入力"),
-            body: safeText(el('admin-body-input')?.value, "本文を執筆中..."),
-            categoryId: el('admin-category-input')?.value || "",
-            imageUrl: el('admin-image-input')?.value || DEFAULT_IMAGE
-        };
-    }
-
-    function getCategoryLabel(id) {
-        const list = window.AIVERSE_CATEGORIES;
-        if (!Array.isArray(list)) return "未分類";
-
-        const cat = list.find(c => c.id === id);
-        return cat?.label || "未分類";
-    }
-
-    function buildHTML(data) {
-
-        const title = escapeHTML(data.title);
-        const body = escapeHTML(data.body).slice(0, MAX_BODY_LENGTH);
-        const category = escapeHTML(getCategoryLabel(data.categoryId));
-
-        const imageUrl = safeUrl(data.imageUrl || DEFAULT_IMAGE);
-
-        return `
-            <div class="preview-card">
-                <img src="${imageUrl}" alt="preview" class="preview-image" loading="lazy"/>
-
-                <div class="preview-content">
-                    <div class="preview-category">${category}</div>
-                    <h3 class="preview-title">${title}</h3>
-                    <p class="preview-body">${body}</p>
-                </div>
-            </div>
-        `;
-    }
-
-    function update() {
-        const preview = el('admin-preview-area');
-        if (!preview) return;
-
-        const data = getValues();
-
-        requestAnimationFrame(() => {
-            preview.innerHTML = buildHTML(data);
-        });
-    }
-
-    return { update };
-
-})();
-
-// 互換API
+// 👁️ プレビュー描画（画像URL連動版）
 function updateAdminPreview() {
-    AdminPreview.update();
-}
-// =========================================================
-// 👁️ Live Preview Renderer (Final Hardened)
-// =========================================================
-
-function renderAdminPreview(previewArea, title, body, categoryId, imageUrl) {
+    const title = document.getElementById('admin-title-input').value || "タイトル未入力";
+    const body = document.getElementById('admin-body-input').value || "本文を執筆中...";
+    const categoryId = document.getElementById('admin-category-input').value;
+    const previewArea = document.getElementById('admin-preview-area');
+    // ✨ 画像URLを取得。空ならデフォルト（宇宙の画像）を表示
+    const customImg = document.getElementById('admin-image-input').value;
+    const imageUrl = customImg || "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=300&auto=format&fit=crop";
 
     if (!previewArea) return;
+    // カテゴリーマスターからラベルを取得
+    const categoryObj = AIVERSE_CATEGORIES.find(c => c.id === categoryId) || { label: "📄 その他" };
+    const categoryLabel = categoryObj.label;
 
-    // -----------------------------
-    // 🧩 カテゴリー安全取得
-    // -----------------------------
-    const categoryObj =
-        Array.isArray(window.AIVERSE_CATEGORIES)
-            ? AIVERSE_CATEGORIES.find(c => c.id === categoryId)
-            : null;
-
-    const categoryLabel = categoryObj?.label || "📄 その他";
-
-    // -----------------------------
-    // 🧼 エスケープ
-    // -----------------------------
-    const escape = typeof escapeHTML === 'function'
-        ? escapeHTML
-        : (s) => String(s ?? "");
-
-    const safeTitle = escape(title || "");
-    const safeBody = escape(body || "");
-
-    // -----------------------------
-    // 🖼️ 画像安全化
-    // -----------------------------
-    const isValidImage =
-        typeof imageUrl === "string" &&
-        /^https?:\/\//.test(imageUrl);
-
-    const finalImage = isValidImage ? imageUrl : null;
-
-    // -----------------------------
-    // 📅 日付固定
-    // -----------------------------
-    const today = new Date().toLocaleDateString();
-
-    // -----------------------------
-    // 🧱 DOM生成（innerHTML最小化）
-    // -----------------------------
-    const card = document.createElement("div");
-    card.className = "card";
-    card.style.cssText = "width:300px;margin:0;pointer-events:none;opacity:0.9;";
-
-    // 画像
-    const img = document.createElement("div");
-    img.className = "card-image";
-    img.style.cssText = `
-        height:150px;
-        background-size:cover;
-        background-position:center;
-        background-color:#333;
+    previewArea.innerHTML = `
+        <div class="card" style="width: 300px; margin: 0; pointer-events: none; opacity: 0.9;">
+            <div class="card-image" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center; height: 150px; background-color: #333;"></div>
+            <div class="card-content">
+                <div class="card-category" style="color: #ff9800;">${categoryLabel}</div>
+                <h3 class="card-title" style="margin: 5px 0; color: #fff; font-size: 1.1rem;">${escapeHTML(title)}</h3>
+                <p class="card-description" style="font-size: 0.8rem; color: #ccc;">${escapeHTML(body).substring(0, 40)}...</p>
+                <div class="card-footer" style="margin-top: 10px; font-size: 0.7rem; color: #888;">
+                    <span>LIVE PREVIEW</span> • <span>${new Date().toLocaleDateString()}</span>
+                </div>
+            </div>
+        </div>
     `;
-
-    if (finalImage) {
-        img.style.backgroundImage = `url('${finalImage}')`;
-    }
-
-    // コンテンツ
-    const content = document.createElement("div");
-    content.className = "card-content";
-
-    const cat = document.createElement("div");
-    cat.className = "card-category";
-    cat.style.color = "#ff9800";
-    cat.textContent = categoryLabel;
-
-    const h3 = document.createElement("h3");
-    h3.className = "card-title";
-    h3.style.cssText = "margin:5px 0;color:#fff;font-size:1.1rem;";
-    h3.textContent = safeTitle;
-
-    const p = document.createElement("p");
-    p.className = "card-description";
-    p.style.cssText = "font-size:0.8rem;color:#ccc;";
-    p.textContent = safeBody.slice(0, 40) + "...";
-
-    const footer = document.createElement("div");
-    footer.className = "card-footer";
-    footer.style.cssText = "margin-top:10px;font-size:0.7rem;color:#888;";
-    footer.textContent = `LIVE PREVIEW • ${today}`;
-
-    // 組み立て
-    content.appendChild(cat);
-    content.appendChild(h3);
-    content.appendChild(p);
-    content.appendChild(footer);
-
-    card.appendChild(img);
-    card.appendChild(content);
-
-    // 描画更新（完全置換）
-    previewArea.replaceChildren(card);
 }
-// =========================================================
-// 💾 Draft System (Kernel Stable Final)
-// =========================================================
-
-const DRAFT_KEY = 'aiverse_post_draft';
-
+// 💾 下書き保存ロジック
 function saveDraft() {
-
-    const get = (id) => document.getElementById(id);
-
     const draft = {
-        title: get('admin-title-input')?.value || "",
-        body: get('admin-body-input')?.value || "",
-        category: get('admin-category-input')?.value || "",
-        image: get('admin-image-input')?.value || "",
-        updated: Date.now()
+        title: document.getElementById('admin-title-input').value,
+        body: document.getElementById('admin-body-input').value,
+        category: document.getElementById('admin-category-input').value,
+        image: document.getElementById('admin-image-input').value, // ✨ 画像URLも保存
+        updated: new Date().getTime()
     };
-
-    try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-    } catch (e) {
-        console.warn("Draft save failed:", e);
-    }
+    localStorage.setItem('aiverse_post_draft', JSON.stringify(draft));
 }
-
+// 📥 下書き復元ロジック
 function loadDraft() {
-
-    const raw = localStorage.getItem(DRAFT_KEY);
-    if (!raw) return;
-
-    let data;
-
-    try {
-        data = JSON.parse(raw);
-    } catch (e) {
-        console.warn("Draft parse failed:", e);
-        return;
+    const saved = localStorage.getItem('aiverse_post_draft');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    // 2時間以内の下書きなら復元
+    if (new Date().getTime() - data.updated < 7200000) {
+        document.getElementById('admin-title-input').value = data.title;
+        document.getElementById('admin-body-input').value = data.body;
+        document.getElementById('admin-category-input').value = data.category;
+        document.getElementById('admin-image-input').value = data.image || ""; // ✨ 画像URLを復元
+        updateAdminPreview(); // 復元した内容でプレビューを表示
     }
-
-    // 2時間制限
-    if (!data || (Date.now() - data.updated) > 7200000) return;
-
-    const set = (id, value) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.value = value || "";
-    };
-
-    set('admin-title-input', data.title);
-    set('admin-body-input', data.body);
-    set('admin-category-input', data.category);
-    set('admin-image-input', data.image);
-
-    // UI同期（重要）
-    requestAnimationFrame(() => {
-        updateAdminPreview?.();
-    });
 }
 // ---------------------------------------------------------
 // 🚀 起動処理 (window.onload)
 // ---------------------------------------------------------
-window.addEventListener('load', async () => {
+window.onload = () => {
+    // 1. 基本システムの初期化
+    initCategorySelect();
+    renderArticlesGrid();
 
-    // =====================================================
-    // 0. ユーティリティ（安全実行）
-    // =====================================================
-    const safe = (fn) => {
-        try {
-            return fn?.();
-        } catch (e) {
-            console.warn('[BOOT]', e);
-        }
-    };
-
-    const runIfExists = (fn) => {
-        if (typeof fn === 'function') {
-            try { return fn(); }
-            catch (e) { console.warn('[BOOT]', e); }
-        }
-    };
-
-    // =====================================================
-    // 1. UI基盤初期化（同期層）
-    // =====================================================
-    runIfExists(initCategorySelect);
-    runIfExists(renderArticlesGrid);
-    runIfExists(setupModalSystem);
-    runIfExists(setupModalFixCSS);
-
-    // =====================================================
-    // 1.5 モーダルイベント（重複防止付き）
-    // =====================================================
-    if (!window.__modalBound) {
-
-        const modalIds = [
-            '#detail-modal',
-            '#photo-modal',
-            '#board-modal',
-            '#gallery-modal',
-            '#bgm-modal',
-            '#admin-modal',
-            '#memo-modal'
-        ];
-
-        modalIds.forEach(sel => {
-            const modal = document.querySelector(sel);
-
-            modal?.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeModal?.(modal.id);
-                }
+    // 2. モーダル背景クリックの設定
+    const allModalIds = ['detail-modal', 'photo-modal', 'board-modal', 'gallery-modal', 'bgm-modal', 'admin-modal', 'memo-modal'];
+    allModalIds.forEach(id => {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) closeModal(id);
             });
-        });
-
-        window.__modalBound = true;
-    }
-
-    // =====================================================
-    // 2. 状態復元（単一ソース）
-    // =====================================================
-    runIfExists(() => AdminState?.restore?.());
-    runIfExists(setupDraftSystem);
-
-    // =====================================================
-    // 3. スタイル注入（1回保証）
-    // =====================================================
-    if (!document.getElementById('bootstrap-style')) {
-
-        const style = document.createElement('style');
-        style.id = 'bootstrap-style';
-
-        style.textContent = `
-            html.modal-open, body.modal-open {
-                overflow: hidden !important;
-                height: 100vh !important;
-                width: 100vw !important;
-                position: fixed !important;
-                top: 0;
-                left: 0;
-            }
-
-            #photo-modal img {
-                max-width: 65vw !important;
-                max-height: 65vh !important;
-                pointer-events: none;
-            }
-        `;
-
-        document.head.appendChild(style);
-    }
-
-    // =====================================================
-    // 4. データロード（安全フィルタ付き並列）
-    // =====================================================
-    const loaders = [
-        loadBoardFromServer,
-        loadServerGallery,
-        loadBgmFromServer
-    ]
-    .filter(fn => typeof fn === 'function')
-    .map(fn =>
-        Promise.resolve()
-            .then(fn)
-            .catch(err => console.warn('[LOADER]', err))
-    );
-
-    await Promise.all(loaders);
-
-    // =====================================================
-    // 5. 最終UI同期
-    // =====================================================
-    requestAnimationFrame(() => {
-        runIfExists(updateAdminUI);
+        }
     });
+    // 3. 震え対策CSSの適用
+    const fixStyle = document.createElement('style');
+    fixStyle.textContent = `
+        html.modal-open, body.modal-open {
+            overflow: hidden !important;
+            height: 100vh !important;
+            width: 100vw !important;
+            position: fixed !important;
+            top: 0; left: 0;
+        }
+        #photo-modal img {
+            max-width: 65vw !important;
+            max-height: 65vh !important;
+            pointer-events: none;
+        }
+    `;
+    document.head.appendChild(fixStyle);
 
-});
+// 4. 🚀 全システムの同時起動（世界共有設定）
+    updateAdminUI();
+
+    // 🐾 猫の知恵袋を共有（最新の書き込みを取得）
+    loadBoardFromServer();
+
+    // 🖼️ フォトギャラリーを共有
+    loadServerGallery();
+
+    // 🎸 管理者設定のBGMを共有
+    loadBgmFromServer();
+
+    setupDraftSystem(); // 📝 執筆支援
+};
 </script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<!-- PHPの条件分岐などがすべて終了したあと -->
 
-<script>
-(function () {
-
+<script type="module">
+    // 1. Firebaseの読み込み（一本化）
+    import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    // 2. Firebaseの設定
     const firebaseConfig = {
-        apiKey: "AIzaSyDbw7x...",
+        apiKey: "AIzaSyDbw7xkeplmYAE80JcrTIf1qkRpZsDTwXM",
         authDomain: "alverse-project.firebaseapp.com",
         databaseURL: "https://alverse-project-default-rtdb.firebaseio.com",
         projectId: "alverse-project",
-        storageBucket: "alverse-project.appspot.com",
+        storageBucket: "alverse-project.firebasestorage.app",
         messagingSenderId: "870564638397",
         appId: "1:870564638397:web:d372f90b2b150e095791d4"
     };
+    // 3. 重複起動防止を施した初期化
+    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    const db = getDatabase(app);
+    const dbRef = ref(db, "alverse_pro_v3/articles");
+    // 4. 送信関数：バリデーションとUXの強化
+    window.submitBoardPost = () => {
+        const titleInput = document.getElementById('board-title-input');
+        const bodyInput = document.getElementById('board-body-input');
 
-    // =====================================================
-    // 🧠 SDKチェック
-    // =====================================================
-    if (typeof firebase === 'undefined') {
-        console.warn('[Firebase] SDK not loaded');
-        return;
-    }
+        if (!bodyInput) return;
 
-    try {
+        const title = titleInput.value.trim() || "無題の知恵";
+        const body = bodyInput.value.trim();
 
-        // =================================================
-        // 🔄 App初期化（冪等）
-        // =================================================
-        let app;
-
-        if (!firebase.apps || firebase.apps.length === 0) {
-            app = firebase.initializeApp(firebaseConfig);
-        } else {
-            app = firebase.apps[0];
-        }
-
-        // =================================================
-        // 🌐 DBはAppに紐付けて取得（重要）
-        // =================================================
-        window.AppState.db = firebase.database(app);
-        window.db = window.AppState.db;
-
-        console.log('[Firebase] Initialized');
-
-    } catch (err) {
-        console.error('[Firebase Init Error]', err);
-    }
-
-})();
-</script>
-<script>
-// =====================================================
-// 🧠 1. DBアクセス統一 ＆ 🗑️ 掲示板削除
-// =====================================================
-(() => {
-    // 安定重視: AppStateが存在しない場合のエラーを回避
-    const getDB = () => window.AppState?.db;
-
-    window.deleteBoardPost = async (key) => {
-        const db = getDB();
-        if (!db) {
-            console.error("[Firebase] 未初期化のため削除を実行できません");
+        if (body === "") {
+            alert("本文を入力してくださいにゃ！");
             return;
         }
-
-        if (!confirm("この投稿を削除しますか？🐾")) return;
-
-        try {
-            await db.ref(`chiebukuro/posts/${key}`).remove();
-
-            // UIはリアルタイム更新前提
-            window.dispatchEvent(new CustomEvent('board:updated'));
-        } catch (e) {
-            console.error("削除失敗:", e);
-            alert("削除失敗: " + (e?.message || e));
-        }
-    };
-})(); // ← 【確実な閉じ】掲示板ロジックはここで完結
-
-// =====================================================
-// 🚪 2. ログアウト（単一ソース版）
-// =====================================================
-(() => {
-    window.logoutAdmin = () => {
-        if (!confirm("管理者モードを終了しますか？🐾")) return;
-
-        // 🔥 単一状態キーのみ（AppStateの存在確認つき）
-        if (window.AppState) {
-            window.AppState.isAdmin = false;
-        }
-        localStorage.setItem('aiverse_admin', 'false');
-
-        // UI層通知
-        window.dispatchEvent(new Event('admin:change'));
-
-        // リロードは最後の手段
-        setTimeout(() => location.reload(), 200);
-    };
-})(); // ← 【確実な閉じ】はぐれていた閉じカッコを正しい位置へ
-
-// =====================================================
-// 📝 3. 掲示板（猫の知恵袋）データ連携
-// =====================================================
-(() => {
-    // 安定重視: AppStateの読み込み遅延に備える
-    const db = window.AppState?.db;
-
-    if (db) {
-        try {
-            const ref = db.ref("chiebukuro/posts");
-            // console.log("[Firebase] Chiebukuro reference established.");
-
-            // 例: ref.on('value', ... ) 等の処理はここに書きます
-
-        } catch (e) {
-            console.error("[Firebase] 参照エラー:", e);
-        }
-    } else {
-        console.warn("[Firebase] 猫の知恵袋用のDBインスタンスが見つかりません");
-    }
-})(); // ← 【確実な閉じ】if (db) { の閉じ忘れもここで解消
-</script>
-
-<script>
-// -----------------------------
-// 🧠 DOMベースの重複管理（Set廃止）
-// -----------------------------
-const escape = (s) =>
-    String(s ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-
-const renderPost = (key, post, isAdmin) => {
-    const article = document.createElement('article');
-    article.className = 'board-post';
-    article.dataset.key = key;
-
-    const date = post.timestamp
-        ? new Date(post.timestamp).toLocaleString('ja-JP')
-        : "以前の投稿";
-
-    article.innerHTML = `
-        <h3>${escape(post.title || "無題")}</h3>
-        <p class="post-date">${escape(date)}</p>
-        <div class="post-content">
-            ${escape(post.text || "")}
-        </div>
-    `;
-
-    // -----------------------------
-    // 🗑️ ボタン（イベント分離）
-    // -----------------------------
-    if (isAdmin) {
-        const btn = document.createElement('button');
-        btn.textContent = "削除";
-
-        btn.addEventListener('click', () => {
-            deleteBoardPost(key);
+        // 送信中はボタンを無効化するなどの処理を入れるとより安全です
+        push(dbRef, {
+            title: title,
+            text: body,
+            user: "Kenya",
+            timestamp: serverTimestamp()
+        }).then(() => {
+            if (titleInput) titleInput.value = "";
+            bodyInput.value = "";
+            console.log("知恵を共有しました！");
+        }).catch((error) => {
+            console.error("送信エラー:", error);
+            alert("送信に失敗しました。通信状況を確認してくださいにゃ。");
         });
-
-        article.appendChild(btn);
-    }
-
-    return article;
-};
-
-// -----------------------------
-// 🔄 Firebaseリアルタイム同期
-// -----------------------------
-ref.on('child_added', (snap) => {
-    if (!container) return;
-
-    const key = snap.key;
-    const post = snap.val() || {};
-
-    const isAdmin = window.AppState.isAdmin === true;
-    const article = renderPost(key, post, isAdmin);
-
-    container.prepend(article);
-
-    // 上限制御
-    const MAX = 100;
-    while (container.children.length > MAX) {
-        container.removeChild(container.lastChild);
-    }
-});
-</script>
-
-<script>
-window.saveArticleSimple = async () => {
-
-    if (!window.db) return;
-
-    const title = document.getElementById('admin-title-input')?.value?.trim();
-    const body = document.getElementById('admin-body-input')?.value?.trim();
-    const category = document.getElementById('admin-category-input')?.value || "news";
-
-    if (!title || !body) {
-        return alert("内容が空です");
-    }
-
-    const id = Date.now();
-
-    // -----------------------------
-    // 🧱 統一データモデル
-    // -----------------------------
-    const newPost = {
-        id,
-        title,
-        body,
-        category,
-        timestamp: Date.now(),
-        public: true
     };
+    // 5. リアルタイム受信：モーダル内のコンテナだけに流し込む
+    onChildAdded(dbRef, (data) => {
+        const post = data.val();
+        // モーダル内の記事コンテナ（本来の場所）
+        const container = document.getElementById('board-posts-container');
 
-    try {
+        if (container) {
+            const article = document.createElement('article');
+            article.className = 'board-post';
+            // XSS対策：ユーザー入力を安全にエスケープ
+            const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const safeText = (post.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "今さっき";
 
-        await window.db
-            .ref('articles/' + id)
-            .set(newPost);
+            article.innerHTML = `
+                <div class="board-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:5px;">
+                    <span class="board-title" style="font-weight:bold; color:#3e2723;">📌 ${safeTitle}</span>
+                    <span style="font-size:0.7rem; color:#aaa;">${date}</span>
+                </div>
+                <div class="board-body" style="padding: 12px 0; color: #444; line-height:1.6; white-space: pre-wrap;">${safeText}</div>
+            `;
 
-        // -----------------------------
-        // ⚠️ ローカル配列依存を削除
-        // -----------------------------
-        renderArticlesGrid?.();
-
-        console.log("✔ 記事保存完了");
-
-    } catch (e) {
-        alert("保存失敗: " + (e?.message || e));
-    }
-};
-function initAdminCategorySelect() {
-
-    const select = document.getElementById('adminCategorySelect');
-    if (!select || !Array.isArray(AIVERSE_CATEGORIES)) return;
-
-    const prev = select.value;
-
-    select.innerHTML = '';
-
-    const frag = document.createDocumentFragment();
-
-    for (const cat of AIVERSE_CATEGORIES) {
-
-        const option = document.createElement('option');
-        option.value = cat.id;
-        option.textContent = cat.label;
-
-        frag.appendChild(option);
-    }
-
-    select.appendChild(frag);
-
-    if (prev) select.value = prev;
-}
-function renderArticlesGrid() {
-
-    const container = document.getElementById('articles-grid');
-    if (!container) return;
-
-    const posts = getArticlePosts();
-
-    const page = window.AppState.currentPage || 1;
-    const perPage = window.AppState.perPage || 10;
-    const start = (page - 1) * perPage;
-    const end = start + perPage;
-
-    const currentPosts = posts.slice(start, end);
-
-    // -----------------------------
-    // 🧠 依存チェック（ループ外）
-    // -----------------------------
-    if (typeof createArticleCard !== 'function') {
-        console.error("createArticleCard が存在しません");
-        return;
-    }
-
-    // -----------------------------
-    // 🧹 DOMリセット
-    // -----------------------------
-    container.replaceChildren();
-
-    const frag = document.createDocumentFragment();
-
-    // -----------------------------
-    // 📦 描画
-    // -----------------------------
-    for (const p of currentPosts) {
-        const card = createArticleCard(p);
-        if (card) frag.appendChild(card);
-    }
-
-    container.appendChild(frag);
-
-    // -----------------------------
-    // 🧭 ページネーション
-    // -----------------------------
-    renderPagination?.();
-
-    // -----------------------------
-    // 🧊 UI分離（軽量化）
-    // -----------------------------
-    queueMicrotask(() => {
-        const loading = document.getElementById('loading-screen');
-        if (loading) {
-            loading.style.display = 'none';
+            container.prepend(article);
         }
     });
-}
-function renderPagination() {
-
-    const nav = document.getElementById('pagination-nav');
-    if (!nav) return;
-
-    const postsRaw = window.AppState.posts;
-
-    // -----------------------------
-    // 🧠 安全化
-    // -----------------------------
-    const posts = window.AppState.posts;
-    const perPage = window.AppState.perPage ?? 10;
-
-if (
-    typeof window.AppState.currentPage !== 'number' ||
-    window.AppState.currentPage < 1
-) {
-    window.AppState.currentPage = 1;
-}
-    const totalPages = Math.max(1, Math.ceil(posts.length / perPage));
-
-    // ページ補正
-if (window.AppState.currentPage > totalPages) {
-    window.AppState.currentPage = totalPages;
-}
-    nav.replaceChildren();
-
-    if (totalPages <= 1) return;
-
-    const frag = document.createDocumentFragment();
-
-    for (let i = 1; i <= totalPages; i++) {
-
-        const btn = document.createElement('button');
-
-        btn.textContent = i;
-        btn.dataset.page = String(i);
-
-        btn.className =
-        i === window.AppState.currentPage
-                ? 'page-btn active'
-                : 'page-btn';
-
-        btn.setAttribute('aria-label', `Page ${i}`);
-
-        frag.appendChild(btn);
-    }
-
-    nav.appendChild(frag);
-// -----------------------------
-// 🧠 イベント委譲（1回のみ）
-// -----------------------------
-
-if (!nav.dataset.bound) {
-    window.AppState.runtime.scrollLock = false;
-
-    nav.addEventListener('click', (e) => {
-
-        const btn = e.target.closest('button.page-btn');
-        if (!btn) return;
-
-        const page = Number(btn.dataset.page);
-
-        // 不正値 or 同ページは無視
-        if (!page || page === window.AppState.currentPage) return;
-
-        window.AppState.currentPage = page;
-
-        requestAnimationFrame(() => {
-
-            if (typeof renderArticlesGrid === 'function') {
-                renderArticlesGrid();
-            }
-
-            // スクロールロック制御
-            if (window.AppState.runtime.scrollLock) return;
-            window.AppState.runtime.scrollLock = true;
-
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-
-            setTimeout(() => {
-                window.AppState.runtime.scrollLock = false;
-            }, 300);
-        });
+    // 既存の執筆支援などの初期化
+    window.addEventListener('load', () => {
+        if (typeof setupDraftSystem === 'function') {
+            setupDraftSystem();
+        }
     });
-
-    nav.dataset.bound = '1';
-}
 </script>
 </body>
 </html>
