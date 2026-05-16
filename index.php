@@ -840,8 +840,9 @@ initAppState();
         <p style="font-size:0.85rem; color:#8c827a;">画像をアップロードして共有できます。画像をクリックすると拡大表示されます。</p>
 
         <input type="file" id="gallery-upload-file" accept="image/*" style="display:none;" onchange="uploadImage(this)">
-        <button onclick="document.getElementById('gallery-upload-file').click()" class="bgm-btn" style="width:100%; padding:10px;">📷 端末から画像をアップロード</button>
-
+<button type="button" onclick="document.getElementById('gallery-upload-file').click()" class="bgm-btn">
+  📷 端末から画像をアップロード
+</button>
         <div class="gallery-grid" id="gallery-container">
             <?php
             // セッション開始
@@ -997,10 +998,10 @@ initAppState();
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <p style="font-size: 0.8rem; font-weight: bold; color: #d9480f; margin: 0;">CONTENTS (記事投稿・編集)</p>
-                <button onclick="clearAdminForm(); document.getElementById('admin-post-id-input').value='';"
-                        style="padding: 5px 10px; background: #4dabf7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.7rem;">
-                    🆕 新規作成モード
-                </button>
+<button onclick="setNewPostMode()"
+        style="padding: 5px 10px; background: #4dabf7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.7rem;">
+    🆕 新規作成モード
+</button>
             </div>
 
             <input type="hidden" id="admin-post-id-input">
@@ -1302,27 +1303,6 @@ selector.onchange = function() {
   }
 }
 
-// ⚙️ ドロップダウン制御：絶対に動く安全版
-function toggleGearMenu(e) {
-    if (e) e.stopPropagation();
-    const menu = document.getElementById('gear-menu');
-    if (!menu) {
-        console.error("gear-menuが見つかりません。HTMLのIDを確認してください。");
-        return;
-    }
-    menu.classList.toggle('show');
-}
-
-// 画面外クリックで閉じる処理
-document.addEventListener('click', function(e) {
-    const menu = document.getElementById('gear-menu');
-    if (menu && menu.classList.contains('show')) {
-        // クリックされたのがメニュー自体やボタンでない場合のみ閉じる
-        if (!menu.contains(e.target)) {
-            menu.classList.remove('show');
-        }
-    }
-});
     // ----------------------------- 🌛 ダークモード＆管理者長押し (現状維持) -----------------------------
     let pressTimer;
     const dmBtn = document.getElementById('dark-mode-btn');
@@ -1872,6 +1852,12 @@ window.addEventListener('load', updateAdminUI);
     console.log("フォームを安全にリセットしました");
 }
 
+function setNewPostMode() {
+    clearAdminForm();
+
+    const idInput = document.getElementById('admin-post-id-input');
+    if (idInput) idInput.value = '';
+}
 // ✅ 1889行目からの修正：脂肪を削ぎ落として安全装置を完備
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('gear-menu');
@@ -1944,22 +1930,6 @@ function escapeHTML(str) {
         '"': '&quot;'
     }[m]));
 }
-/**
- * ⚙️ 歯車メニューの切り替え
- */
-function toggleGearMenu(e) {
-    if (e) e.stopPropagation(); // 画面クリックで閉じる処理との衝突を防ぐ
-
-    const menu = document.getElementById('gear-menu');
-    if (menu) {
-        // CSSの .show クラスを付け外しする
-        menu.classList.toggle('show');
-        console.log("Menu Toggle: ", menu.classList.contains('show'));
-    } else {
-        console.error("エラー: gear-menu が見つかりません");
-    }
-}
-
 /**
  * 🗑️ 掲示板（猫の知恵袋）の投稿削除機能
  */
