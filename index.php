@@ -712,8 +712,34 @@ if (session_status() === PHP_SESSION_NONE) {
             background: rgba(255, 255, 255, 0.05);
         }
 </style>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 </head>
 <body>
+<script>
+function initAppState() {
+  window.AppState = window.AppState || {};
+
+  window.AppState.db ??= null;
+  window.AppState.posts ??= [];
+  window.AppState.board ??= [];
+  window.AppState.gallery ??= [];
+
+  window.AppState.currentPage ??= 1;
+  window.AppState.perPage ??= 10;
+
+  window.AppState.runtime ??= {
+    isGearOpen: false,
+    scrollLock: false,
+    dbReady: false
+  };
+}
+
+initAppState();
+</script>
 
 <header>
     <!-- ロゴ：クリックでリロード、ホバー時に少し動く -->
@@ -721,14 +747,14 @@ if (session_status() === PHP_SESSION_NONE) {
         <span class="logo-icon">🐶</span> Alverse
     </div>
 
-    <!-- 検索バー：中央配置で視認性を向上 -->
-    <div class="search-container">
-        <div class="search-wrapper">
-            <input type="text" id="search-bar" placeholder="記事を瞬時に検索..." oninput="onSearchChange()">
-        </div>
+<!-- 検索バー：中央配置で視認性を向上 -->
+<div class="search-container">
+    <div class="search-wrapper">
+        <input type="text" id="search-bar" placeholder="記事を瞬時に検索..." oninput="onSearchChange()">
     </div>
+</div>
 
-    <!-- ナビゲーション：各ボタンに適切な役割を付与 -->
+<!-- ナビゲーション -->
 <div class="nav-icons">
     <button class="nav-btn" onclick="openModal('board-modal')" title="猫の知恵袋">😸</button>
     <button class="nav-btn" onclick="openModal('gallery-modal')" title="ギャラリー">🖼️</button>
@@ -736,18 +762,25 @@ if (session_status() === PHP_SESSION_NONE) {
 
     <div class="dropdown">
         <button class="nav-btn gear-btn" onclick="toggleGearMenu(event)" title="メニュー">⚙️</button>
+
         <div id="gear-menu" class="dropdown-content">
             <button class="close-menu-btn" onclick="toggleGearMenu(event)">&times;</button>
 
-<div class="menu-group admin-only-group" id="admin-menu-section" style="display:none;">
-    <p class="menu-label">ADMIN</p>
-    <a href="javascript:void(0)" onclick="openNewPost()">📝 新規記事投稿</a>
-    <a href="javascript:void(0)" onclick="exportData('posts')">💾 記事バックアップ</a>
+            <!-- ADMIN（統合版） -->
+            <div class="menu-group admin-only-group" id="admin-menu-section" style="display:none;">
+                <p class="menu-label">ADMIN</p>
 
-    <div style="border-top:1px solid rgba(0,0,0,0.1); margin-top:8px; padding-top:8px;">
-        <a href="javascript:void(0)" onclick="logoutAdmin()" style="color:#fa5252; font-weight:bold;">🔓 管理ログアウト</a>
-    </div>
-</div>
+                <a href="#" onclick="openNewPost(); return false;">📝 新規記事投稿</a>
+                <a href="#" onclick="exportData('posts'); return false;">💾 記事バックアップ</a>
+
+                <div style="border-top:1px solid rgba(0,0,0,0.1); margin-top:8px; padding-top:8px;">
+                    <a href="#" onclick="logoutAdmin(); return false;" style="color:#fa5252; font-weight:bold;">
+                        🔓 管理ログアウト
+                    </a>
+                </div>
+            </div>
+
+            <!-- 通常メニュー -->
             <div class="menu-group">
                 <a onclick="openModal('bgm-modal')">🎸 BGM</a>
                 <a onclick="toggleLanguage()">🌐 自動翻訳切替</a>
@@ -755,9 +788,6 @@ if (session_status() === PHP_SESSION_NONE) {
                 <a onclick="openModal('secret-modal')">🥸 秘密機能</a>
             </div>
 
-            <div class="menu-group admin-only-group" id="admin-logout-section" style="display:none;">
-                <a href="javascript:void(0)" id="admin-logout-menu" class="logout-link" onclick="logoutAdmin()" style="color:#fa5252;">🔓 ログアウト</a>
-            </div>
         </div>
     </div>
 </div>
@@ -964,31 +994,63 @@ if (session_status() === PHP_SESSION_NONE) {
         <h2 style="margin-top:0;">🔑 管理者センター</h2>
 
         <div style="background: #fff4e6; padding: 15px; border-radius: 10px; border: 1px solid #ffd8a8; margin-bottom: 20px;">
-            <p style="font-size: 0.8rem; font-weight: bold; color: #d9480f; margin: 0 0 10px 0;">CONTENTS (記事投稿・編集)</p>
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-    <p style="font-size: 0.8rem; font-weight: bold; color: #d9480f; margin: 0;">CONTENTS (記事投稿・編集)</p>
-    <button onclick="clearAdminForm(); document.getElementById('admin-post-id-input').value='';"
-            style="padding: 5px 10px; background: #4dabf7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.7rem;">
-        🆕 新規作成モード
-    </button>
-</div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <p style="font-size: 0.8rem; font-weight: bold; color: #d9480f; margin: 0;">CONTENTS (記事投稿・編集)</p>
+                <button onclick="clearAdminForm(); document.getElementById('admin-post-id-input').value='';"
+                        style="padding: 5px 10px; background: #4dabf7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.7rem;">
+                    🆕 新規作成モード
+                </button>
+            </div>
+
             <input type="hidden" id="admin-post-id-input">
-<div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed #ced4da;">
-    <p style="font-size: 0.7rem; font-weight: bold; color: #868e96; margin: 0 0 8px 0; text-align: center;">LIVE PREVIEW</p>
-    <div id="admin-preview-area" style="display: flex; justify-content: center; transform: scale(0.85); margin: -20px 0;">
+
+            <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed #ced4da;">
+                <p style="font-size: 0.7rem; font-weight: bold; color: #868e96; margin: 0 0 8px 0; text-align: center;">LIVE PREVIEW</p>
+                <div id="admin-preview-area" style="display: flex; justify-content: center; transform: scale(0.85); margin: -20px 0;">
+                    </div>
+            </div>
+
+            <input type="text" id="admin-image-input" placeholder="画像URLを入力 (空欄でデフォルト)"
+                   style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+
+            <input type="text" id="admin-title-input" placeholder="タイトルを入力" 
+                   style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
         </div>
-</div>
 
-<input type="text" id="admin-image-input" placeholder="画像URLを入力 (空欄でデフォルト)"
-       style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
-<input type="text" id="admin-title-input" placeholder="タイトルを入力" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
-
-            <select id="admin-category-input" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px;">
-                <option value="news">📢 ニュース</option>
-                <option value="update">🆙 更新情報</option>
-                <option value="diary">🐾 日記</option>
-            </select>
-
+<select id="admin-category-input" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px;">
+    <option value="news">📢 ニュース</option>
+    <option value="ent">🎭 エンタメ</option>
+    <option value="game">🎮 ゲーム</option>
+    <option value="anime">🎨 アニメ・漫画</option>
+    <option value="movie">🎬 映画・ドラマ</option>
+    <option value="music">🎵 音楽</option>
+    <option value="science">🧪 科学</option>
+    <option value="space">🚀 宇宙</option>
+    <option value="tech">💻 テクノロジー</option>
+    <option value="ai">🤖 AI</option>
+    <option value="math">📐 数学</option>
+    <option value="phi">📜 哲学・思想</option>
+    <option value="hist">🏛️ 歴史</option>
+    <option value="politics">⚖️ 政治・社会</option>
+    <option value="biz">📈 経済・ビジネス</option>
+    <option value="health">🏥 医療・健康</option>
+    <option value="psych">🧠 心理学</option>
+    <option value="edu">📖 教育・学習</option>
+    <option value="mystery">🔍 ミステリー・オカルト</option>
+    <option value="urban">⛩️ 都市伝説</option>
+    <option value="uma">👾 未確認生物</option>
+    <option value="nature">🌿 自然・生物</option>
+    <option value="food">🍳 食べ物・料理</option>
+    <option value="life">🏠 生活・暮らし</option>
+    <option value="culture">✈️ 旅行・文化</option>
+    <option value="sports">⚽ スポーツ</option>
+    <option value="internet">🌐 インターネット</option>
+    <option value="youtube">🎥 YouTube・配信</option>
+    <option value="trivia">💡 雑学・トリビア</option>
+    <option value="column">📝 コラム</option>
+    <option value="special">✨ 特集</option>
+</select>
             <textarea id="admin-body-input" placeholder="本文を入力" style="width:100%; height:150px; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;"></textarea>
 
             <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem; margin-bottom:15px; cursor:pointer;">
@@ -1111,11 +1173,15 @@ if (session_status() === PHP_SESSION_NONE) {
                 </div>
             ` : '';
 
+// マスターリストから日本語ラベルと絵文字を検索
+            const catObj = (typeof AIVERSE_CATEGORIES !== 'undefined') ? AIVERSE_CATEGORIES.find(c => c.id === p.category) : null;
+            const currentLabel = catObj ? catObj.label : p.category;
+
             card.innerHTML = `
                 <img src="${imageUrl}" alt="${p.title}" onerror="this.src='${fallbackImg}'">
                 <div class="post-content">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;">
-                        <span class="post-category">${p.category}</span>
+                        <span class="post-category">${currentLabel}</span>
                     </div>
                     <div class="post-title">${p.title}</div>
                     ${adminPanelHTML}
@@ -1145,15 +1211,21 @@ if (session_status() === PHP_SESSION_NONE) {
             pagBox.appendChild(btn);
         }
     }
-
     // 記事の詳細表示 (見え方改善＆カテゴリー変更機能)
     let currentDetailArticleId = null; // カテゴリー保存用
 
+// ✅ 修正後（1205行目からの安全な形）
 function showArticleDetail(id) {
     currentDetailArticleId = id;
-    const p = db.posts.find(item => item.id === id);
-    if (!p) return;
 
+    // db や db.posts が存在しない場合の安全装置
+    if (!db || !db.posts) return;
+
+    // db.posts がオブジェクト（連想配列）だった場合でも安全に配列に変換して探す
+    const postsArray = Array.isArray(db.posts) ? db.posts : Object.values(db.posts);
+
+    const p = postsArray.find(item => item && item.id === id);
+    if (!p) return;
     // 🖼️ 1. 画像の表示処理 (HTMLになければ自動でタイトルの上に追加)
     let imgEl = document.getElementById('detail-image');
     if (!imgEl) {
@@ -1175,7 +1247,7 @@ function showArticleDetail(id) {
         imgEl.style.display = 'none';
     }
 
-    // 📂 2. カテゴリーのドロップダウン設定
+ // 📂 2. カテゴリーのドロップダウン設定
     const selector = document.getElementById('detail-category-selector');
     if (selector) {
         selector.innerHTML = '';
@@ -1188,7 +1260,6 @@ function showArticleDetail(id) {
             if (cat === p.category) opt.selected = true;
             selector.appendChild(opt);
         });
-
         // 👑 【ここがポイント】管理者なら「変更可能な枠線付き」、一般ユーザーなら「ただの文字」に見せる
         if (db.isAdmin) {
             selector.style.border = "1px solid #555";
@@ -1282,8 +1353,7 @@ document.addEventListener('click', function(e) {
     });
 
 // --- ⚙️ 設定: Firebase BBSパス ---
-const BBS_ENDPOINT = 'https://alverse-project-default-rtdb.firebaseio.com/alverse_pro_v3/articles.json';
-
+const BBS_ENDPOINT = 'https://alverse-project-default-rtdb.firebaseio.com/alverse_pro_v3/board.json';~
 // --- 🛡️ セキュリティ & ユーティリティ ---
 function escapeHTML(str) {
     if (!str) return '';
@@ -1410,30 +1480,6 @@ async function submitBoardPost() {
             submitBtn.disabled = false;
             submitBtn.innerText = "知恵を共有する (送信)";
         }
-    }
-}
-
-/**
- * 🔓 ログアウト（ボタンが動くように追加）
- */
-function logoutAdmin() {
-    if (!confirm("管理者モードを終了しますか？🐾")) return;
-    db.isAdmin = false;
-    renderBoard();
-    alert("ログアウトしました。");
-}
-
-/**
- * 🕶️ パスワード入力（既存のボタンと紐付け）
- */
-function toggleSecretMode() {
-    const pass = prompt("パスワードを入力してください🐾");
-    if (pass === "nekosuke101") { // パスワード
-        db.isAdmin = true;
-        renderBoard();
-        alert("管理者ログインに成功しました！");
-    } else {
-        alert("パスワードが違います。");
     }
 }
 
@@ -1826,24 +1872,24 @@ window.addEventListener('load', updateAdminUI);
     console.log("フォームを安全にリセットしました");
 }
 
-// 🌌 画面のどこかをクリックした時の処理（1830行目付近）
+// ✅ 1889行目からの修正：脂肪を削ぎ落として安全装置を完備
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('gear-menu');
     const gearBtn = document.querySelector('.gear-btn');
 
+    // 1. そもそも要素が画面にないなら何もしない（安全装置）
     if (!menu || !gearBtn) return;
 
-    // もしクリックされたのが「モーダルの背景や中身」だったら、
-    // ドロップダウンメニューの判定をスキップする
-    if (e.target.closest('.modal') || e.target.closest('.modal-content')) {
-        return;
-    }
+    // 2. モーダルの内側をクリックした時はメニューを閉じない
+    if (e.target.closest('.modal') || e.target.closest('.modal-content')) return;
 
-    if (menu.classList.contains('show') || menu.style.display === 'block') {
-        if (!menu.contains(e.target) && !gearBtn.contains(e.target)) {
-            menu.classList.remove('show');
-            menu.style.display = 'none';
-        }
+    // 3. メニューが開いている時、メニューと歯車ボタン「以外」をクリックしたら閉じる
+    // 「?.」を仕込むことで、絶対にstyleがnullエラーを起こさなくなります
+    const isMenuVisible = menu.classList.contains('show') || menu.style?.display === 'block';
+
+    if (isMenuVisible && !menu.contains(e.target) && !gearBtn.contains(e.target)) {
+        menu.classList.remove('show');
+        if (menu.style) menu.style.display = 'none'; // 👈 ここも安全に閉じる
     }
 });
   // ----------------------------- 言語アシスタント -----------------------------
@@ -2076,7 +2122,7 @@ async function exportData(type = 'posts') {
 }
 
 // ---------------------------------------------------------
-// ⚙️ 歯車ドロップダウン制御（ID: gear-menu 専用）
+// ⚙️ 歯車ドロップダウン制御（ID: gear-menu 統合軽量版）
 // ---------------------------------------------------------
 
 function toggleGearMenu(event = null) {
@@ -2084,40 +2130,28 @@ function toggleGearMenu(event = null) {
         event.stopPropagation(); // 画面クリックイベントとの衝突防止
     }
 
-    // HTMLで設定した <div id="gear-menu" ...> を探す
     const menu = document.getElementById('gear-menu');
-
     if (!menu) {
         console.error("ID 'gear-menu' が見つかりません。HTMLを確認してください。");
         return;
     }
 
-    // 現在の状態をチェック
-    const isShowing = menu.classList.contains('show');
-
-    if (!isShowing) {
-        // メニューを開く
-        menu.classList.add('show');
-        menu.style.display = 'block'; // 強制表示
-    } else {
-        // メニューを閉じる
-        menu.classList.remove('show');
-        menu.style.display = 'none';
-    }
+    // 表示・非表示の切り替えは、CSSの 'show' クラスの付け外しだけに完全一本化！
+    // これにより、中の管理者メニュー（新規投稿・ログアウト）の表示状態が破壊されなくなります。
+    menu.classList.toggle('show');
 }
-// 🌌 画面のどこかをクリックした時の処理
+
+// 🌌 画面のどこか（外側）をクリックした時にメニューを閉じる処理
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('gear-menu');
     const gearBtn = document.querySelector('.gear-btn');
 
-    // メニューが開いている時だけ判定
-    if (menu && (menu.classList.contains('show') || menu.style.display === 'block')) {
-
+    // メニューが開いている（showクラスがある）時だけ判定
+    if (menu && menu.classList.contains('show')) {
         // クリックされた場所が「メニュー自体」でも「歯車ボタン」でもない場合
-        if (!menu.contains(e.target) && !gearBtn.contains(e.target)) {
+        if (!menu.contains(e.target) && gearBtn && !gearBtn.contains(e.target)) {
             menu.classList.remove('show');
-            menu.style.display = 'none';
-            console.log("Menu closed by outside click");
+            console.log("⚙️ Menu closed by outside click");
         }
     }
 });
@@ -2164,141 +2198,73 @@ function closeModal(id) {
 }
 
 // =========================================================
-// 🕶️ 管理者メニュー注入
+// 🕶️ 管理者メニュー注入（HTMLの非表示を解除する最新版）
 // =========================================================
 
 function injectAdminMenu() {
+    const menu = document.getElementById('gear-menu');
+    if (!menu) return;
 
-    const menuList =
-        document.querySelector(
-            '.settings-dropdown'
-        );
+    // 既に追加済みなら二重防止
+    if (document.getElementById('admin-logout-dynamic')) return;
 
-    if (!menuList) return;
+    const logoutItem = document.createElement('div');
+    logoutItem.id = 'admin-logout-dynamic';
+    logoutItem.className = 'menu-group';
 
-    // 重複防止
-    if (
-        document.getElementById(
-            'admin-added-post'
-        )
-    ) {
-        return;
-    }
-
-    // -------------------------------------------------
-    // ✍️ 管理投稿
-    // -------------------------------------------------
-
-    const postLi =
-        document.createElement('li');
-
-    postLi.id =
-        'admin-added-post';
-
-    postLi.innerHTML = `
-        <a href="#"
-           onclick="
-               toggleGearMenu();
-               openModal('admin-modal');
-               return false;
-           ">
-           ✍️ 管理投稿
+    logoutItem.innerHTML = `
+        <a href="#" onclick="logoutAdmin(); toggleGearMenu(); return false;"
+           style="color:#fa5252; font-weight:bold;">
+            🔓 管理ログアウト
         </a>
     `;
 
-    // -------------------------------------------------
-    // 💾 バックアップ
-    // -------------------------------------------------
-
-    const backupLi =
-        document.createElement('li');
-
-    backupLi.id =
-        'admin-added-backup';
-
-    backupLi.innerHTML = `
-        <a href="#"
-           onclick="
-               exportData('posts');
-               return false;
-           ">
-           💾 記事バックアップ
-        </a>
-    `;
-
-    // -------------------------------------------------
-    // 🚪 ログアウト
-    // -------------------------------------------------
-
-    const logoutLi =
-        document.createElement('li');
-
-    logoutLi.id =
-        'admin-added-logout';
-
-    logoutLi.innerHTML = `
-        <a href="#"
-           onclick="
-               logoutAdmin();
-               return false;
-           "
-           style="
-               color:#fa5252;
-               font-weight:bold;
-           ">
-           🚪 ログアウト
-        </a>
-    `;
-
-    menuList.appendChild(postLi);
-    menuList.appendChild(backupLi);
-    menuList.appendChild(logoutLi);
+    menu.appendChild(logoutItem);
 }
-
 // =========================================================
 // 🔐 管理者モード
 // =========================================================
 
 function toggleSecretMode() {
 
-    const pass =
-        prompt(
-            "管理者パスワードを入力してください🐾"
-        );
+     const pass =
+         prompt(
+             "管理者パスワードを入力してください🐾"
+         );
 
-    if (pass === null) {
-        return;
-    }
+     if (pass === null) {
+         return;
+     }
 
-    // -------------------------------------------------
-    // 🔑 認証
-    // -------------------------------------------------
+     // -------------------------------------------------
+     // 🔑 認証
+     // -------------------------------------------------
 
-    if (pass === "nekosuke101") {
+     if (pass === "nekosuke101") {
 
-        if (typeof db !== 'undefined') {
+         if (typeof db !== 'undefined') {
 
-            db.isAdmin = true;
+             db.isAdmin = true;
 
-            // 永続化
-            localStorage.setItem(
-                'aiverse_admin',
-                'true'
-            );
-        }
+             // 永続化
+             localStorage.setItem(
+                 'aiverse_admin',
+                 'true'
+             );
+         }
 
-        injectAdminMenu();
+         injectAdminMenu();
 
-        showToast(
-            "🐱 管理者モード ON"
-        );
+         showToast(
+             "🐱 管理者モード ON"
+         );
 
-    } else {
+     } else {
 
-        showToast(
-            "❌ パスワードが違います"
-        );
-    }
+         showToast(
+             "❌ パスワードが違います"
+         );
+     }
 }
 
 // =========================================================
@@ -2307,33 +2273,32 @@ function toggleSecretMode() {
 
 function logoutAdmin() {
 
-    const ok =
-        confirm(
-            "管理者モードを終了しますか？🐾"
-        );
+     const ok =
+         confirm(
+             "管理者モードを終了しますか？🐾"
+         );
 
-    if (!ok) return;
+     if (!ok) return;
 
-    if (typeof db !== 'undefined') {
+     if (typeof db !== 'undefined') {
 
-        db.isAdmin = false;
-    }
+         db.isAdmin = false;
+     }
 
-    localStorage.removeItem(
-        'aiverse_admin'
-    );
+     localStorage.removeItem(
+         'aiverse_admin'
+     );
 
-    showToast(
-        "🚪 ログアウトしました"
-    );
+     showToast(
+         "🚪 ログアウトしました"
+     );
 
-    setTimeout(() => {
+     setTimeout(() => {
 
-        location.reload();
+         location.reload();
 
-    }, 400);
+     }, 400);
 }
-
 // =========================================================
 // 🍞 トースト通知
 // =========================================================
@@ -2390,49 +2355,50 @@ function showToast(message = "") {
 }
 
 // =========================================================
-// 🖱️ 外側クリックで閉じる
+// 🖱️ 外側クリックで閉じる（スマート軽量版）
 // =========================================================
 
-document.addEventListener(
-    'click',
-    function(event) {
+document.addEventListener('click', function(event) {
+    const menu = document.querySelector('.settings-dropdown');
+    const gear = document.querySelector('.gear-btn');
 
-        const menu =
-            document.querySelector(
-                '.settings-dropdown'
-            );
-
-        const gear =
-            document.querySelector(
-                '.gear-btn'
-            );
-
-        if (
-            menu &&
-            !menu.contains(event.target) &&
-            gear &&
-            !gear.contains(event.target)
-        ) {
-            menu.classList.remove('open');
-            menu.style.display = 'none';
-        }
+    // メニューが存在し、かつクリックされた場所が「メニューの外側」かつ「歯車ボタンの外側」の場合
+    if (
+        menu &&
+        !menu.contains(event.target) &&
+        gear &&
+        !gear.contains(event.target)
+    ) {
+        // 余計な style.display = 'none' は完全に削除！
+        // 表示の切り替えはCSSクラスのコントロール（軽量設計）にすべて委ねる
+        menu.classList.remove('open');
     }
-);
+});
 
+// =========================================================
+// 🌐 記事データ読み込み基盤
+// =========================================================
+async function loadAllArticles() {
+    console.log("loadAllArticles OK");
+}
 // =========================================================
 // 🚀 自動復元
 // =========================================================
 window.addEventListener('load', () => {
-    // 記事を読むための「基盤」は全員が使えるようにする
-    if (typeof db !== 'undefined') {
-        // ここでデータの読み込み（fetch）を開始する関数を呼ぶ
-        loadAllArticles(); 
+    if (typeof db !== 'undefined' && typeof loadAllArticles === 'function') {
+        loadAllArticles();
     }
 
-    // 「管理者メニュー」だけは、今まで通り合言葉がある時だけ表示する
     if (localStorage.getItem('aiverse_admin') === 'true') {
-        if (typeof db !== 'undefined') { db.isAdmin = true; }
-        injectAdminMenu();
+        if (typeof db !== 'undefined') {
+            db.isAdmin = true;
+        }
+
+        setTimeout(() => {
+            if (typeof injectAdminMenu === 'function') {
+                injectAdminMenu();
+            }
+        }, 100);
     }
 });
 // --- ここから追加：カテゴリーマスターリスト ---
@@ -2479,13 +2445,17 @@ function initCategorySelect() {
     }
 }
 
+// =========================================================
 // 💾 自動保存 ＆ プレビュー連動システム
+// =========================================================
 function setupDraftSystem() {
     const titleInp = document.getElementById('admin-title-input');
     const bodyInp = document.getElementById('admin-body-input');
     const categoryInp = document.getElementById('admin-category-input');
 
+    // 安全弁：どれか1つでも要素がなければ処理を行わない
     if (!titleInp || !bodyInp || !categoryInp) return;
+
     // 入力・変更があったら実行
     const handleInput = () => {
         updateAdminPreview(); // プレビュー更新
@@ -2494,20 +2464,32 @@ function setupDraftSystem() {
     titleInp.addEventListener('input', handleInput);
     bodyInp.addEventListener('input', handleInput);
     categoryInp.addEventListener('change', handleInput);
+
     // ページ読み込み時に下書きがあれば復元
     loadDraft();
 }
-// 👁️ プレビュー描画（画像URL連動版）
+
+// =========================================================
+// 👁️ プレビュー描画（安全ガード追加版）
+// =========================================================
 function updateAdminPreview() {
-    const title = document.getElementById('admin-title-input').value || "タイトル未入力";
-    const body = document.getElementById('admin-body-input').value || "本文を執筆中...";
-    const categoryId = document.getElementById('admin-category-input').value;
+    const titleInp = document.getElementById('admin-title-input');
+    const bodyInp = document.getElementById('admin-body-input');
+    const categoryInp = document.getElementById('admin-category-input');
     const previewArea = document.getElementById('admin-preview-area');
+
+    // 💡 安全弁：フォームやプレビューエリアが画面に存在しない（一般ユーザー環境）なら即終了
+    if (!titleInp || !bodyInp || !categoryInp || !previewArea) return;
+
+    const title = titleInp.value || "タイトル未入力";
+    const body = bodyInp.value || "本文を執筆中...";
+    const categoryId = categoryInp.value;
+
     // ✨ 画像URLを取得。空ならデフォルト（宇宙の画像）を表示
-    const customImg = document.getElementById('admin-image-input').value;
+    const imageInp = document.getElementById('admin-image-input');
+    const customImg = imageInp ? imageInp.value : "";
     const imageUrl = customImg || "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=300&auto=format&fit=crop";
 
-    if (!previewArea) return;
     // カテゴリーマスターからラベルを取得
     const categoryObj = AIVERSE_CATEGORIES.find(c => c.id === categoryId) || { label: "📄 その他" };
     const categoryLabel = categoryObj.label;
@@ -2621,7 +2603,7 @@ window.onload = () => {
     // 3. 重複起動防止を施した初期化
     const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     const db = getDatabase(app);
-    const dbRef = ref(db, "alverse_pro_v3/articles");
+    const dbRef = ref(db, "alverse_pro_v3/posts");
     // 4. 送信関数：バリデーションとUXの強化
     window.submitBoardPost = () => {
         const titleInput = document.getElementById('board-title-input');
