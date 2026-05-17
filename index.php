@@ -1362,8 +1362,8 @@ if (dmBtn) {
     });
 }
 // --- ⚙️ 設定: Firebase BBSパス ---
-// 💡 米国ドメインのまま、読み込む階層を正しく指定します
-const BBS_ENDPOINT = 'https://alverse-project-default-rtdb.firebaseio.com/alverse_pro_v3/articles.json';
+// 💡 末尾を articles.json から bbs.json に変更し、メイン記事と分離します
+const BBS_ENDPOINT = 'https://alverse-project-default-rtdb.firebaseio.com/alverse_pro_v3/bbs.json';
 // --- 🛡️ セキュリティ & ユーティリティ ---
 function escapeHTML(str) {
     if (!str) return '';
@@ -2054,8 +2054,8 @@ async function deleteBoardEntry(fbKey) {
     if (!confirm("この知恵を消去してもよろしいですか？🐾")) return;
 
     try {
-        // 💡 米国ドメイン（alverse）に変更
-        const deleteUrl = `https://alverse-project-default-rtdb.firebaseio.com/alverse_pro_v3/articles/${fbKey}.json`;
+        // 💡 末尾を bbs に変更
+        const deleteUrl = `https://alverse-project-default-rtdb.firebaseio.com/alverse_pro_v3/bbs/${fbKey}.json`;
         const res = await fetch(deleteUrl, { method: 'DELETE' });
         if (!res.ok) throw new Error("削除リクエストに失敗しました");
 
@@ -2080,8 +2080,8 @@ async function editBoardEntry(fbKey, currentTitle, currentBody) {
     if (newBody === null) return;
 
     try {
-        // 💡 米国ドメイン（alverse）に変更
-        const url = `https://alverse-project-default-rtdb.firebaseio.com/alverse_pro_v3/articles/${fbKey}.json`;
+        // 💡 末尾を bbs に変更
+        const url = `https://alverse-project-default-rtdb.firebaseio.com/alverse_pro_v3/bbs/${fbKey}.json`;
         const res = await fetch(url, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
