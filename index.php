@@ -1624,36 +1624,35 @@ async function removeGalleryImage(index) {
     let player;
     let isPlayerLoaded = false;
     let activeTrackIdx = 0;
-// サーバーから読み込み（🌟Firebaseの配列構造を100%確実に復元する版）
-// 🔍 噛み合い確認用デバッグ関数
-    async function loadBgmFromServer() {
-        console.log("=== 🕵️‍♂️ BGMデバッグ開始 ===");
+   // サーバーから読み込み（🌟Firebase初期化タイミング完全同調版）
+    async function old_loadBgmFromServer() {
         try {
-            // ① グローバルに存在している firebase の中身をチェック
-            if (typeof firebase !== 'undefined') {
-                console.log("✅ firebaseオブジェクトを発見しました");
-                
-                // ② 互換モードの書き方で、直接playlistのデータを取得しにいく
-                firebase.database().ref('aiverse_pro_v3/playlist').once('value')
-                .then((snapshot) => {
-                    console.log("🎉 互換モードでのデータ取得に成功！");
-                    const data = snapshot.val();
-                    console.log("📦 届いたデータの中身:", data);
-                    
-                    if (data) {
-                        db.playlists = Array.isArray(data) ? data : Object.values(data);
-                        initBgmPanel();
-                    }
-                })
-                .catch((err) => {
-                    console.error("❌ 互換モードでの取得失敗:", err);
-                });
+            // 一番上の import で読み込んでいる正規の get と ref をそのまますっきり使用
+            const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
 
-            } else {
-                console.log("❌ firebaseオブジェクトがグローバルに存在しません（モジュール版のみ）");
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+
+                // [0, 1] の配列・オブジェクト構造を安全に展開
+                if (Array.isArray(data)) {
+                    db.playlists = data.filter(item => item !== null);
+                } else if (typeof data === 'object') {
+                    db.playlists = Object.values(data);
+                } else {
+                    db.playlists = [];
+                }
+
+                initBgmPanel();
+                console.log("☁️ FirebaseからBGMデータを完全同期しました🐾");
+                return;
             }
         } catch (e) {
-            console.error("❌ デバッグ実行中に致命的エラー:", e);
+            console.error("Firebase BGM読み込みエラー:", e);
+        }
+
+        if (!db.playlists || db.playlists.length === 0) {
+            db.playlists = [{ name: "マイリスト", tracks: [] }];
+            initBgmPanel();
         }
     }
     function initBgmPanel() {
@@ -2624,7 +2623,39 @@ window.onload = () => {
     const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     const db = getDatabase(app);
     const dbRef = ref(db, "alverse_pro_v3/posts");
-    // 4. 送信関数：バリデーションとUXの強化
+    // 🌟【ここに貼り付け】Firebaseと同じ部屋（モジュール空間）でBGMを動かす！
+    window.loadBgmFromServer = async () => {
+        try {
+            // 同じ部屋にいる正規の get と ref を使って一撃で取得！
+            const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+
+                if (Array.isArray(data)) {
+                    db.playlists = data.filter(item => item !== null);
+                } else if (typeof data === 'object') {
+                    db.playlists = Object.values(data);
+                } else {
+                    db.playlists = [];
+                }
+
+                initBgmPanel();
+                console.log("☁️ FirebaseからBGMデータを完全同期しました🐾");
+                return;
+            }
+        } catch (e) {
+            console.error("Firebase BGM読み込みエラー:", e);
+        }
+
+        if (!db.playlists || db.playlists.length === 0) {
+            db.playlists = [{ name: "マイリスト", tracks: [] }];
+            initBgmPanel();
+        }
+    };
+
+    // 🌟貼り付けたら、その場ですぐに実行させる！
+    window.loadBgmFromServer();
+// 4. 送信関数：バリデーションとUXの強化
     window.submitBoardPost = () => {
         const titleInput = document.getElementById('board-title-input');
         const bodyInput = document.getElementById('board-body-input');
