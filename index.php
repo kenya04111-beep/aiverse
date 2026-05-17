@@ -2192,57 +2192,63 @@ async function exportData(type = 'posts') {
     }
 }
 
-// ---------------------------------------------------------
-// ⚙️ 歯車ドロップダウン制御（完全一本化・最強ハイブリッド版🐾）
-// ---------------------------------------------------------
+// =========================================================
+// ⚙️ 歯車ドロップダウン制御（超・シンプル＆デバッグ監視版🐾）
+// =========================================================
 
-// 1. 実体：メニューを開閉する関数（HTMLの onclick から直接呼ばれる）
-window.toggleGearMenu = function(e = null) {
-    // 外側クリック判定に拾われないように伝播をストップ
+// 1. 純粋な開閉処理（HTMLの onclick から呼ばれる）
+window.toggleGearMenu = function(e) {
+    console.log("🚀 toggleGearMenu が発動しました！引数:", e);
+
+    // イベントのバブリング（外側クリックへの伝播）を全力で止める
     if (e && typeof e.stopPropagation === 'function') {
         e.stopPropagation();
+    } else if (window.event) {
+        window.event.cancelBubble = true;
     }
 
     const menu = document.getElementById('gear-menu') || document.querySelector('.settings-dropdown');
-    if (!menu) return;
+    console.log("📦 見つかったメニュー要素:", menu);
 
-    // 開閉状態をトグル
-    const isOpen = menu.classList.contains('show') || menu.classList.contains('open');
-    if (isOpen) {
+    if (!menu) {
+        console.error("❌ メニューが見つかりません！HTMLのIDやクラス名を確認してください。");
+        return;
+    }
+
+    // 開閉状態を反転させる
+    const isOpened = menu.classList.contains('show') || menu.classList.contains('open');
+    if (isOpened) {
         menu.classList.remove('show', 'open');
+        console.log("🔽 メニューを閉じました");
     } else {
         menu.classList.add('show', 'open');
+        console.log("🔼 メニューを開きました");
     }
 };
 
-// admin用など別名で呼ばれても同じ処理をするように紐付け
+// admin用などの別名呼び出しにも対応させる
 window.toggleAdminMenu = window.toggleGearMenu;
 
-// 2. 画面全体クリック監視（外側クリック閉じ ＆ onclickを持たない歯車の救済）
+
+// 2. 外側クリックで閉じる処理（メニューが開いている時だけ発動）
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('gear-menu') || document.querySelector('.settings-dropdown');
     if (!menu) return;
 
-    // もし「onclick属性を持たないただの歯車アイコン」が押された場合は関数を直接呼んであげる
-    const isGearBtn = e.target.closest('.gear-btn') || 
-                      e.target.closest('.fa-cog') || 
-                      e.target.closest('#admin-gear-btn');
-    if (isGearBtn) {
-        window.toggleGearMenu(e);
-        return;
-    }
+    // メニューが開いているか？
+    const isOpened = menu.classList.contains('show') || menu.classList.contains('open');
+    if (!isOpened) return; // 閉じていれば何もしない
 
-    // メニューが開いている時だけ「外側クリック閉じ」の判定を行う
-    if (menu.classList.contains('show') || menu.classList.contains('open')) {
-        const isInsideMenu = menu.contains(e.target);
-        const isModal = e.target.closest('.modal') || e.target.closest('.modal-content');
+    // 押された場所が「メニューの中身」や「歯車ボタンそのもの」なら何もしない（ここが超重要）
+    if (menu.contains(e.target)) return;
+    if (e.target.closest('.gear-btn') || e.target.closest('.fa-cog') || e.target.closest('#admin-gear-btn')) return;
 
-        // メニューの内側でもなく、モーダルでもなければ閉じる
-        if (!isInsideMenu && !isModal) {
-            menu.classList.remove('show', 'open');
-            console.log("⚙️ Gear menu completely closed by outside click 🐾");
-        }
-    }
+    // モーダルが開いている時も無視
+    if (e.target.closest('.modal') || e.target.closest('.modal-content')) return;
+
+    // 上記のどれにも当てはまらない＝「完全な外側」がクリックされたら閉じる
+    menu.classList.remove('show', 'open');
+    console.log("🌌 外側クリックでメニューを閉じました🐾");
 });
 // HTML側に残っているかもしれない onclick 属性の衝突を防ぐためのお守り（ダミー関数化）
 window.toggleGearMenu = function(e = null) { if (e && e.stopPropagation) e.stopPropagation(); };
