@@ -1624,23 +1624,30 @@ async function removeGalleryImage(index) {
     let player;
     let isPlayerLoaded = false;
     let activeTrackIdx = 0;
-// サーバーから読み込み（🌟完全自己完結・依存エラーゼロ版）
+// サーバーから読み込み（🌟Firebaseの配列構造を100%確実に復元する版）
     async function loadBgmFromServer() {
         try {
-            // 最上部の import 文の成否に依存しないよう、get と ref をその場でセットで読み込む
             const { get, ref: firebaseRef } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
-
-            // 💡 確実に存在する「db」と、その場で読み込んだ「firebaseRef」を合体させてパスを指定！
             const snapshot = await get(firebaseRef(db, "aiverse_pro_v3/playlist"));
 
             if (snapshot.exists()) {
                 const data = snapshot.val();
-                // 既存の変数（db.playlists）にデータを流し込んでパネルを初期化
-                db.playlists = Array.isArray(data) ? data : Object.values(data);
+                console.log("☁️ Firebaseから取得した生のBGMデータ:", data);
+
+                // 💡 Firebaseの [0, 1] という配列/オブジェクト構造を、JavaScriptの綺麗な配列に安全に変換
+                if (Array.isArray(data)) {
+                    db.playlists = data.filter(item => item !== null); // 空要素を除外して綺麗な配列にする
+                } else if (typeof data === 'object') {
+                    db.playlists = Object.values(data);
+                } else {
+                    db.playlists = [];
+                }
+
+                // パネルの描画処理を確実に実行！
                 initBgmPanel();
 
-                console.log("☁️ FirebaseからBGMを完全同期しました🐾");
-                return; 
+                console.log("☁️ FirebaseからBGMパネルの同期・描画が完了しました🐾");
+                return;
             }
         } catch (e) {
             console.error("Firebase BGM読み込みエラー:", e);
