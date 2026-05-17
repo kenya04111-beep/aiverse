@@ -2044,29 +2044,170 @@ function escapeHTML(str) {
         '"': '&quot;'
     }[m]));
 }
-/**
- * 🗑️ 掲示板（猫の知恵袋）の投稿削除機能
- */
-async function deleteBoardEntry(fbKey) {
-     if (!confirm("この知恵を消去してもよろしいですか？🐾")) return;
+// =========================================================
+// 😸 猫の知恵袋 (Firebase RTDB 完全永続化＆管理者編集・削除版🐾)
+// =========================================================
 
-     try {
-         // 🌟 URLをアジアの正規RTDBドメインに修正し、変数も fbKey に統一します
-         const deleteUrl = `https://alverse-project-default-rtdb.asia-southeast1.firebasedatabase.app/alverse_pro_v3/articles/${fbKey}.json`;
-         const res = await fetch(deleteUrl, { method: 'DELETE' });
+// 🌟 1. サーバー(Firebase)から知恵袋データを取得して描画する関数
+async function loadBoardFromServer() {
+    const container = document.getElementById('board-posts-container');
+    if (!container) return;
+
+    try {
+        const url = `https://alverse-project-default-rtdb.asia-southeast1.firebasedatabase.app/alverse_pro_v3/articles.json`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("データの取得に失敗しました");
+        const data = await res.json();
+
+        container.innerHTML = '';
+
+        if (!data) {
+            container.innerHTML = `<p style="text-align:center; color:#8c827a; padding: 20px;">まだ知恵がありません。最初の知恵を共有してみましょう🐾</p>`;
+            return;
+        }
+
+        // オブジェクトを配列に変換
+        const posts = Object.keys(data).map(key => ({ fbKey: key, ...data[key] }));
+        
+        // 新しい投稿が上（最新順）にくるようにソート（逆順）
+        posts.reverse();
+
+        // ⚙️ 歯車メニューの管理者セクションが表示されているかでAdmin判定
+        const adminSection = document.getElementById('admin-menu-section');
+        const isAdmin = (adminSection && adminSection.style.display !== 'none');
+
+        posts.forEach((post, i) => {
+            const div = document.createElement('div');
+            div.className = 'bbs-item';
+            div.style = "background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.01); position: relative;";
+            
+            // 管理者モードの時だけ編集・削除ボタンを右上に配置
+            let adminControls = '';
+            if (isAdmin) {
+                adminControls = `
+                    <div class="admin-bbs-controls" style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                        <button onclick="editBoardEntry('${post.fbKey}', \`${(post.title || '').replace(/`/g, '\\`封')}\`, \`${(post.body || '').replace(/`/g, '\\`封')}\`)" style="background:#f0a500; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px; margin-right:5px;">✏️</button>
+                        <button onclick="deleteBoardEntry('${post.fbKey}')" style="background:#fa5252; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px;">❌</button>
+                    </div>
+                `;
+            }
+
+            const postTitle = post.title ? `<div style="font-size: 15px; font-weight: bold; color: #5c5246; margin-bottom: 5px;">${post.title}</div>` : '';
+            const dateStr = post.date ? `<span style="font-weight:normal; font-size:11px; color:#b5ab9e; margin-left:8px;">${post.date}</span>` : '';
+
+            div.innerHTML = `
+                <div style="font-weight: bold; color: #8c827a; font-size: 13px; margin-bottom: 5px;">
+                    No.${posts.length - i} 名無しにゃんこ ${dateStr}
+                </div>
+                ${postTitle}
+                <div style="font-size: 14px; color: #6c6256; white-space: pre-wrap; line-height: 1.5;">${post.body || ''}</div>
+                ${adminControls}
+            `;
+            container.appendChild(div);
+        });
+
+    } catch (e) {
+        console.error("掲示板の読み込みエラー:", e);
+        container.innerHTML = `<p style="text-align:center; color:#fa5252; padding:20px;">知恵袋の同期に失敗しました😿</p>`;
+    }
+}
+
+// 🌟 2. 新しく知恵を共有（FirebaseへPOST保存）
+async function submitBoardPost() {
+    const titleInput = document.getElementById('board-title-input');
+    const bodyInput = document.getElementById('board-body-input');
+
+    if (!bodyInput || !bodyInput.value.trim()) {
+        alert("本文を入力してくださいにゃ🐾");
+        return;
+    }
+
+    const title = titleInput ? titleInput.value.trim() : '';
+    const body = bodyInput.value.trim();
+
+    const now = new Date();
+    const dateString = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+    const newPost = {
+        title: title,
+        body: body,
+        date: dateString,
+        timestamp: Date.now()
+    };
+
+    try {
+        const url = `https://alverse-project-default-rtdb.asia-southeast1.firebasedatabase.app/alverse_pro_v3/articles.json`;
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newPost)
+        });
+
+        if (!res.ok) throw new Error("投稿の送信に失敗しました");
+
+        if (titleInput) titleInput.value = '';
+        bodyInput.value = '';
+
+        // 送信直後に再読み込みして描画
+        await loadBoardFromServer();
+        console.log("🚀 Firebaseに新しい知恵を永続化しました🐾");
+
+    } catch (e) {
+        console.error("投稿エラー:", e);
+        alert("投稿に失敗しました😿");
+    }
+}
+
+// 🌟 3. 管理者機能：投稿の削除（元の関数をそのまま拡張🐾）
+async function deleteBoardEntry(fbKey) {
+    if (!confirm("この知恵を消去してもよろしいですか？🐾")) return;
+
+    try {
+        const deleteUrl = `https://alverse-project-default-rtdb.asia-southeast1.firebasedatabase.app/alverse_pro_v3/articles/${fbKey}.json`;
+        const res = await fetch(deleteUrl, { method: 'DELETE' });
         if (!res.ok) throw new Error("削除リクエストに失敗しました");
 
         alert("消去完了しました 🐱");
-        if (typeof loadBoardFromServer === 'function') {
-            await loadBoardFromServer(); // 画面を更新
-        } else {
-            location.reload(); // 関数がない場合はリロード
-        }
+        await loadBoardFromServer(); // 画面を更新
     } catch (e) {
         console.error("削除エラー:", e);
         alert("消去に失敗しました😿：" + e.message);
     }
 }
+
+// 🌟 4. 管理者機能：投稿の編集
+async function editBoardEntry(fbKey, currentTitle, currentBody) {
+    const newTitle = prompt("【管理者編集】タイトルを変更しますか？", currentTitle);
+    if (newTitle === null) return;
+
+    const newBody = prompt("【管理者編集】本文を変更しますか？", currentBody);
+    if (newBody === null) return;
+
+    try {
+        const url = `https://alverse-project-default-rtdb.asia-southeast1.firebasedatabase.app/alverse_pro_v3/articles/${fbKey}.json`;
+        const res = await fetch(url, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: newTitle.trim(),
+                body: newBody.trim()
+            })
+        });
+
+        if (!res.ok) throw new Error("編集リクエストに失敗しました");
+
+        alert("知恵の編集が完了しました 🐱");
+        await loadBoardFromServer();
+    } catch (e) {
+        console.error("編集エラー:", e);
+        alert("編集に失敗しました😿：" + e.message);
+    }
+}
+
+// 🌟 5. ページ読み込み時に自動でデータを同期
+document.addEventListener('DOMContentLoaded', () => {
+    loadBoardFromServer();
+});
 // =========================================================
 // 💾 バックアップ ＆ 🌐 サーバー共有システム
 // =========================================================
