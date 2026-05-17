@@ -1622,7 +1622,6 @@ async function removeGalleryImage(index) {
         saveToLocalStorage();
     }
 
-// ----------------------------- 🎸 BGMプレイヤー (世界同期版) -----------------------------
     let player;
     let isPlayerLoaded = false;
     let activeTrackIdx = 0;
@@ -1653,24 +1652,17 @@ async function removeGalleryImage(index) {
         } catch (e) { console.log("サーバーBGMなし"); }
     }
 
-function onYouTubeIframeAPIReady() {
-         try {
-             if (typeof YT !== 'undefined' && YT.Player) {
-                 // 🌟 window経由で代入することで、初期化前のすれ違いエラーを100%回避します
-                 window.player = new YT.Player('yt-player-frame', {
-                     height: '100%', width: '100%', videoId: '',
-                     playerVars: { 'autoplay': 0, 'controls': 1 },
-                     events: {
-                         // 🌟 フラグ代入もwindow経由で安全に実行
-                         'onReady': () => { window.isPlayerLoaded = true; },
-                         'onStateChange': (e) => { if (e.data === YT.PlayerState.ENDED) playNextTrack(); }
-                     }
-                 });
-             }
-         } catch (error) {
-             console.warn("YouTubeプレイヤーの初期化を安全にスキップしました:", error);
-         }
-     }
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('yt-player-frame', {
+            height: '100%', width: '100%', videoId: '',
+            playerVars: { 'autoplay': 0, 'controls': 1 },
+            events: {
+                'onReady': () => { isPlayerLoaded = true; },
+                'onStateChange': (e) => { if (e.data === YT.PlayerState.ENDED) playNextTrack(); }
+            }
+        });
+    }
+
     function initBgmPanel() {
         const selector = document.getElementById('playlist-selector');
         if (!selector) return;
