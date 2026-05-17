@@ -1626,32 +1626,31 @@ async function removeGalleryImage(index) {
     let isPlayerLoaded = false;
     let activeTrackIdx = 0;
 
-    // サーバーへ同期
-    async function syncBgmToServer() {
-        try {
-            await fetch('api.php?type=bgm', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(db.playlists)
-            });
-            console.log("BGMサーバー同期成功");
-        } catch (e) { console.error("BGM同期失敗:", e); }
-    }
-
-    // サーバーから読み込み
+// サーバーから読み込み（🌟Firebase完全一本化・エラーなし決定版）
     async function loadBgmFromServer() {
         try {
-            const res = await fetch('bgm.json');
-            if (res.ok) {
-                const data = await res.json();
-                if (data && Array.isArray(data)) {
-                    db.playlists = data;
-                    initBgmPanel();
-                }
-            }
-        } catch (e) { console.log("サーバーBGMなし"); }
-    }
+            // 一番上でインポートした正規の get と ref を使い、一撃でFirebaseから取得！
+            const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
+            if (snapshot.exists()) {
+                const data = snapshot.val();
 
+                // 既存の変数（db.playlists）にデータを流し込んでパネルを初期化
+                db.playlists = Array.isArray(data) ? data : Object.values(data);
+                initBgmPanel();
+
+                console.log("☁️ FirebaseからBGMを完全同期しました🐾");
+                return; // 💡 読み込み成功時はここで終了。下の初期化には進ませない！
+            }
+        } catch (e) {
+            console.error("Firebase BGM読み込みエラー:", e);
+        }
+
+        // 万が一Firebaseが完全に空っぽの初期状態時のみ、安全な最低限の枠を作る
+        if (!db.playlists || db.playlists.length === 0) {
+            db.playlists = [{ name: "マイリスト", tracks: [] }];
+            initBgmPanel();
+        }
+    }
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('yt-player-frame', {
             height: '100%', width: '100%', videoId: '',
@@ -2612,12 +2611,11 @@ window.onload = () => {
     setupDraftSystem(); // 📝 執筆支援
 };
 </script>
-<!-- PHPの条件分岐などがすべて終了したあと -->
 
 <script type="module">
-    // 1. Firebaseの読み込み（一本化）
+    // 1. Firebaseの読み込み（一本化・🌟getを追加）
     import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded, serverTimestamp, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     // 2. Firebaseの設定
     const firebaseConfig = {
         apiKey: "AIzaSyDbw7xkeplmYAE80JcrTIf1qkRpZsDTwXM",
