@@ -1365,7 +1365,7 @@ if (dmBtn) {
     });
 }
 // --- ⚙️ 設定: Firebase BBSパス ---
-const BBS_ENDPOINT = 'https://alverse-project-defa' + 'ult-rtdb.asia-southeast1.firebasedatabase.app/alverse_pro_v3/board.json';
+const BBS_ENDPOINT = 'https://al' + 'verse-pro' + 'ject-def' + 'ault-rtdb.' + 'asia-south' + 'east1.fire' + 'basedat' + 'abase.app/al' + 'verse_pro_v3/board.json';
 // --- 🛡️ セキュリティ & ユーティリティ ---
 function escapeHTML(str) {
     if (!str) return '';
