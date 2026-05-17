@@ -2716,11 +2716,12 @@ window.onload = () => {
      setupDraftSystem();    // 📝 執筆支援
 }; // 📌 ここで window.onload が完璧に美しく閉じます！
 </script>
+
+<script type="module">
 // =========================================================
 // 🔥 ここから先は隔離された「Firebase v10」の最強モジュール世界！
 // =========================================================
-<script type="module">
-     // 1. Firebaseの読み込み（最上部に set も完全配備！）
+     // 1. Firebaseの読み込み
      import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
      import { getDatabase, ref, push, onChildAdded, serverTimestamp, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
