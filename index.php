@@ -2193,42 +2193,47 @@ async function exportData(type = 'posts') {
 }
 
 // ---------------------------------------------------------
-// ⚙️ 歯車ドロップダウン制御（ID: gear-menu 統合軽量版）
+// ⚙️ 歯車ドロップダウン制御（完全一本化・最強ハイブリッド版🐾）
 // ---------------------------------------------------------
-
-function toggleGearMenu(e = null) {
-    // 画面クリック（外側クリック判定）との衝突を安全に防ぐ
+window.toggleGearMenu = function(e = null) {
     if (e && typeof e.stopPropagation === 'function') {
-        e.stopPropagation(); 
+        e.stopPropagation();
     }
+    const menu = document.getElementById('gear-menu') || document.querySelector('.settings-dropdown');
+    if (!menu) return;
 
-    const menu = document.getElementById('gear-menu');
-    if (!menu) {
-        console.error("ID 'gear-menu' が見つかりません。");
-        return;
+    // show と open の両方を同時にトグル（どっちのCSSが使われていても100%動く安全設計）
+    const isOpen = menu.classList.contains('show') || menu.classList.contains('open');
+    if (isOpen) {
+        menu.classList.remove('show', 'open');
+    } else {
+        menu.classList.add('show', 'open');
     }
+};
 
-    // CSSの 'show' クラス付け外しだけで制御
-    menu.classList.toggle('show');
-}
-// 🌌 画面のどこか（外側）をクリックした時にメニューを閉じる処理
+// 🌌 画面の外側（メニューと歯車ボタン以外）をクリックした時に完全に閉じる常駐監視
 document.addEventListener('click', function(e) {
-    const menu = document.getElementById('gear-menu');
+    const menu = document.getElementById('gear-menu') || document.querySelector('.settings-dropdown');
+    if (!menu) return;
 
-    // メニューが存在し、かつ開いている時だけ判定
-    if (!menu || !menu.classList.contains('show')) return;
+    // メニューが開いていないなら何もしない
+    if (!menu.classList.contains('show') && !menu.classList.contains('open')) return;
 
-    // モーダル等が開いている場合は無視（既存の安全装置）
+    // モーダルが開いている場合は処理をスキップする安全装置
     if (e.target.closest('.modal') || e.target.closest('.modal-content')) return;
 
-    // ✨【最強の判定】クリックされたのが「メニューの中」か「歯車ボタンそのもの」かを判定
-    // クラス名だけでなく、onclick属性に"toggleGearMenu"が含まれているかもチェックします
+    // クリックされた位置の判定（メニュー内か、あるいはあらゆる歯車ボタンのバリエーションか）
     const isInsideMenu = menu.contains(e.target);
-    const isGearBtn = e.target.closest('.gear-btn') || e.target.closest('[onclick*="toggleGearMenu"]');
+    const isGearBtn = e.target.closest('.gear-btn') || 
+                      e.target.closest('.fa-cog') || 
+                      e.target.closest('#admin-gear-btn') || 
+                      e.target.closest('[onclick*="toggleGearMenu"]') ||
+                      e.target.closest('[onclick*="toggleAdminMenu"]');
 
+    // 外側がクリックされたら、すべてのクラスを綺麗に剥奪して完全に閉じる
     if (!isInsideMenu && !isGearBtn) {
-        menu.classList.remove('show');
-        console.log("⚙️ Menu closed by outside click");
+        menu.classList.remove('show', 'open');
+        console.log("⚙️ Gear menu completely closed by outside click 🐾");
     }
 });
 // ---------------------------------------------------------
@@ -2415,27 +2420,6 @@ function showToast(message = "") {
 
         }, 2200);
 }
-
-// =========================================================
-// 🖱️ 外側クリックで閉じる（スマート軽量版）
-// =========================================================
-
-document.addEventListener('click', function(event) {
-    const menu = document.querySelector('.settings-dropdown');
-    const gear = document.querySelector('.gear-btn');
-
-    // メニューが存在し、かつクリックされた場所が「メニューの外側」かつ「歯車ボタンの外側」の場合
-    if (
-        menu &&
-        !menu.contains(event.target) &&
-        gear &&
-        !gear.contains(event.target)
-    ) {
-        // 余計な style.display = 'none' は完全に削除！
-        // 表示の切り替えはCSSクラスのコントロール（軽量設計）にすべて委ねる
-        menu.classList.remove('open');
-    }
-});
 
 // =========================================================
 // 🌐 記事データ読み込み基盤
@@ -2648,22 +2632,7 @@ window.onload = () => {
          }
      });
 
-// ---------------------------------------------------------
-// ✨ [新規追記] 3. 歯車ボタンの常駐監視設定（画面書き直し対策）
-// 画面の中身がどれだけ焼き直されても、ページ全体で歯車のクリックを100%検知します！
-// ---------------------------------------------------------
-     document.addEventListener('click', (event) => {
-         // クリックされた場所、またはその親要素に歯車アイコン（.fa-cog）があるかチェック
-         const cogButton = event.target.closest('.fa-cog') || event.target.closest('#admin-gear-btn') || event.target.closest('[onclick*="toggleAdminMenu"]');
-         if (cogButton) {
-             event.stopPropagation(); // 他のイベントとの衝突を防ぐ安全弁
-             if (typeof window.toggleAdminMenu === 'function') {
-                 window.toggleAdminMenu(event);
-             }
-         }
-     });
-
-　 // 4. 震え対策CSSの適用
+　 // 3. 震え対策CSSの適用
      const fixStyle = document.createElement('style');
      fixStyle.textContent = `
          html.modal-open, body.modal-open {
@@ -2723,7 +2692,7 @@ window.onload = () => {
              }
              // 配列の空要素（null）を綺麗に掃除してから保存する安全弁付き
              const cleanData = Array.isArray(playlistsData) ? playlistsData.filter(item => item !== null) : playlistsData;
-             
+
              // 🔥 正しいインスタンスとパスで一撃上書き！
              await set(ref(dbInstance, "alverse_pro_v3/playlist"), cleanData);
              console.log("🔥 本物のFirebase(v10)へのデータ保存に完全成功しました！🐾");
