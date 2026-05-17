@@ -1364,7 +1364,7 @@ if (dmBtn) {
     });
 }
 // --- ⚙️ 設定: Firebase BBSパス ---
-const BBS_ENDPOINT = 'https://alverse-project-default-rtdb.asia-southeast1.firebasedatabase.app/alverse_pro_v3/board.json';
+const BBS_ENDPOINT = 'https://alverse-project-default-rtdb.firebaseio.com/alverse_pro_v3.json';
 // --- 🛡️ セキュリティ & ユーティリティ ---
 function escapeHTML(str) {
     if (!str) return '';
@@ -1732,6 +1732,12 @@ async function removeGalleryImage(index) {
         // もしすでにプレイヤーが存在している場合は、二重生成を防ぐ
         if (window.player) return;
 
+        // ⚠️【安全ガード】画面内に埋め込み用の枠がない場合は、フリーズを防ぐために処理をスキップ
+        if (!document.getElementById('yt-player-frame')) {
+            console.log("⚠️ yt-player-frame が見つからないため、プレイヤーの生成をスキップします🐾");
+            return;
+        }
+
         window.player = new YT.Player('yt-player-frame', {
             height: '100%',
             width: '100%',
@@ -1897,7 +1903,7 @@ function setNewPostMode() {
     const idInput = document.getElementById('admin-post-id-input');
     if (idInput) idInput.value = '';
 }
-// ✅ 1889行目からの修正：脂肪を削ぎ落として安全装置を完備
+
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('gear-menu');
     const gearBtn = document.querySelector('.gear-btn');
@@ -2639,7 +2645,7 @@ window.onload = () => {
     window.loadBgmFromServer = async () => {
         try {
             // 同じ部屋にいる正規の get と ref を使って一撃で取得！
-            const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
+            const snapshot = await get(ref(db, "alverse_pro_v3/playlist"));
             if (snapshot.exists()) {
                 const data = snapshot.val();
 
