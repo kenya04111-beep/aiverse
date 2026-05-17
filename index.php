@@ -2787,7 +2787,7 @@ window.onload = () => {
          }
      };
 
-      // =========================================================
+// =========================================================
       // 😸 4. 送信関数：ねこの知恵袋（BBS）
       // =========================================================
       window.submitBoardPost = () => {
@@ -2837,6 +2837,7 @@ window.onload = () => {
 
               const article = document.createElement('article');
               article.className = 'board-post';
+
               // 管理者機能と同期できるようにFirebaseのキーをデータ属性として仕込んでおく
               article.setAttribute('data-key', data.key);
 
