@@ -1667,7 +1667,33 @@ const snapshot = await get(ref(db, "alverse_pro_v3/playlist")); // 👈 sなし�
         });
         window.renderBgmTracks(); // 窓口化した関数を呼び出す
     }
+// 🎵 追加ボタンの未定義エラーを直す関数
+    window.addNewTrack = async function() {
+        const input = document.querySelector('input[placeholder*="YouTube動画URL"]');
+        if (!input || !input.value.trim()) return;
 
+        const url = input.value.trim();
+        let videoId = "";
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        if (match && match[2].length === 11) { videoId = match[2]; } else { alert("URLが不正です🐾"); return; }
+
+        const currentPlIdx = db.activePlaylistIdx !== undefined ? db.activePlaylistIdx : 0;
+        if (!db.playlists) db.playlists = [];
+        if (!db.playlists[currentPlIdx]) db.playlists[currentPlIdx] = { name: "極秘リスト", tracks: [] };
+        if (!db.playlists[currentPlIdx].tracks) db.playlists[currentPlIdx].tracks = [];
+
+        db.playlists[currentPlIdx].tracks.push({ id: videoId, title: "新曲 (" + videoId + ")" });
+        input.value = "";
+
+        window.renderBgmTracks(); // 画面を再描画
+
+        // 🔥 Firebase（sなしのplaylist部屋）に正しい親子構造で上書き保存！
+        try {
+            await set(ref(db, "alverse_pro_v3/playlist"), db.playlists);
+            console.log("Firebase同期完了🐾");
+        } catch (e) { console.error(e); }
+    };
     // 🌟 2. トラック描画の窓口化
     window.renderBgmTracks = function() {
         const container = document.getElementById('bgm-tracks-list');
