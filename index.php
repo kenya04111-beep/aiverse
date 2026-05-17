@@ -2631,178 +2631,170 @@ function loadDraft() {
     }
 }
 // ---------------------------------------------------------
-// 🚀 起動処理 (window.onload)
+// 🚀 起動処理 (window.onload) 
+// 📌 頭とお尻を完全に一本化して、ここで一気にシステムを起動させます！
 // ---------------------------------------------------------
 window.onload = () => {
-    // 1. 基本システムの初期化
-    initCategorySelect();
-    renderArticlesGrid();
+     // 1. 基本システムの初期化
+     initCategorySelect();
+     renderArticlesGrid();
 
-    // 2. モーダル背景クリックの設定
-    const allModalIds = ['detail-modal', 'photo-modal', 'board-modal', 'gallery-modal', 'bgm-modal', 'admin-modal', 'memo-modal'];
-    allModalIds.forEach(id => {
-        const modal = document.getElementById(id);
-        if (modal) {
-            modal.addEventListener('click', (event) => {
-                if (event.target === modal) closeModal(id);
-            });
-        }
-    });
-    // 3. 震え対策CSSの適用
-    const fixStyle = document.createElement('style');
-    fixStyle.textContent = `
-        html.modal-open, body.modal-open {
-            overflow: hidden !important;
-            height: 100vh !important;
-            width: 100vw !important;
-            position: fixed !important;
-            top: 0; left: 0;
-        }
-        #photo-modal img {
-            max-width: 65vw !important;
-            max-height: 65vh !important;
-            pointer-events: none;
-        }
-    `;
-    document.head.appendChild(fixStyle);
+     // 2. モーダル背景クリックの設定
+     const allModalIds = ['detail-modal', 'photo-modal', 'board-modal', 'gallery-modal', 'bgm-modal', 'admin-modal', 'memo-modal'];
+     allModalIds.forEach(id => {
+         const modal = document.getElementById(id);
+         if (modal) {
+             modal.addEventListener('click', (event) => {
+                 if (event.target === modal) closeModal(id);
+             });
+         }
+     });
 
-// 4. 🚀 全システムの同時起動（世界共有設定）
-    updateAdminUI();
+     // 3. 震え対策CSSの適用
+     const fixStyle = document.createElement('style');
+     fixStyle.textContent = `
+         html.modal-open, body.modal-open {
+             overflow: hidden !important;
+             height: 100vh !important;
+             width: 100vw !important;
+             position: fixed !important;
+             top: 0; left: 0;
+         }
+         #photo-modal img {
+             max-width: 65vw !important;
+             max-height: 65vh !important;
+             pointer-events: none;
+         }
+     `;
+     document.head.appendChild(fixStyle);
 
-    // 🐾 猫の知恵袋を共有（最新の書き込みを取得）
-    loadBoardFromServer();
+     // 4. 全システムの同時起動（世界共有設定）
+     updateAdminUI();
+     loadBoardFromServer(); // 🐾 猫の知恵袋を共有
+     loadServerGallery();   // 🖼️ フォトギャラリーを共有
+     loadBgmFromServer();    // 🎸 管理者設定のBGMを共有
+     setupDraftSystem();    // 📝 執筆支援
+}; // 📌 ここで window.onload が完璧に美しく閉じます！
 
-    // 🖼️ フォトギャラリーを共有
-    loadServerGallery();
-
-    // 🎸 管理者設定のBGMを共有
-    loadBgmFromServer();
-
-    setupDraftSystem(); // 📝 執筆支援
-};
+// =========================================================
+// 🔥 ここから先は隔離された「Firebase v10」の最強モジュール世界！
+// =========================================================
 </script>
 
 <script type="module">
-    // 1. Firebaseの読み込み（一本化・🌟getを追加）
-    import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, serverTimestamp, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-    // 2. Firebaseの設定
-    const firebaseConfig = {
-        apiKey: "AIzaSyDbw7xkeplmYAE80JcrTIf1qkRpZsDTwXM",
-        authDomain: "alverse-project.firebaseapp.com",
-        databaseURL: "https://alverse-project-default-rtdb.firebaseio.com",
-        projectId: "alverse-project",
-        storageBucket: "alverse-project.firebasestorage.app",
-        messagingSenderId: "870564638397",
-        appId: "1:870564638397:web:d372f90b2b150e095791d4"
-    };
-    // 3. 重複起動防止を施した初期化
-    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    const db = getDatabase(app);
-    const dbRef = ref(db, "alverse_pro_v3/posts");
+     // 1. Firebaseの読み込み（最上部に set も完全配備！）
+     import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+     import { getDatabase, ref, push, onChildAdded, serverTimestamp, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-     // 🚀 モジュール世界のFirebase保存機能を、グローバル窓口として大開放！
+     // 2. Firebaseの設定
+     const firebaseConfig = {
+         apiKey: "AIzaSyDbw7xkeplmYAE80JcrTIf1qkRpZsDTwXM",
+         authDomain: "alverse-project.firebaseapp.com",
+         databaseURL: "https://alverse-project-default-rtdb.firebaseio.com",
+         projectId: "alverse-project",
+         storageBucket: "alverse-project.firebasestorage.app",
+         messagingSenderId: "870564638397",
+         appId: "1:870564638397:web:d372f90b2b150e095791d4"
+     };
+
+     // 3. 重複起動防止を施した初期化
+     const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+     const dbInstance = getDatabase(app);
+     const dbRef = ref(dbInstance, "alverse_pro_v3/posts");
+
+     // 🚀 モジュール世界の Firebase 保存機能を、グローバル窓口として大開放！
      window.saveBgmToFirebase = async function(playlistsData) {
          try {
-             await set(ref(db, "alverse_pro_v3/playlist"), playlistsData);
+             const cleanData = Array.isArray(playlistsData) ? playlistsData.filter(item => item !== null) : playlistsData;
+             await set(ref(dbInstance, "alverse_pro_v3/playlist"), cleanData);
              console.log("🔥 Firebase(v10)にBGMデータを完全同期しました🐾");
          } catch (e) {
              console.error("Firebase保存エラー:", e);
          }
      };
 
-     // 🌟【ここに貼り付け】Firebaseと同じ部屋（モジュール空間）でBGMを動かす！
+     // ☁️ サーバーからデータを引っ張ってくる窓口
      window.loadBgmFromServer = async () => {
          try {
-            // 同じ部屋にいる正規の get と ref を使って一撃で取得！
-            const snapshot = await get(ref(db, "alverse_pro_v3/playlist"));
-            if (snapshot.exists()) {
-                const data = snapshot.val();
+             const snapshot = await get(ref(dbInstance, "alverse_pro_v3/playlist"));
+             if (snapshot.exists()) {
+                 const data = snapshot.val();
 
-                if (Array.isArray(data)) {
-                    db.playlists = data.filter(item => item !== null);
-                } else if (typeof data === 'object') {
-                    db.playlists = Object.values(data);
-                } else {
-                    db.playlists = [];
-                }
+                 if (Array.isArray(data)) {
+                     db.playlists = data.filter(item => item !== null);
+                 } else if (typeof data === 'object') {
+                     db.playlists = Object.values(data);
+                 } else {
+                     db.playlists = [];
+                 }
 
-                initBgmPanel();
-                console.log("☁️ FirebaseからBGMデータを完全同期しました🐾");
-                return;
-            }
-        } catch (e) {
-            console.error("Firebase BGM読み込みエラー:", e);
-        }
+                 initBgmPanel();
+                 console.log("☁️ FirebaseからBGMデータを完全同期しました🐾");
+                 return;
+             }
+         } catch (e) {
+             console.error("Firebase BGM読み込みエラー:", e);
+         }
 
-        if (!db.playlists || db.playlists.length === 0) {
-            db.playlists = [{ name: "マイリスト", tracks: [] }];
-            initBgmPanel();
-        }
-    };
+         if (!db.playlists || db.playlists.length === 0) {
+             db.playlists = [{ name: "マイリスト", tracks: [] }];
+             initBgmPanel();
+         }
+     };
 
-    // 🌟貼り付けたら、その場ですぐに実行させる！
-    window.loadBgmFromServer();
-// 4. 送信関数：バリデーションとUXの強化
-    window.submitBoardPost = () => {
-        const titleInput = document.getElementById('board-title-input');
-        const bodyInput = document.getElementById('board-body-input');
+     // 4. 送信関数：ねこの知恵袋（BBS）
+     window.submitBoardPost = () => {
+         const titleInput = document.getElementById('board-title-input');
+         const bodyInput = document.getElementById('board-body-input');
 
-        if (!bodyInput) return;
+         if (!bodyInput) return;
 
-        const title = titleInput.value.trim() || "無題の知恵";
-        const body = bodyInput.value.trim();
+         const title = titleInput.value.trim() || "無題の知恵";
+         const body = bodyInput.value.trim();
 
-        if (body === "") {
-            alert("本文を入力してくださいにゃ！");
-            return;
-        }
-        // 送信中はボタンを無効化するなどの処理を入れるとより安全です
-        push(dbRef, {
-            title: title,
-            text: body,
-            user: "Kenya",
-            timestamp: serverTimestamp()
-        }).then(() => {
-            if (titleInput) titleInput.value = "";
-            bodyInput.value = "";
-            console.log("知恵を共有しました！");
-        }).catch((error) => {
-            console.error("送信エラー:", error);
-            alert("送信に失敗しました。通信状況を確認してくださいにゃ。");
-        });
-    };
-    // 5. リアルタイム受信：モーダル内のコンテナだけに流し込む
-    onChildAdded(dbRef, (data) => {
-        const post = data.val();
-        // モーダル内の記事コンテナ（本来の場所）
-        const container = document.getElementById('board-posts-container');
+         if (body === "") {
+             alert("本文を入力してくださいにゃ！");
+             return;
+         }
 
-        if (container) {
-            const article = document.createElement('article');
-            article.className = 'board-post';
-            // XSS対策：ユーザー入力を安全にエスケープ
-            const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            const safeText = (post.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "今さっき";
+         push(dbRef, {
+             title: title,
+             text: body,
+             user: "Kenya",
+             timestamp: serverTimestamp()
+         }).then(() => {
+             if (titleInput) titleInput.value = "";
+             bodyInput.value = "";
+             console.log("知恵を共有しました！");
+         }).catch((error) => {
+             console.error("送信エラー:", error);
+             alert("送信に失敗しました。通信状況を確認してくださいにゃ。");
+         });
+     };
 
-            article.innerHTML = `
-                <div class="board-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:5px;">
-                    <span class="board-title" style="font-weight:bold; color:#3e2723;">📌 ${safeTitle}</span>
-                    <span style="font-size:0.7rem; color:#aaa;">${date}</span>
-                </div>
-                <div class="board-body" style="padding: 12px 0; color: #444; line-height:1.6; white-space: pre-wrap;">${safeText}</div>
-            `;
+     // 5. リアルタイム受信：モーダル内のコンテナに流し込む
+     onChildAdded(dbRef, (data) => {
+         const post = data.val();
+         const container = document.getElementById('board-posts-container');
 
-            container.prepend(article);
-        }
-    });
-    // 既存の執筆支援などの初期化
-    window.addEventListener('load', () => {
-        if (typeof setupDraftSystem === 'function') {
-            setupDraftSystem();
-        }
-    });
+         if (container) {
+             const article = document.createElement('article');
+             article.className = 'board-post';
+             const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+             const safeText = (post.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+             const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "今さっき";
+
+             article.innerHTML = `
+                 <div class="board-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:5px;">
+                     <span class="board-title" style="font-weight:bold; color:#3e2723;">📌 ${safeTitle}</span>
+                     <span style="font-size:0.7rem; color:#aaa;">${date}</span>
+                 </div>
+                 <div class="board-body" style="padding: 12px 0; color: #444; line-height:1.6; white-space: pre-wrap;">${safeText}</div>
+             `;
+
+             container.prepend(article);
+         }
+     });
 </script>
 </body>
 </html>
