@@ -712,8 +712,6 @@ if (session_status() === PHP_SESSION_NONE) {
             background: rgba(255, 255, 255, 0.05);
         }
 </style>
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
