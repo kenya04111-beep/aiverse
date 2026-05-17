@@ -1725,7 +1725,46 @@ async function removeGalleryImage(index) {
         activeTrackIdx = (activeTrackIdx + 1) % pl.tracks.length;
         window.triggerTrackPlay(pl.tracks[activeTrackIdx].id, activeTrackIdx);
     }
-    // ----------------------------- 🥸 秘密機能 (現状維持) -----------------------------
+// 🌟 5. YouTube APIから100%確実に見つけさせるためのプレイヤー生成窓口
+    window.onYouTubeIframeAPIReady = function() {
+        console.log("🎬 onYouTubeIframeAPIReady が正常にトリガーされました🐾");
+
+        // もしすでにプレイヤーが存在している場合は、二重生成を防ぐ
+        if (window.player) return;
+
+        window.player = new YT.Player('yt-player-frame', {
+            height: '100%',
+            width: '100%',
+            videoId: '', // 初期状態は空
+            playerVars: {
+                'autoplay': 1,       // クリックで即再生できるように1
+                'controls': 1,       // コントロールバーを表示
+                'rel': 0,            // 関連動画は同じチャンネル内のみ
+                'showinfo': 0,
+                'ecver': 2
+            },
+            events: {
+                'onReady': function(event) {
+                    console.log("🚀 YouTubeプレイヤーの準備が完了しましたにゃん🐾");
+                },
+                'onStateChange': function(event) {
+                    // 曲が最後まで再生し終わったら（ENDED = 0）、自動で次の曲へ
+                    if (event.data === 0) {
+                        if (typeof window.playNextTrack === 'function') {
+                            window.playNextTrack();
+                        }
+                    }
+                }
+            }
+        });
+    };
+
+    // ⚠️ YouTubeのAPIスクリプトのロードが先に終わってしまっていた場合のセーフティネット
+    if (typeof YT !== 'undefined' && YT.Player) {
+        console.log("💡 すでにYouTube APIのロードが完了しているのを発見！手動で初期化します🐾");
+        window.onYouTubeIframeAPIReady();
+    }
+// ----------------------------- 🥸 秘密機能 (現状維持) -----------------------------
     function executeStabilizerScan() {
         const logBox = document.getElementById('stabilizer-log');
         const bar = document.getElementById('stabilizer-progress-bar');
