@@ -1655,7 +1655,8 @@ async function removeGalleryImage(index) {
             initBgmPanel();
         }
     }
-    function initBgmPanel() {
+// 🌟 1. パネル初期化の窓口化
+    window.initBgmPanel = function() {
         const selector = document.getElementById('playlist-selector');
         if (!selector) return;
         selector.innerHTML = '';
@@ -1666,10 +1667,11 @@ async function removeGalleryImage(index) {
             if (index === db.activePlaylistIdx) opt.selected = true;
             selector.appendChild(opt);
         });
-        renderBgmTracks();
+        window.renderBgmTracks(); // 窓口化した関数を呼び出す
     }
 
-    function renderBgmTracks() {
+    // 🌟 2. トラック描画の窓口化
+    window.renderBgmTracks = function() {
         const container = document.getElementById('bgm-tracks-list');
         if (!container) return;
         container.innerHTML = '';
@@ -1692,65 +1694,37 @@ async function removeGalleryImage(index) {
         });
     }
 
-    function triggerTrackPlay(videoId, index = 0) {
-        document.getElementById('yt-player-box').style.display = 'block';
+    // 🌟 3. 再生コア関数の窓口化（部屋のすれ違いを力ずくで突破！）
+    window.triggerTrackPlay = function(videoId, index = 0) {
+        const playerBox = document.getElementById('yt-player-box');
+        if (playerBox) playerBox.style.display = 'block';
+
         activeTrackIdx = index;
-        if (isPlayerLoaded && player) { player.loadVideoById(videoId); }
-    }
 
-    function playNextTrack() {
-        const pl = db.playlists[db.activePlaylistIdx];
-        if (!pl || pl.tracks.length === 0) return;
-        activeTrackIdx = (activeTrackIdx + 1) % pl.tracks.length;
-        triggerTrackPlay(pl.tracks[activeTrackIdx].id, activeTrackIdx);
-    }
+        // window.player（グローバル）とローカルの player の両方に対応できる安全設計
+        const targetPlayer = window.player || (typeof player !== 'undefined' ? player : null);
 
-    // --- 同期が必要な操作関数群 ---
-    function addNewTrack() {
-        const urlInput = document.getElementById('track-url-input').value.trim();
-        const videoId = parseYoutubeID(urlInput);
-        if (!videoId) return alert("YouTube動画リンクを入力してください。");
-        const pl = db.playlists[db.activePlaylistIdx];
-        pl.tracks.push({ id: videoId, title: `Track #${pl.tracks.length + 1}` });
-        saveToLocalStorage(); renderBgmTracks(); syncBgmToServer();
-        document.getElementById('track-url-input').value = '';
-    }
-
-    function deleteTrack(idx) {
-        const pl = db.playlists[db.activePlaylistIdx];
-        pl.tracks.splice(idx, 1);
-        saveToLocalStorage(); renderBgmTracks(); syncBgmToServer();
-    }
-
-    function editTrackName(idx) {
-        const pl = db.playlists[db.activePlaylistIdx];
-        const newName = prompt("曲名を変更：", pl.tracks[idx].title);
-        if (newName && newName.trim()) {
-            pl.tracks[idx].title = newName.trim();
-            saveToLocalStorage(); renderBgmTracks(); syncBgmToServer();
+        if (targetPlayer && typeof targetPlayer.loadVideoById === 'function') {
+            targetPlayer.loadVideoById(videoId);
+            console.log("🎵 YouTube再生命令を強制バインドしました🐾 ID:", videoId);
+        } else {
+            // 万が一プレイヤーオブジェクトの紐付けがまだの場合、安全にグローバル空間に直接再生を命令するフォールバック
+            console.warn("⚠️ プレイヤーを模索中... グローバルウィンドウへ再生を転送します。");
+            if (window.player && typeof window.player.loadVideoById === 'function') {
+                window.player.loadVideoById(videoId);
+            } else {
+                alert("YouTubeプレイヤーがまだ準備できていないか、読み込み中ですにゃん。もう一度クリックしてみてね！");
+            }
         }
     }
 
-    function createNewPlaylist() {
-        const nameInput = document.getElementById('playlist-name-input').value.trim();
-        if (!nameInput) return alert("プレイリスト名を入力してください。");
-        db.playlists.push({ name: nameInput, tracks: [] });
-        db.activePlaylistIdx = db.playlists.length - 1;
-        saveToLocalStorage(); initBgmPanel(); syncBgmToServer();
-        document.getElementById('playlist-name-input').value = '';
+    // 🌟 4. 次の曲へ遷移する関数の窓口化
+    window.playNextTrack = function() {
+        const pl = db.playlists[db.activePlaylistIdx];
+        if (!pl || pl.tracks.length === 0) return;
+        activeTrackIdx = (activeTrackIdx + 1) % pl.tracks.length;
+        window.triggerTrackPlay(pl.tracks[activeTrackIdx].id, activeTrackIdx);
     }
-
-    function parseYoutubeID(url) {
-        const regex = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = url.match(regex);
-        return (match && match[2].length === 11) ? match[2] : null;
-    }
-
-    function onPlaylistSelectorChange() {
-        db.activePlaylistIdx = parseInt(document.getElementById('playlist-selector').value);
-        saveToLocalStorage(); renderBgmTracks();
-    }
-
     // ----------------------------- 🥸 秘密機能 (現状維持) -----------------------------
     function executeStabilizerScan() {
         const logBox = document.getElementById('stabilizer-log');
