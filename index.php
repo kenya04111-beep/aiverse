@@ -2193,49 +2193,48 @@ async function exportData(type = 'posts') {
 }
 
 // ---------------------------------------------------------
-// ⚙️ 歯車ドロップダウン制御（完全一本化・最強ハイブリッド版🐾）
+// ⚙️ 歯車ドロップダウン制御（完全イベント委譲・絶対衝突しない版🐾）
 // ---------------------------------------------------------
-window.toggleGearMenu = function(e = null) {
-    if (e && typeof e.stopPropagation === 'function') {
-        e.stopPropagation();
-    }
-    const menu = document.getElementById('gear-menu') || document.querySelector('.settings-dropdown');
-    if (!menu) return;
-
-    // show と open の両方を同時にトグル（どっちのCSSが使われていても100%動く安全設計）
-    const isOpen = menu.classList.contains('show') || menu.classList.contains('open');
-    if (isOpen) {
-        menu.classList.remove('show', 'open');
-    } else {
-        menu.classList.add('show', 'open');
-    }
-};
-
-// 🌌 画面の外側（メニューと歯車ボタン以外）をクリックした時に完全に閉じる常駐監視
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('gear-menu') || document.querySelector('.settings-dropdown');
     if (!menu) return;
 
-    // メニューが開いていないなら何もしない
-    if (!menu.classList.contains('show') && !menu.classList.contains('open')) return;
-
-    // モーダルが開いている場合は処理をスキップする安全装置
-    if (e.target.closest('.modal') || e.target.closest('.modal-content')) return;
-
-    // クリックされた位置の判定（メニュー内か、あるいはあらゆる歯車ボタンのバリエーションか）
-    const isInsideMenu = menu.contains(e.target);
+    // 1. クリックされた場所が「歯車ボタン」か「中の⚙アイコン」かを判定
     const isGearBtn = e.target.closest('.gear-btn') || 
                       e.target.closest('.fa-cog') || 
                       e.target.closest('#admin-gear-btn') || 
                       e.target.closest('[onclick*="toggleGearMenu"]') ||
                       e.target.closest('[onclick*="toggleAdminMenu"]');
 
-    // 外側がクリックされたら、すべてのクラスを綺麗に剥奪して完全に閉じる
-    if (!isInsideMenu && !isGearBtn) {
-        menu.classList.remove('show', 'open');
-        console.log("⚙️ Gear menu completely closed by outside click 🐾");
+    // 2. クリックされた場所が「メニューの内側」かを判定
+    const isInsideMenu = menu.contains(e.target);
+
+    // 安全装置：モーダルが開いている場合は処理をスキップ
+    if (e.target.closest('.modal') || e.target.closest('.modal-content')) return;
+
+    if (isGearBtn) {
+        // 💡 歯車が押された場合：純粋に開閉をトグルする（外側クリック処理は絶対に走らせない）
+        e.preventDefault();
+        e.stopPropagation();
+
+        const isOpen = menu.classList.contains('show') || menu.classList.contains('open');
+        if (isOpen) {
+            menu.classList.remove('show', 'open');
+        } else {
+            menu.classList.add('show', 'open');
+        }
+    } else if (!isInsideMenu) {
+        // 💡 メニューでも歯車でもない「外側」が押された場合：開いている時だけ確実に閉じる
+        if (menu.classList.contains('show') || menu.classList.contains('open')) {
+            menu.classList.remove('show', 'open');
+            console.log("⚙️ Gear menu completely closed by outside click 🐾");
+        }
     }
 });
+
+// HTML側に残っているかもしれない onclick 属性の衝突を防ぐためのお守り（ダミー関数化）
+window.toggleGearMenu = function(e = null) { if (e && e.stopPropagation) e.stopPropagation(); };
+window.toggleAdminMenu = function(e = null) { if (e && e.stopPropagation) e.stopPropagation(); };
 // ---------------------------------------------------------
 // 🌌 モーダル制御
 // ---------------------------------------------------------
