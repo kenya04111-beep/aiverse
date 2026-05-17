@@ -1689,12 +1689,44 @@ const snapshot = await get(ref(db, "alverse_pro_v3/playlist")); // 👈 sなし�
         window.renderBgmTracks(); // 画面を再描画
 
 // 🔥 Firebase（sなしのplaylist部屋）に正しい親子構造で上書き保存！
-        try {
-            // 部屋に必ず存在するクラシックルートでデータを一撃上書き保存！
-            await firebase.database().ref("alverse_pro_v3/playlist").set(db.playlists);
-            console.log("Firebase同期完了🐾");
-        } catch (e) {
-            console.error(e);
+// 🚀 開通したモジュール世界の窓口へ、安全にデータを届ける！
+        if (typeof window.saveBgmToFirebase === 'function') {
+            await window.saveBgmToFirebase(db.playlists);
+        } else {
+            console.error("Firebase保存窓口が見つかりませんにゃ");
+        }
+    };
+
+    // 🎵 2. 曲名を変更する関数（大復活！）
+    window.editTrackName = async function(index) {
+        const currentPlIdx = db.activePlaylistIdx !== undefined ? db.activePlaylistIdx : 0;
+        const pl = db.playlists[currentPlIdx];
+        if (!pl || !pl.tracks || !pl.tracks[index]) return;
+
+        const newTitle = prompt("新しい曲名を入力してくださいにゃ：", pl.tracks[index].title);
+        if (newTitle === null || !newTitle.trim()) return;
+
+        pl.tracks[index].title = newTitle.trim();
+        window.renderBgmTracks(); // 画面を再描画
+
+        if (typeof window.saveBgmToFirebase === 'function') {
+            await window.saveBgmToFirebase(db.playlists);
+        }
+    };
+
+    // 🎵 3. 曲を削除する関数（大復活！）
+    window.deleteTrack = async function(index) {
+        const currentPlIdx = db.activePlaylistIdx !== undefined ? db.activePlaylistIdx : 0;
+        const pl = db.playlists[currentPlIdx];
+        if (!pl || !pl.tracks || !pl.tracks[index]) return;
+
+        if (!confirm("この曲を削除してもよろしいですか？🐾")) return;
+
+        pl.tracks.splice(index, 1);
+        window.renderBgmTracks(); // 画面を再描画
+
+        if (typeof window.saveBgmToFirebase === 'function') {
+            await window.saveBgmToFirebase(db.playlists);
         }
     };
     // 🌟 2. トラック描画の窓口化
@@ -2653,7 +2685,7 @@ window.onload = () => {
 <script type="module">
     // 1. Firebaseの読み込み（一本化・🌟getを追加）
     import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, serverTimestamp, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded, serverTimestamp, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     // 2. Firebaseの設定
     const firebaseConfig = {
         apiKey: "AIzaSyDbw7xkeplmYAE80JcrTIf1qkRpZsDTwXM",
