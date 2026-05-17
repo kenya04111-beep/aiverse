@@ -2673,7 +2673,6 @@ window.onload = () => {
      loadBgmFromServer();    // 🎸 管理者設定のBGMを共有
      setupDraftSystem();    // 📝 執筆支援
 }; // 📌 ここで window.onload が完璧に美しく閉じます！
-
 // =========================================================
 // 🔥 ここから先は隔離された「Firebase v10」の最強モジュール世界！
 // =========================================================
@@ -2700,14 +2699,21 @@ window.onload = () => {
      const dbInstance = getDatabase(app);
      const dbRef = ref(dbInstance, "alverse_pro_v3/posts");
 
-     // 🚀 モジュール世界の Firebase 保存機能を、グローバル窓口として大開放！
+     // 🚀 本物のFirebase宇宙へ、データを絶対セーブする窓口
      window.saveBgmToFirebase = async function(playlistsData) {
          try {
+             if (!dbInstance) {
+                 console.error("Firebaseのデータベースインスタンスがありません🐾");
+                 return;
+             }
+             // 配列の空要素（null）を綺麗に掃除してから保存する安全弁付き
              const cleanData = Array.isArray(playlistsData) ? playlistsData.filter(item => item !== null) : playlistsData;
+             
+             // 🔥 正しいインスタンスとパスで一撃上書き！
              await set(ref(dbInstance, "alverse_pro_v3/playlist"), cleanData);
-             console.log("🔥 Firebase(v10)にBGMデータを完全同期しました🐾");
+             console.log("🔥 本物のFirebase(v10)へのデータ保存に完全成功しました！🐾");
          } catch (e) {
-             console.error("Firebase保存エラー:", e);
+             console.error("Firebaseへのセーブ中にエラーが発生しましたにゃ:", e);
          }
      };
 
