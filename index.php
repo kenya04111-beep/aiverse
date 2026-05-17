@@ -2261,36 +2261,46 @@ function toggleSecretMode() {
 }
 
 // =========================================================
-// 🚪 ログアウト
+// 🚪 ログアウト（データベース内フラグ完全初期化版）
 // =========================================================
-
 function logoutAdmin() {
-
-     const ok =
-         confirm(
-             "管理者モードを終了しますか？🐾"
-         );
-
+     const ok = confirm("管理者モードを終了しますか？🐾");
      if (!ok) return;
 
+     // 1. JavaScriptメモリ上のフラグを落とす
      if (typeof db !== 'undefined') {
-
          db.isAdmin = false;
      }
 
-     localStorage.removeItem(
-         'aiverse_admin'
-     );
+     // 2. 【本丸】localStorage内の巨大データ（alverse_database_engine_v3）を安全に書き換える
+     try {
+         const dbKey = 'alverse_database_engine_v3';
+         const rawData = localStorage.getItem(dbKey);
 
-     showToast(
-         "🚪 ログアウトしました"
-     );
+         if (rawData) {
+             // データを一度パースしてオブジェクトに戻す
+             const dataObj = JSON.parse(rawData);
 
-     setTimeout(() => {
+             // オブジェクトの中の管理者フラグを「確実にfalse」にする
+             dataObj.isAdmin = false;
 
-         location.reload();
+             // 綺麗にしたデータをもう一度文字列に戻してローカルストレージに上書き保存
+             localStorage.setItem(dbKey, JSON.stringify(dataObj));
+             console.log("✅ ローカルストレージ内のADMIN権限を完全に消去しました");
+         }
 
-     }, 400);
+         // 以前の古いフラグも念のため綺麗に掃除
+         localStorage.removeItem('aiverse_admin');
+
+     } catch (e) {
+         console.warn("localStorageの書き換えでブロックが発生しましたが、処理を続行します:", e);
+     }
+
+     // 3. 画面のDOM書き換え（showToast）を避けて、安全にポップアップ通知
+     alert("🚪 ログアウトしました");
+
+     // 4. まっさらな状態でトップページへ強制遷移（UIの完全初期化）
+     window.location.replace(window.location.href);
 }
 // =========================================================
 // 🍞 トースト通知
