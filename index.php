@@ -1,4 +1,3 @@
-<?php echo "<h1>🐾ケニアさん、いま開いているファイルはここですよ！🐾</h1>"; die(); ?>
 <?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
