@@ -1625,37 +1625,35 @@ async function removeGalleryImage(index) {
     let isPlayerLoaded = false;
     let activeTrackIdx = 0;
 // サーバーから読み込み（🌟Firebaseの配列構造を100%確実に復元する版）
+// 🔍 噛み合い確認用デバッグ関数
     async function loadBgmFromServer() {
+        console.log("=== 🕵️‍♂️ BGMデバッグ開始 ===");
         try {
-            const { get, ref: firebaseRef } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
-            const snapshot = await get(firebaseRef(db, "aiverse_pro_v3/playlist"));
+            // ① グローバルに存在している firebase の中身をチェック
+            if (typeof firebase !== 'undefined') {
+                console.log("✅ firebaseオブジェクトを発見しました");
+                
+                // ② 互換モードの書き方で、直接playlistのデータを取得しにいく
+                firebase.database().ref('aiverse_pro_v3/playlist').once('value')
+                .then((snapshot) => {
+                    console.log("🎉 互換モードでのデータ取得に成功！");
+                    const data = snapshot.val();
+                    console.log("📦 届いたデータの中身:", data);
+                    
+                    if (data) {
+                        db.playlists = Array.isArray(data) ? data : Object.values(data);
+                        initBgmPanel();
+                    }
+                })
+                .catch((err) => {
+                    console.error("❌ 互換モードでの取得失敗:", err);
+                });
 
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                console.log("☁️ Firebaseから取得した生のBGMデータ:", data);
-
-                // 💡 Firebaseの [0, 1] という配列/オブジェクト構造を、JavaScriptの綺麗な配列に安全に変換
-                if (Array.isArray(data)) {
-                    db.playlists = data.filter(item => item !== null); // 空要素を除外して綺麗な配列にする
-                } else if (typeof data === 'object') {
-                    db.playlists = Object.values(data);
-                } else {
-                    db.playlists = [];
-                }
-
-                // パネルの描画処理を確実に実行！
-                initBgmPanel();
-
-                console.log("☁️ FirebaseからBGMパネルの同期・描画が完了しました🐾");
-                return;
+            } else {
+                console.log("❌ firebaseオブジェクトがグローバルに存在しません（モジュール版のみ）");
             }
         } catch (e) {
-            console.error("Firebase BGM読み込みエラー:", e);
-        }
-
-        if (!db.playlists || db.playlists.length === 0) {
-            db.playlists = [{ name: "マイリスト", tracks: [] }];
-            initBgmPanel();
+            console.error("❌ デバッグ実行中に致命的エラー:", e);
         }
     }
     function initBgmPanel() {
