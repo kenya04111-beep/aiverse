@@ -2193,14 +2193,13 @@ async function exportData(type = 'posts') {
 }
 
 // =========================================================
-// ⚙️ 歯車ドロップダウン制御（超・シンプル＆デバッグ監視版🐾）
+// ⚙️ 歯車ドロップダウン制御（インラインStyle強制上書き版🐾）
 // =========================================================
 
 // 1. 純粋な開閉処理（HTMLの onclick から呼ばれる）
 window.toggleGearMenu = function(e) {
-    console.log("🚀 toggleGearMenu が発動しました！引数:", e);
+    console.log("🚀 toggleGearMenu が発動しました！");
 
-    // イベントのバブリング（外側クリックへの伝播）を全力で止める
     if (e && typeof e.stopPropagation === 'function') {
         e.stopPropagation();
     } else if (window.event) {
@@ -2208,46 +2207,42 @@ window.toggleGearMenu = function(e) {
     }
 
     const menu = document.getElementById('gear-menu') || document.querySelector('.settings-dropdown');
-    console.log("📦 見つかったメニュー要素:", menu);
+    if (!menu) return;
 
-    if (!menu) {
-        console.error("❌ メニューが見つかりません！HTMLのIDやクラス名を確認してください。");
-        return;
-    }
+    // 現在の style.display または クラス名 から開閉状態を判定
+    const isHidden = menu.style.display === 'none' || 
+                     (!menu.classList.contains('show') && !menu.classList.contains('open') && menu.style.display !== 'block');
 
-    // 開閉状態を反転させる
-    const isOpened = menu.classList.contains('show') || menu.classList.contains('open');
-    if (isOpened) {
-        menu.classList.remove('show', 'open');
-        console.log("🔽 メニューを閉じました");
-    } else {
+    if (isHidden) {
+        // 🔼 開く：クラスを付与し、インラインstyleを block に強制書き換え
         menu.classList.add('show', 'open');
-        console.log("🔼 メニューを開きました");
+        menu.style.display = 'block';
+        console.log("🔼 メニューを【表示（block）】にしました");
+    } else {
+        // 🔽 閉じ：クラスを削除し、インラインstyleを none に強制書き換え
+        menu.classList.remove('show', 'open');
+        menu.style.display = 'none';
+        console.log("🔽 メニューを【非表示（none）】にしました");
     }
 };
 
-// admin用などの別名呼び出しにも対応させる
 window.toggleAdminMenu = window.toggleGearMenu;
 
-
-// 2. 外側クリックで閉じる処理（メニューが開いている時だけ発動）
+// 2. 外側クリックで閉じる処理
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('gear-menu') || document.querySelector('.settings-dropdown');
     if (!menu) return;
 
-    // メニューが開いているか？
-    const isOpened = menu.classList.contains('show') || menu.classList.contains('open');
-    if (!isOpened) return; // 閉じていれば何もしない
+    // メニューが開いているか？（display が block かどうかで判定）
+    if (menu.style.display !== 'block') return;
 
-    // 押された場所が「メニューの中身」や「歯車ボタンそのもの」なら何もしない（ここが超重要）
     if (menu.contains(e.target)) return;
     if (e.target.closest('.gear-btn') || e.target.closest('.fa-cog') || e.target.closest('#admin-gear-btn')) return;
-
-    // モーダルが開いている時も無視
     if (e.target.closest('.modal') || e.target.closest('.modal-content')) return;
 
-    // 上記のどれにも当てはまらない＝「完全な外側」がクリックされたら閉じる
+    // 完全な外側なら display を none にして完全に閉じる
     menu.classList.remove('show', 'open');
+    menu.style.display = 'none';
     console.log("🌌 外側クリックでメニューを閉じました🐾");
 });
 // ---------------------------------------------------------
