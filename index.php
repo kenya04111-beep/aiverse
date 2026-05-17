@@ -2648,7 +2648,22 @@ window.onload = () => {
          }
      });
 
-     // 3. 震え対策CSSの適用
+// ---------------------------------------------------------
+// ✨ [新規追記] 3. 歯車ボタンの常駐監視設定（画面書き直し対策）
+// 画面の中身がどれだけ焼き直されても、ページ全体で歯車のクリックを100%検知します！
+// ---------------------------------------------------------
+     document.addEventListener('click', (event) => {
+         // クリックされた場所、またはその親要素に歯車アイコン（.fa-cog）があるかチェック
+         const cogButton = event.target.closest('.fa-cog') || event.target.closest('#admin-gear-btn') || event.target.closest('[onclick*="toggleAdminMenu"]');
+         if (cogButton) {
+             event.stopPropagation(); // 他のイベントとの衝突を防ぐ安全弁
+             if (typeof window.toggleAdminMenu === 'function') {
+                 window.toggleAdminMenu(event);
+             }
+         }
+     });
+
+　 // 4. 震え対策CSSの適用
      const fixStyle = document.createElement('style');
      fixStyle.textContent = `
          html.modal-open, body.modal-open {
