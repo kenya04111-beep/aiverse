@@ -1621,34 +1621,30 @@ async function removeGalleryImage(index) {
         db.memo = document.getElementById('memo-textarea').value;
         saveToLocalStorage();
     }
-
     let player;
     let isPlayerLoaded = false;
     let activeTrackIdx = 0;
-
-// サーバーから読み込み（🌟依存なし・一発完全開通版）
+// サーバーから読み込み（🌟db直接参照・エラー完全消滅版）
     async function loadBgmFromServer() {
         try {
-            // 一番上で定義されている dbRef の大元（firebase.database().ref() に相当）を使って、
-            // インポートエラーを回避しながら直接データを持ってきます
+            // 一番上の import エリアで読み込んでいるはずの「ref」と「db」をそのまま使います
             const { get } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
-            const snapshot = await get(dbRef.parent.child("playlist"));
+            // 💡 dbRef ではなく、確実にある db と ref を使ってパスを指定！
+            const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
 
             if (snapshot.exists()) {
                 const data = snapshot.val();
 
-                // 既存の変数（db.playlists）にデータを流し込んでパネルを初期化
                 db.playlists = Array.isArray(data) ? data : Object.values(data);
                 initBgmPanel();
 
                 console.log("☁️ FirebaseからBGMを完全同期しました🐾");
-                return; // 💡 成功時はここで終了。下の初期化には進ませない！
+                return; 
             }
         } catch (e) {
             console.error("Firebase BGM読み込みエラー:", e);
         }
 
-        // 万が一Firebaseが完全に空っぽの初期状態時のみ、安全な最低限の枠を作る
         if (!db.playlists || db.playlists.length === 0) {
             db.playlists = [{ name: "マイリスト", tracks: [] }];
             initBgmPanel();
