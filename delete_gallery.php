@@ -1,45 +1,79 @@
 <?php
-header('Content-Type: application/json');
+// エラー出力を有効にしておく（ログ確認用）
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
 
-// 1. データの受け取り
-$data = json_decode(file_get_contents('php://input'), true);
-$filename = isset($data['filename']) ? trim(urldecode($data['filename'])) : '';
-$index = isset($data['index']) ? (int)$data['index'] : -1;
+header('Content-Type: application/json; charset=utf-8');
 
-if (!$filename) {
-    echo json_encode(['success' => false, 'message' => 'ファイル名が空です']);
-    exit;
-}
+// 応答用データの初期化
+$response = ['success' => false, 'message' => '不明なエラー'];
 
-$upload_dir = "/var/www/html/uploads/";
-$json_file = "/var/www/html/gallery.json";
-$filepath = $upload_dir . $filename;
+try {
+    // 🚀 JSから送られてきた JSON データを取得
+    $rawInput = file_get_contents('php://input');
+    $input = json_decode($rawInput, true);
 
-$success = false;
+    // 送られてきたデータを解析
+    $index = isset($input['index']) ? (int)$input['index'] : null;
+    $filename = isset($input['filename']) ? $input['filename'] : (isset($input['file']) ? $input['file'] : '');
 
-// 2. 実体ファイルの削除
-if (file_exists($filepath)) {
-    unlink($filepath);
-    $success = true; // ファイルが消せたら（または既になくても）一旦成功とみなす
-}
-
-// 3. gallery.json (名簿) からも削除
-if (file_exists($json_file)) {
-    $json_data = json_decode(file_get_contents($json_file), true);
-    if (is_array($json_data)) {
-        // 名前が一致する要素を削除（インデックス指定だとズレる可能性があるので名前で探す）
-        $new_json_data = array_values(array_filter($json_data, function($item) use ($filename) {
-            return basename($item['src']) !== $filename;
-        }));
-        
-        // JSONファイルを更新
-        file_put_contents($json_file, json_encode($new_json_data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-        $success = true;
+    // ギャラリーの管理データ（JSON）を読み込み
+    $jsonFile = 'gallery.json';
+    if (!file_exists($jsonFile)) {
+        throw new Exception('gallery.json が見つかりません。');
     }
+
+    $galleryData = json_decode(file_get_contents($jsonFile), true);
+    if (!is_array($galleryData)) {
+        $galleryData = [];
+    }
+
+    // 💡 削除対象の特定ロジック（インデックスまたはファイル名で検索）
+    $targetIndex = null;
+    
+    if ($index !== null && isset($galleryData[$index])) {
+        $targetIndex = $index;
+    } else if (!empty($filename)) {
+        // インデックスが合わない場合はファイル名で検索
+        foreach ($galleryData as $i => $item) {
+            if (isset($item['src']) && basename($item['src']) === basename($filename)) {
+                $targetIndex = $i;
+                break;
+            }
+        }
+    }
+
+    if ($targetIndex === null) {
+        throw new Exception('削除対象の画像データが gallery.json 内に見つかりません。');
+    }
+
+    // 実際の画像ファイルパスを取得（例: uploads/xxxxx.jpg）
+    $fileSrc = $galleryData[$targetIndex]['src'];
+    
+    // 🛑 サーバー上の実際のファイルを削除
+    if (!empty($fileSrc) && file_exists($fileSrc)) {
+        if (!unlink($fileSrc)) {
+            throw new Exception('サーバー上の実ファイル（' . $fileSrc . '）の削除に失敗しました。権限を確認してください。');
+        }
+    }
+
+    // 📋 配列からデータを削除して詰める
+    array_splice($galleryData, $targetIndex, 1);
+
+    // gallery.json に保存
+    if (file_put_contents($jsonFile, json_encode($galleryData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)) === false) {
+        throw new Exception('gallery.json の更新に失敗しました。');
+    }
+
+    // すべて成功
+    $response['success'] = true;
+    $response['message'] = '削除に成功しました🐾';
+
+} catch (Exception $e) {
+    $response['success'] = false;
+    $response['message'] = $e->getMessage();
 }
 
-if ($success) {
-    echo json_encode(['success' => true]);
-} else {
-    echo json_encode(['success' => false, 'message' => '削除対象が見つかりませんでした']);
-}
+// 最後に必ずJSONとして返却
+echo json_encode($response, JSON_UNESCAPED_UNICODE);
+exit;
