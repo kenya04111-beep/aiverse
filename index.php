@@ -1624,17 +1624,18 @@ async function removeGalleryImage(index) {
     let player;
     let isPlayerLoaded = false;
     let activeTrackIdx = 0;
-// サーバーから読み込み（🌟db直接参照・エラー完全消滅版）
+// サーバーから読み込み（🌟完全自己完結・依存エラーゼロ版）
     async function loadBgmFromServer() {
         try {
-            // 一番上の import エリアで読み込んでいるはずの「ref」と「db」をそのまま使います
-            const { get } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
-            // 💡 dbRef ではなく、確実にある db と ref を使ってパスを指定！
-            const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
+            // 最上部の import 文の成否に依存しないよう、get と ref をその場でセットで読み込む
+            const { get, ref: firebaseRef } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+
+            // 💡 確実に存在する「db」と、その場で読み込んだ「firebaseRef」を合体させてパスを指定！
+            const snapshot = await get(firebaseRef(db, "aiverse_pro_v3/playlist"));
 
             if (snapshot.exists()) {
                 const data = snapshot.val();
-
+                // 既存の変数（db.playlists）にデータを流し込んでパネルを初期化
                 db.playlists = Array.isArray(data) ? data : Object.values(data);
                 initBgmPanel();
 
