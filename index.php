@@ -2668,9 +2668,20 @@ window.onload = () => {
     const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     const db = getDatabase(app);
     const dbRef = ref(db, "alverse_pro_v3/posts");
-    // 🌟【ここに貼り付け】Firebaseと同じ部屋（モジュール空間）でBGMを動かす！
-    window.loadBgmFromServer = async () => {
-        try {
+
+     // 🚀 モジュール世界のFirebase保存機能を、グローバル窓口として大開放！
+     window.saveBgmToFirebase = async function(playlistsData) {
+         try {
+             await set(ref(db, "alverse_pro_v3/playlist"), playlistsData);
+             console.log("🔥 Firebase(v10)にBGMデータを完全同期しました🐾");
+         } catch (e) {
+             console.error("Firebase保存エラー:", e);
+         }
+     };
+
+     // 🌟【ここに貼り付け】Firebaseと同じ部屋（モジュール空間）でBGMを動かす！
+     window.loadBgmFromServer = async () => {
+         try {
             // 同じ部屋にいる正規の get と ref を使って一撃で取得！
             const snapshot = await get(ref(db, "alverse_pro_v3/playlist"));
             if (snapshot.exists()) {
