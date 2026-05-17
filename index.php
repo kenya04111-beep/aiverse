@@ -2715,11 +2715,10 @@ window.onload = () => {
      loadBgmFromServer();    // 🎸 管理者設定のBGMを共有
      setupDraftSystem();    // 📝 執筆支援
 }; // 📌 ここで window.onload が完璧に美しく閉じます！
+</script>
 // =========================================================
 // 🔥 ここから先は隔離された「Firebase v10」の最強モジュール世界！
 // =========================================================
-</script>
-
 <script type="module">
      // 1. Firebaseの読み込み（最上部に set も完全配備！）
      import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -2788,59 +2787,77 @@ window.onload = () => {
          }
      };
 
-     // 4. 送信関数：ねこの知恵袋（BBS）
-     window.submitBoardPost = () => {
-         const titleInput = document.getElementById('board-title-input');
-         const bodyInput = document.getElementById('board-body-input');
+      // =========================================================
+      // 😸 4. 送信関数：ねこの知恵袋（BBS）
+      // =========================================================
+      window.submitBoardPost = () => {
+          const titleInput = document.getElementById('board-title-input');
+          const bodyInput = document.getElementById('board-body-input');
 
-         if (!bodyInput) return;
+          if (!bodyInput) return;
 
-         const title = titleInput.value.trim() || "無題の知恵";
-         const body = bodyInput.value.trim();
+          const title = titleInput.value.trim() || "無題の知恵";
+          const body = bodyInput.value.trim();
 
-         if (body === "") {
-             alert("本文を入力してくださいにゃ！");
-             return;
-         }
+          if (body === "") {
+              alert("本文を入力してくださいにゃ！");
+              return;
+          }
 
-         push(dbRef, {
-             title: title,
-             text: body,
-             user: "Kenya",
-             timestamp: serverTimestamp()
-         }).then(() => {
-             if (titleInput) titleInput.value = "";
-             bodyInput.value = "";
-             console.log("知恵を共有しました！");
-         }).catch((error) => {
-             console.error("送信エラー:", error);
-             alert("送信に失敗しました。通信状況を確認してくださいにゃ。");
-         });
-     };
+          // 🚀 SDKでの push 送信
+          push(dbRef, {
+              title: title,
+              text: body,   // 💡 既存のリアルタイム受信用（text）
+              body: body,   // 💡 管理者機能・REST API読み込みとの互換用（body）を追加！
+              user: "Kenya",
+              timestamp: serverTimestamp()
+          }).then(() => {
+              if (titleInput) titleInput.value = "";
+              bodyInput.value = "";
+              console.log("知恵を共有しました！");
+          }).catch((error) => {
+              console.error("送信エラー:", error);
+              alert("送信に失敗しました。通信状況を確認してくださいにゃ。");
+          });
+      };
 
-     // 5. リアルタイム受信：モーダル内のコンテナに流し込む
-     onChildAdded(dbRef, (data) => {
-         const post = data.val();
-         const container = document.getElementById('board-posts-container');
+      // =========================================================
+      // 📋 5. リアルタイム受信：モーダル内のコンテナに流し込む（バグ修正版）
+      // =========================================================
+      onChildAdded(dbRef, (data) => {
+          const post = data.val();
+          const container = document.getElementById('board-posts-container');
 
-         if (container) {
-             const article = document.createElement('article');
-             article.className = 'board-post';
-             const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-             const safeText = (post.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-             const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "今さっき";
+          if (container) {
+              // 💡 【超重要】もし中に「まだ知恵がありません🐾」の初期枠が入っていたら、
+              // 新しい投稿を追加する前にコンテナの中身を完全にクリアします！
+              if (container.innerHTML.includes("まだ知恵がありません")) {
+                  container.innerHTML = '';
+              }
 
-             article.innerHTML = `
-                 <div class="board-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:5px;">
-                     <span class="board-title" style="font-weight:bold; color:#3e2723;">📌 ${safeTitle}</span>
-                     <span style="font-size:0.7rem; color:#aaa;">${date}</span>
-                 </div>
-                 <div class="board-body" style="padding: 12px 0; color: #444; line-height:1.6; white-space: pre-wrap;">${safeText}</div>
-             `;
+              const article = document.createElement('article');
+              article.className = 'board-post';
+              // 管理者機能と同期できるようにFirebaseのキーをデータ属性として仕込んでおく
+              article.setAttribute('data-key', data.key);
 
-             container.prepend(article);
-         }
-     });
+              const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+              // text または body のどちらからでも本文を抽出できるように考慮
+              const currentBody = post.body || post.text || "";
+              const safeText = currentBody.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+              const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "今さっき";
+
+              article.innerHTML = `
+                  <div class="board-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:5px;">
+                      <span class="board-title" style="font-weight:bold; color:#3e2723;">📌 ${safeTitle}</span>
+                      <span style="font-size:0.7rem; color:#aaa;">${date}</span>
+                  </div>
+                  <div class="board-body" style="padding: 12px 0; color: #444; line-height:1.6; white-space: pre-wrap;">${safeText}</div>
+              `;
+
+              // 最新の書き込みを一番上にスマートに追加
+              container.prepend(article);
+          }
+      });
 </script>
 </body>
 </html>
