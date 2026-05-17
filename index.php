@@ -1166,7 +1166,8 @@ initAppState();
             const fallbackImg = 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=600&q=80';
             const imageUrl = p.image || fallbackImg;
 
-            const adminPanelHTML = db.isAdmin ? `
+            const adminPanelHTML =
+    (typeof db !== 'undefined' && db.isAdmin) ? `
                 <div style="display:flex; gap:4px; margin-top:8px;" onclick="event.stopPropagation();">
                     <span style="background:${p.public ? '#28a745' : '#6c757d'}; color:white; padding:2px 6px; border-radius:4px; font-size:0.7rem;">${p.public ? '公開中' : '下書き'}</span>
                     <button onclick="editArticle(${p.id})" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:4px; font-size:0.7rem;">編集</button>
@@ -1303,35 +1304,65 @@ selector.onchange = function() {
   }
 }
 
-    // ----------------------------- 🌛 ダークモード＆管理者長押し (現状維持) -----------------------------
-    let pressTimer;
-    const dmBtn = document.getElementById('dark-mode-btn');
+// ----------------------------- 🌛 ダークモード＆管理者長押し (整理版) -----------------------------
+let pressTimer;
 
-    dmBtn.addEventListener('pointerdown', function(e) {
+const dmBtn = document.getElementById('dark-mode-btn');
+if (dmBtn) {
+
+    dmBtn.addEventListener('pointerdown', function (e) {
         e.preventDefault();
-    pressTimer = setTimeout(() => {
-                const pass = prompt("🔑 パスワードを入力してください：");
-                if (pass === "nekosuke101") {
-                    db.isAdmin = true;
-                    saveToLocalStorage();
-                    renderArticlesGrid();
-                    document.getElementById('admin-logout-item').style.display = 'block';
-                    alert("認証成功：管理者コントロール解放！");
-                    openModal('admin-modal');
-                } else if (pass !== null) {
-                    alert("パスワードが違います。");
-                }
-            }, 1100);
-        });
-    dmBtn.addEventListener('pointerup', function() { clearTimeout(pressTimer); });
-    dmBtn.addEventListener('pointerleave', function() { clearTimeout(pressTimer); });
-    dmBtn.addEventListener('click', function() {
-        const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+
+        pressTimer = setTimeout(() => {
+
+            const pass = prompt("🔑 パスワードを入力してください：");
+
+            if (pass === "nekosuke101") {
+
+                // 管理者ON
+                db.isAdmin = true;
+                saveToLocalStorage();
+
+                // 画面更新（ここは先にやる）
+                renderArticlesGrid();
+
+                // UI更新は「遅延させてDOM確定後」
+                setTimeout(() => {
+                    const logout = document.getElementById('admin-logout-dynamic');
+                    if (logout) logout.style.display = 'block';
+                }, 0);
+
+                alert("認証成功：管理者コントロール解放！");
+                openModal('admin-modal');
+
+            } else if (pass !== null) {
+                alert("パスワードが違います。");
+            }
+
+        }, 1100);
+    });
+
+    dmBtn.addEventListener('pointerup', function () {
+        clearTimeout(pressTimer);
+    });
+
+    dmBtn.addEventListener('pointerleave', function () {
+        clearTimeout(pressTimer);
+    });
+
+    dmBtn.addEventListener('click', function () {
+
+        const theme =
+            document.body.getAttribute('data-theme') === 'dark'
+                ? 'light'
+                : 'dark';
+
         document.body.setAttribute('data-theme', theme);
+
         db.theme = theme;
         saveToLocalStorage();
     });
-
+}
 // --- ⚙️ 設定: Firebase BBSパス ---
 const BBS_ENDPOINT = 'https://alverse-project-default-rtdb.firebaseio.com/alverse_pro_v3/board.json';~
 // --- 🛡️ セキュリティ & ユーティリティ ---
@@ -1622,17 +1653,24 @@ async function removeGalleryImage(index) {
         } catch (e) { console.log("サーバーBGMなし"); }
     }
 
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('yt-player-frame', {
-            height: '100%', width: '100%', videoId: '',
-            playerVars: { 'autoplay': 0, 'controls': 1 },
-            events: {
-                'onReady': () => { isPlayerLoaded = true; },
-                'onStateChange': (e) => { if (e.data === YT.PlayerState.ENDED) playNextTrack(); }
-            }
-        });
-    }
-
+function onYouTubeIframeAPIReady() {
+         try {
+             if (typeof YT !== 'undefined' && YT.Player) {
+                 // 🌟 window経由で代入することで、初期化前のすれ違いエラーを100%回避します
+                 window.player = new YT.Player('yt-player-frame', {
+                     height: '100%', width: '100%', videoId: '',
+                     playerVars: { 'autoplay': 0, 'controls': 1 },
+                     events: {
+                         // 🌟 フラグ代入もwindow経由で安全に実行
+                         'onReady': () => { window.isPlayerLoaded = true; },
+                         'onStateChange': (e) => { if (e.data === YT.PlayerState.ENDED) playNextTrack(); }
+                     }
+                 });
+             }
+         } catch (error) {
+             console.warn("YouTubeプレイヤーの初期化を安全にスキップしました:", error);
+         }
+     }
     function initBgmPanel() {
         const selector = document.getElementById('playlist-selector');
         if (!selector) return;
@@ -1800,17 +1838,21 @@ function savePostFromAdmin() {
     clearAdminForm();
 }
 
-// 管理者メニューの表示状態を更新する関数
+// 管理者メニューの表示状態を更新する関数（HTML完全連動版）
 function updateAdminUI() {
-    if (db.isAdmin) {
-        // HTML側で設定したID名（admin-new-post-menu / admin-logout-menu）に合わせて表示を切り替えます
-        const newPostMenu = document.getElementById('admin-new-post-menu');
-        const logoutMenu = document.getElementById('admin-logout-menu');
+    // 💡 ケニアさんが統合してくれたHTMLのグループID（admin-menu-section）を直接探します
+    const adminMenuSection = document.getElementById('admin-menu-section');
 
-        if (newPostMenu) newPostMenu.style.display = 'block';
-        if (logoutMenu) logoutMenu.style.display = 'block';
-
-        console.log("管理者メニューを有効化しました 😸");
+    if (db.isAdmin || localStorage.getItem('aiverse_admin') === 'true') {
+        if (adminMenuSection) {
+            // style="display:none;" を上書き解除して一発表示！
+            adminMenuSection.style.display = 'block';
+        }
+        console.log("管理者メニュー（ADMIN枠）を有効化しました 😸");
+    } else {
+        if (adminMenuSection) {
+            adminMenuSection.style.display = 'none';
+        }
     }
 }
 // ページ読み込み完了時に実行して、ログイン状態を復元する
@@ -2095,34 +2137,39 @@ async function exportData(type = 'posts') {
 // ⚙️ 歯車ドロップダウン制御（ID: gear-menu 統合軽量版）
 // ---------------------------------------------------------
 
-function toggleGearMenu(event = null) {
-    if (event) {
-        event.stopPropagation(); // 画面クリックイベントとの衝突防止
+function toggleGearMenu(e = null) {
+    // 画面クリック（外側クリック判定）との衝突を安全に防ぐ
+    if (e && typeof e.stopPropagation === 'function') {
+        e.stopPropagation(); 
     }
 
     const menu = document.getElementById('gear-menu');
     if (!menu) {
-        console.error("ID 'gear-menu' が見つかりません。HTMLを確認してください。");
+        console.error("ID 'gear-menu' が見つかりません。");
         return;
     }
 
-    // 表示・非表示の切り替えは、CSSの 'show' クラスの付け外しだけに完全一本化！
-    // これにより、中の管理者メニュー（新規投稿・ログアウト）の表示状態が破壊されなくなります。
+    // CSSの 'show' クラス付け外しだけで制御
     menu.classList.toggle('show');
 }
-
 // 🌌 画面のどこか（外側）をクリックした時にメニューを閉じる処理
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('gear-menu');
-    const gearBtn = document.querySelector('.gear-btn');
 
-    // メニューが開いている（showクラスがある）時だけ判定
-    if (menu && menu.classList.contains('show')) {
-        // クリックされた場所が「メニュー自体」でも「歯車ボタン」でもない場合
-        if (!menu.contains(e.target) && gearBtn && !gearBtn.contains(e.target)) {
-            menu.classList.remove('show');
-            console.log("⚙️ Menu closed by outside click");
-        }
+    // メニューが存在し、かつ開いている時だけ判定
+    if (!menu || !menu.classList.contains('show')) return;
+
+    // モーダル等が開いている場合は無視（既存の安全装置）
+    if (e.target.closest('.modal') || e.target.closest('.modal-content')) return;
+
+    // ✨【最強の判定】クリックされたのが「メニューの中」か「歯車ボタンそのもの」かを判定
+    // クラス名だけでなく、onclick属性に"toggleGearMenu"が含まれているかもチェックします
+    const isInsideMenu = menu.contains(e.target);
+    const isGearBtn = e.target.closest('.gear-btn') || e.target.closest('[onclick*="toggleGearMenu"]');
+
+    if (!isInsideMenu && !isGearBtn) {
+        menu.classList.remove('show');
+        console.log("⚙️ Menu closed by outside click");
     }
 });
 // ---------------------------------------------------------
@@ -2167,30 +2214,6 @@ function closeModal(id) {
         .classList.remove('modal-open');
 }
 
-// =========================================================
-// 🕶️ 管理者メニュー注入（HTMLの非表示を解除する最新版）
-// =========================================================
-
-function injectAdminMenu() {
-    const menu = document.getElementById('gear-menu');
-    if (!menu) return;
-
-    // 既に追加済みなら二重防止
-    if (document.getElementById('admin-logout-dynamic')) return;
-
-    const logoutItem = document.createElement('div');
-    logoutItem.id = 'admin-logout-dynamic';
-    logoutItem.className = 'menu-group';
-
-    logoutItem.innerHTML = `
-        <a href="#" onclick="logoutAdmin(); toggleGearMenu(); return false;"
-           style="color:#fa5252; font-weight:bold;">
-            🔓 管理ログアウト
-        </a>
-    `;
-
-    menu.appendChild(logoutItem);
-}
 // =========================================================
 // 🔐 管理者モード
 // =========================================================
@@ -2352,22 +2375,34 @@ async function loadAllArticles() {
     console.log("loadAllArticles OK");
 }
 // =========================================================
-// 🚀 自動復元
+// 🚀 自動復元（整理版）
 // =========================================================
+
 window.addEventListener('load', () => {
-    if (typeof db !== 'undefined' && typeof loadAllArticles === 'function') {
+
+    // 記事読み込み
+    if (
+        typeof db !== 'undefined' &&
+        typeof loadAllArticles === 'function'
+    ) {
         loadAllArticles();
     }
 
-    if (localStorage.getItem('aiverse_admin') === 'true') {
-        if (typeof db !== 'undefined') {
-            db.isAdmin = true;
-        }
+    // 管理者ログイン状態の復元
+    const isAdminSaved =
+        localStorage.getItem('aiverse_admin') === 'true';
 
+    if (isAdminSaved && typeof db !== 'undefined') {
+
+        db.isAdmin = true;
+
+        // DOM描画後に管理者メニュー注入
         setTimeout(() => {
+
             if (typeof injectAdminMenu === 'function') {
                 injectAdminMenu();
             }
+
         }, 100);
     }
 });
@@ -2416,29 +2451,43 @@ function initCategorySelect() {
 }
 
 // =========================================================
-// 💾 自動保存 ＆ プレビュー連動システム
+// 💾 自動保存 ＆ プレビュー連動システム（セキュリティエラー完全回避版）
 // =========================================================
 function setupDraftSystem() {
-    const titleInp = document.getElementById('admin-title-input');
-    const bodyInp = document.getElementById('admin-body-input');
-    const categoryInp = document.getElementById('admin-category-input');
+      const titleInp = document.getElementById('admin-title-input');
+      const bodyInp = document.getElementById('admin-body-input');
+      const categoryInp = document.getElementById('admin-category-input');
 
-    // 安全弁：どれか1つでも要素がなければ処理を行わない
-    if (!titleInp || !bodyInp || !categoryInp) return;
+      // 安全弁：どれか1つでも要素がなければ処理を行わない
+      if (!titleInp || !bodyInp || !categoryInp) return;
 
-    // 入力・変更があったら実行
-    const handleInput = () => {
-        updateAdminPreview(); // プレビュー更新
-        saveDraft();          // 下書き保存
-    };
-    titleInp.addEventListener('input', handleInput);
-    bodyInp.addEventListener('input', handleInput);
-    categoryInp.addEventListener('change', handleInput);
+      // 入力・変更があったら実行
+      const handleInput = () => {
+          updateAdminPreview(); // プレビュー更新
 
-    // ページ読み込み時に下書きがあれば復元
-    loadDraft();
+          // ✨【安全装置】保存時にlocalStorageがブロックされてもクラッシュさせない
+          try {
+              if (typeof saveDraft === 'function') {
+                  saveDraft(); // 下書き保存
+              }
+          } catch (e) {
+              console.warn("localStorageへの書き込みがブロックされました(下書きは保存されません):", e);
+          }
+      };
+
+      titleInp.addEventListener('input', handleInput);
+      bodyInp.addEventListener('input', handleInput);
+      categoryInp.addEventListener('change', handleInput);
+
+      // ✨【ここを完全防御】ページ読み込み時のフライングエラーを100%遮断する
+      try {
+          if (typeof loadDraft === 'function') {
+              loadDraft(); // 下書き復元
+          }
+      } catch (e) {
+          console.warn("localStorageからの初期読み込みがブロックされました:", e);
+      }
 }
-
 // =========================================================
 // 👁️ プレビュー描画（安全ガード追加版）
 // =========================================================
@@ -2489,18 +2538,25 @@ function saveDraft() {
     };
     localStorage.setItem('aiverse_post_draft', JSON.stringify(draft));
 }
-// 📥 下書き復元ロジック
+// 📥 下書き復元ロジック（セキュリティエラー完全回避版）
 function loadDraft() {
-    const saved = localStorage.getItem('aiverse_post_draft');
-    if (!saved) return;
-    const data = JSON.parse(saved);
-    // 2時間以内の下書きなら復元
-    if (new Date().getTime() - data.updated < 7200000) {
-        document.getElementById('admin-title-input').value = data.title;
-        document.getElementById('admin-body-input').value = data.body;
-        document.getElementById('admin-category-input').value = data.category;
-        document.getElementById('admin-image-input').value = data.image || ""; // ✨ 画像URLを復元
-        updateAdminPreview(); // 復元した内容でプレビューを表示
+    try {
+        // 🌟 この try の中で localStorage を触ることで、アクセス拒否されてもクラッシュしなくなります
+        const saved = localStorage.getItem('aiverse_post_draft');
+        if (!saved) return;
+
+        const data = JSON.parse(saved);
+        // 2時間以内の下書きなら復元
+        if (new Date().getTime() - data.updated < 7200000) {
+            document.getElementById('admin-title-input').value = data.title;
+            document.getElementById('admin-body-input').value = data.body;
+            document.getElementById('admin-category-input').value = data.category;
+            document.getElementById('admin-image-input').value = data.image || ""; // ✨ 画像URLを復元
+            updateAdminPreview(); // 復元した内容でプレビューを表示
+        }
+    } catch (e) {
+        // ブラウザにブロックされた場合は、静かに警告を出すだけで処理をスルー
+        console.warn("localStorageからの下書き復元がブロックされました（処理は安全に続行されます）:", e);
     }
 }
 // ---------------------------------------------------------
