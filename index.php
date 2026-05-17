@@ -1626,11 +1626,14 @@ async function removeGalleryImage(index) {
     let isPlayerLoaded = false;
     let activeTrackIdx = 0;
 
-// サーバーから読み込み（🌟Firebase完全一本化・エラーなし決定版）
+// サーバーから読み込み（🌟依存なし・一発完全開通版）
     async function loadBgmFromServer() {
         try {
-            // 一番上でインポートした正規の get と ref を使い、一撃でFirebaseから取得！
-            const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
+            // 一番上で定義されている dbRef の大元（firebase.database().ref() に相当）を使って、
+            // インポートエラーを回避しながら直接データを持ってきます
+            const { get } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+            const snapshot = await get(dbRef.parent.child("playlist"));
+
             if (snapshot.exists()) {
                 const data = snapshot.val();
 
@@ -1639,7 +1642,7 @@ async function removeGalleryImage(index) {
                 initBgmPanel();
 
                 console.log("☁️ FirebaseからBGMを完全同期しました🐾");
-                return; // 💡 読み込み成功時はここで終了。下の初期化には進ませない！
+                return; // 💡 成功時はここで終了。下の初期化には進ませない！
             }
         } catch (e) {
             console.error("Firebase BGM読み込みエラー:", e);
@@ -1651,17 +1654,6 @@ async function removeGalleryImage(index) {
             initBgmPanel();
         }
     }
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('yt-player-frame', {
-            height: '100%', width: '100%', videoId: '',
-            playerVars: { 'autoplay': 0, 'controls': 1 },
-            events: {
-                'onReady': () => { isPlayerLoaded = true; },
-                'onStateChange': (e) => { if (e.data === YT.PlayerState.ENDED) playNextTrack(); }
-            }
-        });
-    }
-
     function initBgmPanel() {
         const selector = document.getElementById('playlist-selector');
         if (!selector) return;
