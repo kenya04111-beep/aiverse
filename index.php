@@ -1688,11 +1688,14 @@ const snapshot = await get(ref(db, "alverse_pro_v3/playlist")); // 👈 sなし�
 
         window.renderBgmTracks(); // 画面を再描画
 
-        // 🔥 Firebase（sなしのplaylist部屋）に正しい親子構造で上書き保存！
+// 🔥 Firebase（sなしのplaylist部屋）に正しい親子構造で上書き保存！
         try {
-            await set(ref(db, "alverse_pro_v3/playlist"), db.playlists);
+            // 部屋に必ず存在するクラシックルートでデータを一撃上書き保存！
+            await firebase.database().ref("alverse_pro_v3/playlist").set(db.playlists);
             console.log("Firebase同期完了🐾");
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+        }
     };
     // 🌟 2. トラック描画の窓口化
     window.renderBgmTracks = function() {
