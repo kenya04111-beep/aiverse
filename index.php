@@ -1627,12 +1627,10 @@ async function removeGalleryImage(index) {
    // サーバーから読み込み（🌟Firebase初期化タイミング完全同調版）
     async function old_loadBgmFromServer() {
         try {
-            // 一番上の import で読み込んでいる正規の get と ref をそのまますっきり使用
-            const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
-
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-
+// 互換性の高いルートでFirebaseから直接データを1撃で引っ張る
+const snapshot = await get(ref(db, "alverse_pro_v3/playlist")); // 👈 sなしのplaylistにする！
+             if (snapshot.exists()) {
+                 const data = snapshot.val();
                 // [0, 1] の配列・オブジェクト構造を安全に展開
                 if (Array.isArray(data)) {
                     db.playlists = data.filter(item => item !== null);
