@@ -2250,9 +2250,6 @@ document.addEventListener('click', function(e) {
     menu.classList.remove('show', 'open');
     console.log("🌌 外側クリックでメニューを閉じました🐾");
 });
-// HTML側に残っているかもしれない onclick 属性の衝突を防ぐためのお守り（ダミー関数化）
-window.toggleGearMenu = function(e = null) { if (e && e.stopPropagation) e.stopPropagation(); };
-window.toggleAdminMenu = function(e = null) { if (e && e.stopPropagation) e.stopPropagation(); };
 // ---------------------------------------------------------
 // 🌌 モーダル制御
 // ---------------------------------------------------------
