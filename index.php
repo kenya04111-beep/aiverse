@@ -1583,25 +1583,37 @@ function closeGalleryZoom() {
         }
     }
 
-// 5. 削除機能（サーバー同期版）
+// 5. 削除機能（サーバー同期・ファイル名＆インデックス両方送信版🐾）
 async function removeGalleryImage(index) {
-    if (confirm("サーバーからこの画像を完全に削除しますか？")) {
-        try {
+    // 💡 安全装置：対象の画像データを特定し、ファイル名を抜き出す
+    const targetImage = db.gallery[index];
+    if (!targetImage || !targetImage.src) {
+        alert("エラー：削除対象の画像データが見つかりません。");
+        return;
+    }
 
-            // サーバー側の削除用プログラム(PHP)にインデックスを送る
+    // 例: "uploads/image.jpg" から "image.jpg" だけを抽出（フルパスでも動くように考慮）
+    const filename = targetImage.src.split('/').pop();
+
+    if (confirm(`サーバーからこの画像（${filename}）を完全に削除しますか？`)) {
+        try {
+            // 🚀 PHP側が「index」を欲しがっても「filename」を欲しがってもいいように両方送る！
             const response = await fetch('delete_gallery.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ index: index })
+                body: JSON.stringify({ 
+                    index: index,
+                    filename: filename,
+                    file: filename // 念のため別名でも仕込んでおくお守り
+                })
             });
 
             const result = await response.json();
 
             if (result.success) {
-
                 // サーバーで消せたら、最新のリストを再取得して表示を更新
                 await loadServerGallery();
-                console.log("サーバー上のデータを更新しました");
+                console.log("📸 サーバー上の画像ギャラリーデータを更新しました🐾");
             } else {
                 alert('削除に失敗しました: ' + result.message);
             }
