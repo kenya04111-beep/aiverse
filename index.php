@@ -1973,13 +1973,12 @@ function escapeHTML(str) {
  * 🗑️ 掲示板（猫の知恵袋）の投稿削除機能
  */
 async function deleteBoardEntry(fbKey) {
-    if (!confirm("この知恵を消去してもよろしいですか？🐾")) return;
+     if (!confirm("この知恵を消去してもよろしいですか？🐾")) return;
 
-    try {
-        // ★修正ポイント：URLを正しく結合しました
-        const deleteUrl = `https://alverse-project-default-rtdb.firebaseio.com/alverse_pro_v3/articles/${postId}.json`;
-        const res = await fetch(deleteUrl, { method: 'DELETE' });
-
+     try {
+         // 🌟 URLをアジアの正規RTDBドメインに修正し、変数も fbKey に統一します
+         const deleteUrl = `https://alverse-project-default-rtdb.asia-southeast1.firebasedatabase.app/alverse_pro_v3/articles/${fbKey}.json`;
+         const res = await fetch(deleteUrl, { method: 'DELETE' });
         if (!res.ok) throw new Error("削除リクエストに失敗しました");
 
         alert("消去完了しました 🐱");
