@@ -1473,13 +1473,13 @@ async function submitBoardPost() {
         timestamp: Date.now()
     };
 
-    try {
-        const res = await fetch(BBS_ENDPOINT, {
+try {
+        // 🌟 修正：不確定な定数（BBS_ENDPOINT）を捨て、正規のアジアRTDBのURLを直接指定します！
+        const res = await fetch('https://alverse-project-default-rtdb.asia-southeast1.firebasedatabase.app/alverse_pro_v3/board.json', {
             method: 'POST',
             body: JSON.stringify(newPost)
         });
         if (!res.ok) throw new Error();
-
         titleIn.value = '';
         bodyIn.value = '';
         await loadBoardFromServer(); // 投稿後にデータを再取得
