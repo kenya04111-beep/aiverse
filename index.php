@@ -2629,7 +2629,7 @@ function loadDraft() {
     }
 }
 // ---------------------------------------------------------
-// 🚀 起動処理 (window.onload) 
+// 🚀 起動処理 (window.onload)
 // 📌 頭とお尻を完全に一本化して、ここで一気にシステムを起動させます！
 // ---------------------------------------------------------
 window.onload = () => {
@@ -2638,8 +2638,8 @@ window.onload = () => {
      renderArticlesGrid();
 
      // 2. モーダル背景クリックの設定
-     const allModalIds = ['detail-modal', 'photo-modal', 'board-modal', 'gallery-modal', 'bgm-modal', 'admin-modal', 'memo-modal'];
-     allModalIds.forEach(id => {
+　　const allModalIds = ['detail-modal', 'photo-modal', 'board-modal', 'gallery-modal', 'bgm-modal', 'memo-modal'];
+    allModalIds.forEach(id => {
          const modal = document.getElementById(id);
          if (modal) {
              modal.addEventListener('click', (event) => {
