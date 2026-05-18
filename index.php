@@ -1913,20 +1913,30 @@ function savePostFromAdmin() {
 
 // 管理者メニューの表示状態を更新する関数（HTML完全連動版）
 function updateAdminUI() {
-    // 💡 ケニアさんが統合してくれたHTMLのグループID（admin-menu-section）を直接探します
-    const adminMenuSection = document.getElementById('admin-menu-section');
+     // 💡 ケニアさんが統合してくれたHTMLのグループID（admin-menu-section）を直接探します
+     const adminMenuSection = document.getElementById('admin-menu-section');
 
-    if (db.isAdmin || localStorage.getItem('aiverse_admin') === 'true') {
-        if (adminMenuSection) {
-            // style="display:none;" を上書き解除して一発表示！
-            adminMenuSection.style.display = 'block';
-        }
-        console.log("管理者メニュー（ADMIN枠）を有効化しました 😸");
-    } else {
-        if (adminMenuSection) {
-            adminMenuSection.style.display = 'none';
-        }
-    }
+     if (db.isAdmin || localStorage.getItem('aiverse_admin') === 'true') {
+         if (adminMenuSection) {
+             // style="display:none;" を上書き解除して一発表示！
+             adminMenuSection.style.display = 'block';
+         }
+         console.log("管理者メニュー（ADMIN枠）を有効化しました 😸");
+
+         // 🚀【ここを追記】管理者有効化のタイミングで、知恵袋をボタン付き状態へ強制リフレッシュ！
+         if (typeof window.refreshBoardUI === 'function') {
+             window.refreshBoardUI();
+         }
+     } else {
+         if (adminMenuSection) {
+             adminMenuSection.style.display = 'none';
+         }
+
+         // 🚀【ここを追記】一般モード（ログアウト等）になったら、管理者ボタンを消すためにリフレッシュ！
+         if (typeof window.refreshBoardUI === 'function') {
+             window.refreshBoardUI();
+         }
+     }
 }
 // ページ読み込み完了時に実行して、ログイン状態を復元する
 window.addEventListener('load', updateAdminUI);
@@ -2788,41 +2798,41 @@ window.onload = () => {
          }
      };
 
-      // =========================================================
-      // 😸 4. 送信関数：ねこの知恵袋（BBS）
-      // =========================================================
-      window.submitBoardPost = () => {
-          const titleInput = document.getElementById('board-title-input');
-          const bodyInput = document.getElementById('board-body-input');
+       // =========================================================
+       // 😸 4. 送信関数：ねこの知恵袋（BBS）
+       // =========================================================
+       window.submitBoardPost = () => {
+           const titleInput = document.getElementById('board-title-input');
+           const bodyInput = document.getElementById('board-body-input');
 
-          if (!bodyInput) return;
+           if (!bodyInput) return;
 
-          const title = titleInput.value.trim() || "無題の知恵";
-          const body = bodyInput.value.trim();
+           const title = titleInput.value.trim() || "無題の知恵";
+           const body = bodyInput.value.trim();
 
-          if (body === "") {
-              alert("本文を入力してくださいにゃ！");
-              return;
+           if (body === "") {
+               alert("本文を入力してくださいにゃ！");
+               return;
           }
 
-          // 🚀 SDKでの push 送信
-          push(dbRef, {
-              title: title,
-              text: body,   // 💡 既存のリアルタイム受信用（text）
-              body: body,   // 💡 管理者機能・REST API読み込みとの互換用（body）を追加！
-              user: "Kenya",
-              timestamp: serverTimestamp()
-          }).then(() => {
-              if (titleInput) titleInput.value = "";
-              bodyInput.value = "";
-              console.log("知恵を共有しました！");
-          }).catch((error) => {
-              console.error("送信エラー:", error);
-              alert("送信に失敗しました。通信状況を確認してくださいにゃ。");
-          });
-      };
+           // 🚀 SDKでの push 送信
+           push(dbRef, {
+               title: title,
+               text: body,   // 💡 既存のリアルタイム受信用（text）
+               body: body,   // 💡 管理者機能・REST API読み込みとの互換用（body）を追加！
+               user: "Kenya",
+               timestamp: serverTimestamp()
+           }).then(() => {
+               if (titleInput) titleInput.value = "";
+               bodyInput.value = "";
+               console.log("知恵を共有しました！");
+           }).catch((error) => {
+               console.error("送信エラー:", error);
+               alert("送信に失敗しました。通信状況を確認してくださいにゃ。");
+           });
+       };
 
-// =========================================================
+       // =========================================================
        // 📋 5. リアルタイム受信：モーダル内のコンテナに流し込む（管理者ボタン対応版🐾）
        // =========================================================
        onChildAdded(dbRef, (data) => {
@@ -2830,16 +2840,17 @@ window.onload = () => {
            const container = document.getElementById('board-posts-container');
 
            if (container) {
-               // 💡 【超重要】もし中に「まだ知恵がありません🐾」の初期枠が入っていたら、
-               // 新しい投稿を追加する前にコンテナの中身を完全にクリアします！
+               // 💡 もし中に「まだ知恵がありません🐾」の初期枠が入っていたらクリア
                if (container.innerHTML.includes("まだ知恵がありません")) {
                    container.innerHTML = '';
                }
 
+               // すでに同じキーの要素が描画されていたら重複を防ぐためにスキップ
+               if (document.getElementById(`board-post-${data.key}`)) return;
+
                const article = document.createElement('article');
                article.className = 'board-post';
                article.setAttribute('data-key', data.key);
-               // 個別削除・編集の同期がしやすいように要素IDも個別に付与
                article.id = `board-post-${data.key}`;
 
                const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -2847,8 +2858,8 @@ window.onload = () => {
                const safeText = currentBody.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "今さっき";
 
-               // 👑 管理者ログイン状態を判定（ギャラリーと共通のフラグ等を参照）
-               const isManager = (typeof db !== 'undefined' && db.adminLoggedIn) || window.adminLoggedIn;
+               // 👑 管理者ログイン状態を完璧に判定（db.isAdmin を最優先チェック！）
+               const isManager = typeof db !== 'undefined' && db.isAdmin;
 
                // 管理者モードのときだけ青（編集）と赤（削除）のボタンを仕込む
                const adminButtons = isManager ? `
@@ -2872,12 +2883,26 @@ window.onload = () => {
            }
        });
 
+       // 🚀【新設】ログイン成功時などに外側から知恵袋を強制リフレッシュさせるグローバル司令窓口
+       window.refreshBoardUI = () => {
+           const container = document.getElementById('board-posts-container');
+           if (container) {
+               container.innerHTML = ''; // 一度画面を空にする
+               // Firebaseからデータを再取得（既存のonChildAddedが再びトリガーされ、最新のisAdminフラグに基づいてボタン付きで再描画されます）
+               const postsRef = ref(dbInstance, "alverse_pro_v3/posts");
+               get(postsRef).then((snapshot) => {
+                   if (!snapshot.exists() || Object.keys(snapshot.val()).length === 0) {
+                       container.innerHTML = `<div style="text-align:center; color:#8c827a; padding:40px; border:1px dashed #444; border-radius:12px;">まだ知恵がありません🐾</div>`;
+                   }
+               });
+           }
+       };
+
        // =========================================================
        // 👑 管理者専用：知恵袋の「編集」ロジック
        // =========================================================
        window.editBoardEntry = async (fbKey) => {
-           // モジュール世界の内部から直接Firebaseノードへアクセス
-           const postRef = ref(database, `bbs/${fbKey}`);
+           const postRef = ref(dbInstance, `alverse_pro_v3/posts/${fbKey}`);
            try {
                const snapshot = await get(postRef);
                if (!snapshot.exists()) {
@@ -2887,22 +2912,21 @@ window.onload = () => {
                const currentData = snapshot.val();
 
                const newTitle = prompt("新しいタイトルを入力してくださいにゃ：", currentData.title || "");
-               if (newTitle === null) return; // キャンセル時
+               if (newTitle === null) return;
 
                const newBody = prompt("新しい本文を入力してくださいにゃ：", currentData.body || currentData.text || "");
-               if (newBody === null) return; // キャンセル時
+               if (newBody === null) return;
 
-               // Firebaseのデータを同期更新
                await set(postRef, {
                    ...currentData,
                    title: newTitle.trim() || "無題の知恵",
                    body: newBody.trim(),
-                   text: newBody.trim(), // 過去互換のため両方に代入
+                   text: newBody.trim(),
                    lastEditedAt: Date.now()
                });
 
-               alert("知恵を修復・修正しました🐾 反映にはモーダルを開き直すかリロードしてください。");
-               if (typeof loadBoardFromServer === 'function') await loadBoardFromServer();
+               alert("知恵を修復・修正しました🐾");
+               window.refreshBoardUI();
 
            } catch (error) {
                console.error("編集エラー:", error);
@@ -2918,19 +2942,16 @@ window.onload = () => {
                return;
            }
 
-           const postRef = ref(database, `bbs/${fbKey}`);
+           const postRef = ref(dbInstance, `alverse_pro_v3/posts/${fbKey}`);
            try {
-               // Firebase上のデータを完全に除去
                await set(postRef, null);
 
-               // 画面上の該当カードを即座にフェードアウト・消去
                const postElement = document.getElementById(`board-post-${fbKey}`);
                if (postElement) {
                    postElement.remove();
                }
                console.log(`🐾 Firebaseから知恵（${fbKey}）を抹消しました`);
 
-               // 万が一、すべての投稿が消えて空っぽになった場合は初期枠を復元
                const container = document.getElementById('board-posts-container');
                if (container && container.children.length === 0) {
                    container.innerHTML = `<div style="text-align:center; color:#8c827a; padding:40px; border:1px dashed #444; border-radius:12px;">まだ知恵がありません🐾</div>`;
