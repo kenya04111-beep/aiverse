@@ -737,6 +737,18 @@ function initAppState() {
 }
 
 initAppState();
+
+// 31種のカテゴリースラッグを美しい日本語に変換するマスター辞書🐾（ここに完全統合！）
+const categoryMap = {
+    news: "📢 ニュース", ent: "🎭 エンタメ", game: "🎮 ゲーム", anime: "🎨 アニメ・漫画",
+    movie: "🎬 映画・ドラマ", music: "🎵 音楽", science: "🧪 科学", space: "🚀 宇宙",
+    tech: "💻 テクノロジー", ai: "🤖 AI", math: "📐 数学", phi: "📜 哲学・思想",
+    hist: "🏛️ 歴史", politics: "⚖️ 政治・社会", biz: "📈 経済・ビジネス", health: "🏥 医療・健康",
+    psych: "🧠 心理学", edu: "📖 教育・学習", mystery: "🔍 ミステリー・オカルト", urban: "⛩️ 都市伝説",
+    uma: "👾 未確認生物", nature: "🌿 自然・生物", food: "🍳 食べ物・料理", life: "🏠 生活・暮らし",
+    culture: "✈️ 旅行・文化", sports: "⚽ スポーツ", internet: "🌐 インターネット",
+    youtube: "🎥 YouTube・配信", trivia: "💡 雑学・トリビア", column: "📝 コラム", special: "✨ 特集"
+};
 </script>
 
 <header>
@@ -993,7 +1005,7 @@ initAppState();
         <h2 style="margin-top:0;">🔑 管理者センター</h2>
 
         <div style="background: #fff4e6; padding: 15px; border-radius: 10px; border: 1px solid #ffd8a8; margin-bottom: 20px;">
-            
+
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <p style="font-size: 0.8rem; font-weight: bold; color: #d9480f; margin: 0;">CONTENTS (記事投稿・編集)</p>
                 <button type="button" onclick="setNewPostMode()" style="padding: 5px 10px; background: #4dabf7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.7rem;">
@@ -1008,7 +1020,7 @@ initAppState();
                 <div id="admin-preview-area" style="display: flex; justify-content: center; transform: scale(0.85); margin: -20px 0;"></div>
             </div>
 
-            <p style="font-size: 0.75rem; font-weight: bold; color: #495057; margin: 0 0 4px 0;">📸 アイキャッチ画像URL (※外部の本物URL、または相対パス)</p>
+            <p style="font-size: 0.75rem; font-weight: bold; color: #495057; margin: 0 0 4px 0;">📸 アイキャッチ画像URL (※外部の画像URL、または相対パス)</p>
             <input type="text" id="admin-image-input" placeholder="https://... などの画像URLを入力 (空欄でデフォルト猫)"
                    style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
 
@@ -1016,10 +1028,40 @@ initAppState();
             <input type="text" id="admin-title-input" placeholder="タイトルを入力"
                    style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
 
-            <p style="font-size: 0.75rem; font-weight: bold; color: #495057; margin: 0 0 4px 0;">🏷️ カテゴリー (自由に入力可能：例「哲学・思想」「発明王への道」)</p>
-            <input type="text" id="admin-category-input" placeholder="カテゴリーを入力"
-                   style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
-
+            <p style="font-size: 0.75rem; font-weight: bold; color: #495057; margin: 0 0 4px 0;">🏷️ カテゴリーを選択</p>
+            <select id="admin-category-input" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; background: white;">
+                <option value="news">📢 ニュース</option>
+                <option value="ent">🎭 エンタメ</option>
+                <option value="game">🎮 ゲーム</option>
+                <option value="anime">🎨 アニメ・漫画</option>
+                <option value="movie">🎬 映画・ドラマ</option>
+                <option value="music">🎵 音楽</option>
+                <option value="science">🧪 科学</option>
+                <option value="space">🚀 宇宙</option>
+                <option value="tech">💻 テクノロジー</option>
+                <option value="ai">🤖 AI</option>
+                <option value="math">📐 数学</option>
+                <option value="phi">📜 哲学・思想</option>
+                <option value="hist">🏛️ 歴史</option>
+                <option value="politics">⚖️ 政治・社会</option>
+                <option value="biz">📈 経済・ビジネス</option>
+                <option value="health">🏥 医療・健康</option>
+                <option value="psych">🧠 心理学</option>
+                <option value="edu">📖 教育・学習</option>
+                <option value="mystery">🔍 ミステリー・オカルト</option>
+                <option value="urban">⛩️ 都市伝説</option>
+                <option value="uma">👾 未確認生物</option>
+                <option value="nature">🌿 自然・生物</option>
+                <option value="food">🍳 食べ物・料理</option>
+                <option value="life">🏠 生活・暮らし</option>
+                <option value="culture">✈️ 旅行・文化</option>
+                <option value="sports">⚽ スポーツ</option>
+                <option value="internet">🌐 インターネット</option>
+                <option value="youtube">🎥 YouTube・配信</option>
+                <option value="trivia">💡 雑学・トリビア</option>
+                <option value="column">📝 コラム</option>
+                <option value="special">✨ 特集</option>
+            </select>
             <p style="font-size: 0.75rem; font-weight: bold; color: #495057; margin: 0 0 4px 0;">📖 記事本文</p>
             <textarea id="admin-body-input" placeholder="本文を入力してください..." 
                       style="width:100%; height:150px; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box; font-family: inherit; resize: vertical;"></textarea>
@@ -1042,63 +1084,8 @@ initAppState();
                 <button type="button" onclick="document.getElementById('memo-textarea').value = '';" style="padding:8px; background:white; border:1px solid #adb5bd; border-radius:5px; cursor:pointer;">🗑️ メモ消去</button>
             </div>
         </div>
-    </div>
-</div>
-<select id="admin-category-input" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px;">
-    <option value="news">📢 ニュース</option>
-    <option value="ent">🎭 エンタメ</option>
-    <option value="game">🎮 ゲーム</option>
-    <option value="anime">🎨 アニメ・漫画</option>
-    <option value="movie">🎬 映画・ドラマ</option>
-    <option value="music">🎵 音楽</option>
-    <option value="science">🧪 科学</option>
-    <option value="space">🚀 宇宙</option>
-    <option value="tech">💻 テクノロジー</option>
-    <option value="ai">🤖 AI</option>
-    <option value="math">📐 数学</option>
-    <option value="phi">📜 哲学・思想</option>
-    <option value="hist">🏛️ 歴史</option>
-    <option value="politics">⚖️ 政治・社会</option>
-    <option value="biz">📈 経済・ビジネス</option>
-    <option value="health">🏥 医療・健康</option>
-    <option value="psych">🧠 心理学</option>
-    <option value="edu">📖 教育・学習</option>
-    <option value="mystery">🔍 ミステリー・オカルト</option>
-    <option value="urban">⛩️ 都市伝説</option>
-    <option value="uma">👾 未確認生物</option>
-    <option value="nature">🌿 自然・生物</option>
-    <option value="food">🍳 食べ物・料理</option>
-    <option value="life">🏠 生活・暮らし</option>
-    <option value="culture">✈️ 旅行・文化</option>
-    <option value="sports">⚽ スポーツ</option>
-    <option value="internet">🌐 インターネット</option>
-    <option value="youtube">🎥 YouTube・配信</option>
-    <option value="trivia">💡 雑学・トリビア</option>
-    <option value="column">📝 コラム</option>
-    <option value="special">✨ 特集</option>
-</select>
-            <textarea id="admin-body-input" placeholder="本文を入力" style="width:100%; height:150px; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;"></textarea>
 
-            <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem; margin-bottom:15px; cursor:pointer;">
-                <input type="checkbox" id="admin-public" checked> 記事を「公開」にする
-            </label>
-
-            <div style="display:flex; gap:10px;">
-                <button onclick="savePostFromAdmin()" style="flex:2; padding:12px; background:#ff9800; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">🚀 記事を保存</button>
-                <button onclick="clearAdminForm()" style="flex:1; padding:12px; background:#8c827a; color:white; border:none; border-radius:5px; cursor:pointer;">リセット</button>
-            </div>
-        </div>
-
-        <div style="background: #f1f3f5; padding: 15px; border-radius: 10px; border: 1px solid #dee2e6;">
-            <p style="font-size: 0.8rem; font-weight: bold; color: #495057; margin: 0 0 10px 0;">SYSTEM CONFIG (設定・メモ)</p>
-            <textarea id="memo-textarea" style="width:100%; height:60px; margin-bottom:10px; font-family:monospace; padding:8px; box-sizing:border-box;" placeholder="設定用メモ..."></textarea>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                <button onclick="db.memo = document.getElementById('memo-textarea').value; saveToLocalStorage(); alert('設定を保存しました');" style="padding:8px; background:white; border:1px solid #adb5bd; border-radius:5px; cursor:pointer;">💾 設定を保存</button>
-                <button onclick="document.getElementById('memo-textarea').value = '';" style="padding:8px; background:white; border:1px solid #adb5bd; border-radius:5px; cursor:pointer;">🗑️ メモ消去</button>
-            </div>
-        </div>
-    </div>
-</div>
+    </div> </div>
 
 <div id="privacy-modal" class="modal">
     <div class="modal-content">
@@ -1214,10 +1201,10 @@ initAppState();
                  </div>
              ` : '';
 
-             // 固定カテゴリーマスターを撤廃し、手入力されたカテゴリー名をそのままストレートに表示
-             const currentLabel = p.category || "一般";
+             // 🐾 翻訳辞書を通して絵文字付きの日本語ラベルにトランスフォーム！
+              const currentLabel = categoryMap[p.category] || p.category || "一般";
 
-             card.innerHTML = `
+              card.innerHTML = `
                  <img src="${imageUrl}" alt="${p.title}" onerror="this.src='${fallbackImg}'">
                  <div class="post-content">
                      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;">
@@ -1293,9 +1280,10 @@ initAppState();
              selector.style.padding = "0";
              selector.style.color = "var(--accent-color)";
              selector.style.fontWeight = "bold";
-             selector.innerHTML = `<span class="detail-cat-badge">🏷️ ${p.category || '一般'}</span>`;
-         }
-
+              // 🐾 詳細画面でもしっかり美しい日本語ラベルに翻訳！
+              const detailLabel = categoryMap[p.category] || p.category || "一般";
+              selector.innerHTML = `<span class="detail-cat-badge">🏷️ ${detailLabel}</span>`;
+          }
          // ✍ 3. タイトル、日付、本文の書き込み
          const titleTarget = document.getElementById('detail-title');
          const bodyTarget = document.getElementById('detail-body');
