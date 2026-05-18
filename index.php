@@ -1125,183 +1125,160 @@ initAppState();
         }
     }
 
-    // ----------------------------- 📰 記事・検索・ページネーション制御 -----------------------------
-    let currentPage = 1;
-    const postsPerPage = 10;
-    let computedPosts = [];
+// ----------------------------- 📰 記事・検索・ページネーション制御 -----------------------------
+     let currentPage = 1;
+     const postsPerPage = 10;
+     let computedPosts = [];
 
-    function onSearchChange() {
-        currentPage = 1;
-        renderArticlesGrid();
-    }
+     function onSearchChange() {
+         currentPage = 1;
+         renderArticlesGrid();
+     }
 
-    function renderArticlesGrid() {
-        const query = document.getElementById('search-bar').value.toLowerCase().trim();
-        const grid = document.getElementById('mainGrid');
-        grid.innerHTML = '';
+     function renderArticlesGrid() {
+         const query = document.getElementById('search-bar').value.toLowerCase().trim();
+         const grid = document.getElementById('mainGrid');
+         if (!grid) return;
+         grid.innerHTML = '';
 
-        computedPosts = db.posts.filter(p => {
-            const matchesQuery = p.title.toLowerCase().includes(query) || p.body.toLowerCase().includes(query) || p.category.toLowerCase().includes(query);
-            return matchesQuery && (p.public || db.isAdmin);
-        });
+         // 💡 db.posts が未定義、またはオブジェクト形式だった場合でも安全に配列化
+         const postsArray = db.posts ? (Array.isArray(db.posts) ? db.posts : Object.values(db.posts)) : [];
 
-        const totalPages = Math.ceil(computedPosts.length / postsPerPage);
-        const startIndex = (currentPage - 1) * postsPerPage;
-        const endIndex = startIndex + postsPerPage;
-        const pageSelection = computedPosts.slice(startIndex, endIndex);
+         // 🧹 固定サンプル（ダミー記事）のIDや特定の固定文字を完全に除外して、本物の投稿だけにする安全弁
+         computedPosts = postsArray.filter(p => {
+             if (!p || !p.title || !p.body) return false;
+             // 固定ダミー記事のタイトルが入っていたらここで弾いて完全に抹消する
+             if (p.title.includes("埃を極限まで吸い寄せる") || p.title.includes("免疫が再起動する") || p.title.includes("太陽光を120%増幅")) return false;
 
-        if (pageSelection.length === 0) {
-            grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding: 60px 20px; color:#8c827a;">合致する記事が見つかりません。</div>`;
-            document.getElementById('pagination').innerHTML = '';
-            return;
-        }
+             const matchesQuery = p.title.toLowerCase().includes(query) || p.body.toLowerCase().includes(query) || (p.category && p.category.toLowerCase().includes(query));
+             return matchesQuery && (p.public || (typeof db !== 'undefined' && db.isAdmin));
+         });
 
-        pageSelection.forEach(p => {
-            const card = document.createElement('div');
-            card.className = 'post-card';
-            card.onclick = () => showArticleDetail(p.id);
+         // 🕒 新しい投稿が常に先頭（左上）に並ぶように日付・ID順でスマートにソート
+         computedPosts.sort((a, b) => b.id - a.id);
 
-            const fallbackImg = 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=600&q=80';
-            const imageUrl = p.image || fallbackImg;
+         const totalPages = Math.ceil(computedPosts.length / postsPerPage);
+         const startIndex = (currentPage - 1) * postsPerPage;
+         const endIndex = startIndex + postsPerPage;
+         const pageSelection = computedPosts.slice(startIndex, endIndex);
 
-            const adminPanelHTML =
-    (typeof db !== 'undefined' && db.isAdmin) ? `
-                <div style="display:flex; gap:4px; margin-top:8px;" onclick="event.stopPropagation();">
-                    <span style="background:${p.public ? '#28a745' : '#6c757d'}; color:white; padding:2px 6px; border-radius:4px; font-size:0.7rem;">${p.public ? '公開中' : '下書き'}</span>
-                    <button onclick="editArticle(${p.id})" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:4px; font-size:0.7rem;">編集</button>
-                    <button onclick="deleteArticle(${p.id})" style="background:#dc3545; color:white; border:none; padding:2px 6px; border-radius:4px; font-size:0.7rem;">削除</button>
-                </div>
-            ` : '';
+         if (pageSelection.length === 0) {
+             grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding: 60px 20px; color:#8c827a;">合致する記事が見つかりません。</div>`;
+             const pagEl = document.getElementById('pagination');
+             if (pagEl) pagEl.innerHTML = '';
+             return;
+         }
 
-// マスターリストから日本語ラベルと絵文字を検索
-            const catObj = (typeof AIVERSE_CATEGORIES !== 'undefined') ? AIVERSE_CATEGORIES.find(c => c.id === p.category) : null;
-            const currentLabel = catObj ? catObj.label : p.category;
+         pageSelection.forEach(p => {
+             const card = document.createElement('div');
+             card.className = 'post-card';
+             card.onclick = () => showArticleDetail(p.id);
 
-            card.innerHTML = `
-                <img src="${imageUrl}" alt="${p.title}" onerror="this.src='${fallbackImg}'">
-                <div class="post-content">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;">
-                        <span class="post-category">${currentLabel}</span>
-                    </div>
-                    <div class="post-title">${p.title}</div>
-                    ${adminPanelHTML}
-                    <div class="post-date">${p.date}</div>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
+             const fallbackImg = 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=600&q=80';
+             const imageUrl = p.image || fallbackImg;
 
-        buildPaginationControls(totalPages);
-    }
+             // 👑 管理者なら「公開状態バッジ」と「編集・削除ボタン」を表示
+             const isManager = typeof db !== 'undefined' && db.isAdmin;
+             const adminPanelHTML = isManager ? `
+                 <div style="display:flex; gap:4px; margin-top:8px;" onclick="event.stopPropagation();">
+                     <span style="background:${p.public ? '#28a745' : '#6c757d'}; color:white; padding:2px 6px; border-radius:4px; font-size:0.7rem;">${p.public ? '公開中' : '下書き'}</span>
+                     <button onclick="editArticle('${p.id}')" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:4px; font-size:0.7rem; cursor:pointer;">編集</button>
+                     <button onclick="deleteArticle('${p.id}')" style="background:#dc3545; color:white; border:none; padding:2px 6px; border-radius:4px; font-size:0.7rem; cursor:pointer;">削除</button>
+                 </div>
+             ` : '';
 
-    function buildPaginationControls(totalPages) {
-        const pagBox = document.getElementById('pagination');
-        pagBox.innerHTML = '';
-        if (totalPages <= 1) return;
+             // 固定カテゴリーマスターを撤廃し、手入力されたカテゴリー名をそのままストレートに表示
+             const currentLabel = p.category || "一般";
 
-        for (let i = 1; i <= totalPages; i++) {
-            const btn = document.createElement('button');
-            btn.innerText = i;
-            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-            btn.onclick = () => {
-                currentPage = i;
-                renderArticlesGrid();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            };
-            pagBox.appendChild(btn);
-        }
-    }
-    // 記事の詳細表示 (見え方改善＆カテゴリー変更機能)
-    let currentDetailArticleId = null; // カテゴリー保存用
+             card.innerHTML = `
+                 <img src="${imageUrl}" alt="${p.title}" onerror="this.src='${fallbackImg}'">
+                 <div class="post-content">
+                     <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;">
+                         <span class="post-category">${currentLabel}</span>
+                     </div>
+                     <div class="post-title">${p.title}</div>
+                     ${adminPanelHTML}
+                     <div class="post-date">${p.date || ""}</div>
+                 </div>
+             `;
+             grid.appendChild(card);
+         });
 
-// ✅ 修正後（1205行目からの安全な形）
-function showArticleDetail(id) {
-    currentDetailArticleId = id;
+         buildPaginationControls(totalPages);
+     }
 
-    // db や db.posts が存在しない場合の安全装置
-    if (!db || !db.posts) return;
+     function buildPaginationControls(totalPages) {
+         const pagBox = document.getElementById('pagination');
+         if (!pagBox) return;
+         pagBox.innerHTML = '';
+         if (totalPages <= 1) return;
 
-    // db.posts がオブジェクト（連想配列）だった場合でも安全に配列に変換して探す
-    const postsArray = Array.isArray(db.posts) ? db.posts : Object.values(db.posts);
+         for (let i = 1; i <= totalPages; i++) {
+             const btn = document.createElement('button');
+             btn.innerText = i;
+             btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+             btn.onclick = () => {
+                 currentPage = i;
+                 renderArticlesGrid();
+                 window.scrollTo({ top: 0, behavior: 'smooth' });
+             };
+             pagBox.appendChild(btn);
+         }
+     }
 
-    const p = postsArray.find(item => item && item.id === id);
-    if (!p) return;
-    // 🖼️ 1. 画像の表示処理 (HTMLになければ自動でタイトルの上に追加)
-    let imgEl = document.getElementById('detail-image');
-    if (!imgEl) {
-        imgEl = document.createElement('img');
-        imgEl.id = 'detail-image';
-        // 💡 画像のスタイル設定（横幅いっぱいに広げ、角を丸くし、高さを制限して綺麗に収めます）
-        imgEl.style = "width: 100%; border-radius: 12px; margin-bottom: 15px; max-height: 250px; object-fit: cover; display: none;";
-        const titleEl = document.getElementById('detail-title');
-        if (titleEl) {
-            titleEl.parentNode.insertBefore(imgEl, titleEl);
-        }
-    }
+     // 記事の詳細表示
+     let currentDetailArticleId = null;
+     function showArticleDetail(id) {
+         currentDetailArticleId = id;
+         if (!db || !db.posts) return;
 
-    // 画像URLがデータベースにあれば表示、なければ非表示に
-    if (p.image) {
-        imgEl.src = p.image;
-        imgEl.style.display = 'block';
-    } else {
-        imgEl.style.display = 'none';
-    }
+         const postsArray = Array.isArray(db.posts) ? db.posts : Object.values(db.posts);
+         const p = postsArray.find(item => item && String(item.id) === String(id));
+         if (!p) return;
 
- // 📂 2. カテゴリーのドロップダウン設定
-    const selector = document.getElementById('detail-category-selector');
-    if (selector) {
-        selector.innerHTML = '';
-        const allCategories = [...new Set(db.posts.map(post => post.category))].filter(Boolean);
+         // 🖼️ 1. 画像の表示処理
+         let imgEl = document.getElementById('detail-image');
+         if (!imgEl) {
+             imgEl = document.createElement('img');
+             imgEl.id = 'detail-image';
+             imgEl.style = "width: 100%; border-radius: 12px; margin-bottom: 15px; max-height: 250px; object-fit: cover; display: none;";
+             const titleEl = document.getElementById('detail-title');
+             if (titleEl) {
+                 titleEl.parentNode.insertBefore(imgEl, titleEl);
+             }
+         }
 
-        allCategories.forEach(cat => {
-            const opt = document.createElement('option');
-            opt.value = cat;
-            opt.innerText = cat;
-            if (cat === p.category) opt.selected = true;
-            selector.appendChild(opt);
-        });
-        // 👑 【ここがポイント】管理者なら「変更可能な枠線付き」、一般ユーザーなら「ただの文字」に見せる
-        if (db.isAdmin) {
-            selector.style.border = "1px solid #555";
-            selector.style.background = "#222";
-            selector.style.pointerEvents = "auto";
-            selector.style.appearance = "auto"; // 矢印を出す
-            selector.style.padding = "4px 8px";
-            selector.style.color = "var(--accent-color)";
-        } else {
-            selector.style.border = "none";
-            selector.style.background = "transparent";
-            selector.style.pointerEvents = "none"; // クリックできないようにする
-            selector.style.appearance = "none";     // 矢印（プルダウンの三角マーク）を消す
-            selector.style.padding = "0";
-            selector.style.color = "var(--accent-color)";
-            selector.style.fontWeight = "bold";
-        }
+         if (p.image) {
+             imgEl.src = p.image;
+             imgEl.style.display = 'block';
+         } else {
+             imgEl.style.display = 'none';
+         }
 
-// カテゴリー 変更イベント（管理者がドロップダウンを変えた時だけ動作）
-selector.onchange = function() {
-    if (currentDetailArticleId) {
-        const newCategory = this.value;
-        const post = db.posts.find(item => item.id === currentDetailArticleId);
-        if (post && post.category !== newCategory) {
-            if (confirm("この 記事のカテゴリー を変更しますか？")) {
-                post.category = newCategory;
-                saveToLocalStorage();
-                renderArticlesGrid(); // メイン画面を再描画
-            } else {
-                this.value = post.category; // キャンセル時は元に戻す
-            }
-        }
-    }
-};
+         // 📂 2. 古いドロップダウンを廃止し、カテゴリー名をテキストとしてスマートに上書き
+         const selector = document.getElementById('detail-category-selector');
+         if (selector) {
+             // セレクター要素の構造を「ただの綺麗なテキスト表示」へトランスフォーム
+             selector.style.border = "none";
+             selector.style.background = "transparent";
+             selector.style.pointerEvents = "none";
+             selector.style.appearance = "none";
+             selector.style.padding = "0";
+             selector.style.color = "var(--accent-color)";
+             selector.style.fontWeight = "bold";
+             selector.innerHTML = `<span class="detail-cat-badge">🏷️ ${p.category || '一般'}</span>`;
+         }
 
-    // ✍ 3. タイトル、日付、本文の書き込み
-    document.getElementById('detail-title').innerText = p.title;
-    document.getElementById('detail-body').innerHTML = p.body;
-    openModal('detail-modal');
-  }
-}
+         // ✍ 3. タイトル、日付、本文の書き込み
+         const titleTarget = document.getElementById('detail-title');
+         const bodyTarget = document.getElementById('detail-body');
+         if (titleTarget) titleTarget.innerText = p.title;
+         if (bodyTarget) bodyTarget.innerHTML = p.body;
 
+         if (typeof openModal === 'function') {
+             openModal('detail-modal');
+         }
+     }
 // ----------------------------- 🌛 ダークモード＆管理者長押し (整理版) -----------------------------
 let pressTimer;
 
@@ -2750,7 +2727,112 @@ window.onload = () => {
      const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
      const dbInstance = getDatabase(app);
      const dbRef = ref(dbInstance, "alverse_pro_v3/posts");
+      // =========================================================
+      // 📰 メイン記事：Firebase永続化・同期システム 🚀
+      // =========================================================
+      const articlesRef = ref(dbInstance, "alverse_pro_v3/articles");
 
+      // 💾 1. 管理者画面から送られてきた記事をFirebaseへ保存（新規・上書き両対応）
+      window.saveArticleToFirebase = async function(postData) {
+          try {
+              // 既存の編集（上書き）か新規投稿かを判定するため、一度全取得してIDが一致するものを探す
+              const snapshot = await get(articlesRef);
+              let targetKey = null;
+
+              if (snapshot.exists()) {
+                  const data = snapshot.val();
+                  for (const key in data) {
+                      if (data[key] && data[key].id === postData.id) {
+                          targetKey = key; // 既存記事のキーを発見！
+                          break;
+                      }
+                  }
+              }
+
+              if (targetKey) {
+                  // ✏️ 既存記事の上書き修正
+                  await set(ref(dbInstance, `alverse_pro_v3/articles/${targetKey}`), postData);
+                  console.log(`🔥 Firebase上の記事 [${postData.id}] を完全更新しました🐾`);
+              } else {
+                  // ➕ 新規記事のプッシュ追加
+                  await push(articlesRef, postData);
+                  console.log("🔥 Firebaseへ新しい記事を永続保存しました🐾");
+              }
+
+              // 保存完了後にローカルデータを再取得してグリッドをリフレッシュ
+              await window.loadArticlesFromFirebase();
+
+          } catch (e) {
+              console.error("Firebaseへの記事保存エラーにゃ:", e);
+              alert("サーバーへの記事保存に失敗しました。");
+          }
+      };
+
+      // 📥 2. Firebaseからすべての記事を引っ張ってきて db.posts に完全同期する関数
+      window.loadArticlesFromFirebase = async function() {
+          try {
+              const snapshot = await get(articlesRef);
+              if (snapshot.exists()) {
+                  const data = snapshot.val();
+                  // オブジェクト形式から純粋な配列に変換して db.posts に格納
+                  db.posts = Object.values(data).filter(item => item !== null);
+                  console.log("☁️ Firebaseからメイン記事データを完全同期しました（永続化成功）🐾");
+              } else {
+                  db.posts = [];
+              }
+
+              // 🎨 メイン画面のグリッド再描画をキック
+              if (typeof renderArticlesGrid === 'function') {
+                  renderArticlesGrid();
+              }
+          } catch (e) {
+              console.error("Firebaseからの記事読み込みエラーにゃ:", e);
+          }
+      };
+
+      // 👑 3. 管理者専用：記事の削除ロジック（Firebase直結版）
+      window.deleteArticle = async function(id) {
+          if (!confirm("このメイン記事を完全に消去してもよろしいですか？\n（Firebaseから完全に抹消されます）")) return;
+          try {
+              const snapshot = await get(articlesRef);
+              if (snapshot.exists()) {
+                  const data = snapshot.val();
+                  for (const key in data) {
+                      if (data[key] && String(data[key].id) === String(id)) {
+                          await set(ref(dbInstance, `alverse_pro_v3/articles/${key}`), null); // 抹消！
+                          console.log(`🐾 Firebaseから記事キー [${key}] を消去しました`);
+                          break;
+                      }
+                  }
+              }
+              await window.loadArticlesFromFirebase();
+          } catch (e) {
+              console.error("記事削除エラー:", e);
+          }
+      };
+
+      // 👑 4. 管理者専用：記事の編集フォーム呼び出し
+      window.editArticle = function(id) {
+          if (!db || !db.posts) return;
+          const post = db.posts.find(p => String(p.id) === String(id));
+          if (!post) return;
+
+          // 各入力フォームに値をセットしてモーダルを開く
+          document.getElementById('admin-post-id-input').value = post.id;
+          document.getElementById('admin-title-input').value = post.title;
+          document.getElementById('admin-image-input').value = post.image || "";
+          document.getElementById('admin-category-input').value = post.category || "一般";
+          document.getElementById('admin-body-input').value = post.body;
+          document.getElementById('admin-public').checked = !!post.public;
+
+          if (typeof updateAdminPreview === 'function') updateAdminPreview();
+          if (typeof openModal === 'function') openModal('admin-modal');
+      };
+
+      // 🚀 ページ読み込み完了時（起動時）に自動的にFirebaseから記事をダウンロードして表示する
+      requestAnimationFrame(() => {
+          window.loadArticlesFromFirebase();
+      });
      // 🚀 本物のFirebase宇宙へ、データを絶対セーブする窓口
      window.saveBgmToFirebase = async function(playlistsData) {
          try {
