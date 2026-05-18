@@ -1855,39 +1855,63 @@ const snapshot = await get(ref(db, "alverse_pro_v3/playlist")); // 👈 sなし�
         }
     }
 
-    // ----------------------------- 管理者制御 (現状維持) -----------------------------
-function savePostFromAdmin() {
-    const id = document.getElementById('admin-post-id-input')?.value;
-    const titleVal = document.getElementById('admin-title-input')?.value.trim();
-    const catVal = document.getElementById('admin-category-input')?.value.trim() || '一般';
-    const bodyVal = document.getElementById('admin-body-input')?.value.trim();
-    const isPublic = document.getElementById('admin-public')?.checked;
+// ----------------------------- 管理者制御 (完全同期・Firebase一本化仕様🚀) -----------------------------
+async function savePostFromAdmin() {
+    // 1. 各入力フォームからリアルタイムの値を確実に取得
+    const idInput = document.getElementById('admin-post-id-input');
+    const titleInput = document.getElementById('admin-title-input');
+    const imageInput = document.getElementById('admin-image-input');
+    const categoryInput = document.getElementById('admin-category-input');
+    const bodyInput = document.getElementById('admin-body-input');
+    const publicInput = document.getElementById('admin-public');
 
-    if (!titleVal || !bodyVal) return alert("タイトルと本文は入力必須です。");
+    const id = idInput ? idInput.value : "";
+    const titleVal = titleInput ? titleInput.value.trim() : "";
+    const imageVal = imageInput ? imageInput.value.trim() : "";
+    const catVal = categoryInput ? categoryInput.value.trim() : "一般";
+    const bodyVal = bodyInput ? bodyInput.value.trim() : "";
+    const isPublic = publicInput ? publicInput.checked : true;
 
-    if (id) {
-        const post = db.posts.find(p => p.id === parseInt(id));
-        if (post) {
-            post.title = titleVal; post.category = catVal; post.body = bodyVal; post.public = isPublic;
-        }
-    } else {
-        db.posts.unshift({
-            id: Date.now(),
-            title: titleVal,
-            category: catVal,
-            body: bodyVal,
-            public: isPublic,
-            date: new Date().toISOString().split('T')[0]
-        });
+    if (!titleVal || !bodyVal) {
+        return alert("タイトルと本文は入力必須です。🐾");
     }
 
-    saveToLocalStorage();
-    renderArticlesGrid();
-    alert("保存が完了しました。メイン画面に戻ります。");
-    closeModal('admin-modal');
-    clearAdminForm();
-}
+    // 2. Firebaseに送り込む、贅肉を削ぎ落とした純粋なデータオブジェクトを作成
+    const postData = {
+        id: id ? parseInt(id) : Date.now(),
+        title: titleVal,
+        image: imageVal,
+        category: catVal,
+        body: bodyVal,
+        public: isPublic,
+        date: new Date().toISOString().split('T')[0]
+    };
 
+    console.log("🚀 Firebaseへ送信する直前のデータ構造にゃ:", postData);
+
+    // 3. モジュール世界のFirebase窓口へ直撃
+    if (typeof window.saveArticleToFirebase === 'function') {
+        await window.saveArticleToFirebase(postData);
+    } else {
+        console.error("❌ window.saveArticleToFirebase が見つかりません。モジュール側のロード順を確認してくださいにゃ。");
+        // フォールバック用
+        if (!db.posts) db.posts = [];
+        const idx = db.posts.findIndex(p => p.id === postData.id);
+        if (idx !== -1) {
+            db.posts[idx] = postData;
+        } else {
+            db.posts.unshift(postData);
+        }
+        saveToLocalStorage();
+        if (typeof renderArticlesGrid === 'function') renderArticlesGrid();
+    }
+
+    alert("保存が完了しました。メイン画面に戻ります。🐾");
+
+    // モーダルを閉じ、フォームを安全にリセット
+    if (typeof closeModal === 'function') closeModal('admin-modal');
+    if (typeof clearAdminForm === 'function') clearAdminForm();
+}
 // 管理者メニューの表示状態を更新する関数（HTML完全連動版）
 function updateAdminUI() {
      // 💡 ケニアさんが統合してくれたHTMLのグループID（admin-menu-section）を直接探します
