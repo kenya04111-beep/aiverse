@@ -2788,7 +2788,7 @@ window.onload = () => {
          }
      };
 
-// =========================================================
+      // =========================================================
       // 😸 4. 送信関数：ねこの知恵袋（BBS）
       // =========================================================
       window.submitBoardPost = () => {
@@ -2822,44 +2822,125 @@ window.onload = () => {
           });
       };
 
-      // =========================================================
-      // 📋 5. リアルタイム受信：モーダル内のコンテナに流し込む（バグ修正版）
-      // =========================================================
-      onChildAdded(dbRef, (data) => {
-          const post = data.val();
-          const container = document.getElementById('board-posts-container');
+// =========================================================
+       // 📋 5. リアルタイム受信：モーダル内のコンテナに流し込む（管理者ボタン対応版🐾）
+       // =========================================================
+       onChildAdded(dbRef, (data) => {
+           const post = data.val();
+           const container = document.getElementById('board-posts-container');
 
-          if (container) {
-              // 💡 【超重要】もし中に「まだ知恵がありません🐾」の初期枠が入っていたら、
-              // 新しい投稿を追加する前にコンテナの中身を完全にクリアします！
-              if (container.innerHTML.includes("まだ知恵がありません")) {
-                  container.innerHTML = '';
-              }
+           if (container) {
+               // 💡 【超重要】もし中に「まだ知恵がありません🐾」の初期枠が入っていたら、
+               // 新しい投稿を追加する前にコンテナの中身を完全にクリアします！
+               if (container.innerHTML.includes("まだ知恵がありません")) {
+                   container.innerHTML = '';
+               }
 
-              const article = document.createElement('article');
-              article.className = 'board-post';
+               const article = document.createElement('article');
+               article.className = 'board-post';
+               article.setAttribute('data-key', data.key);
+               // 個別削除・編集の同期がしやすいように要素IDも個別に付与
+               article.id = `board-post-${data.key}`;
 
-              // 管理者機能と同期できるようにFirebaseのキーをデータ属性として仕込んでおく
-              article.setAttribute('data-key', data.key);
+               const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+               const currentBody = post.body || post.text || "";
+               const safeText = currentBody.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+               const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "今さっき";
 
-              const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-              // text または body のどちらからでも本文を抽出できるように考慮
-              const currentBody = post.body || post.text || "";
-              const safeText = currentBody.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-              const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "今さっき";
+               // 👑 管理者ログイン状態を判定（ギャラリーと共通のフラグ等を参照）
+               const isManager = (typeof db !== 'undefined' && db.adminLoggedIn) || window.adminLoggedIn;
 
-              article.innerHTML = `
-                  <div class="board-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:5px;">
-                      <span class="board-title" style="font-weight:bold; color:#3e2723;">📌 ${safeTitle}</span>
-                      <span style="font-size:0.7rem; color:#aaa;">${date}</span>
-                  </div>
-                  <div class="board-body" style="padding: 12px 0; color: #444; line-height:1.6; white-space: pre-wrap;">${safeText}</div>
-              `;
+               // 管理者モードのときだけ青（編集）と赤（削除）のボタンを仕込む
+               const adminButtons = isManager ? `
+                   <div class="board-admin-actions" style="margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end;">
+                       <button onclick="editBoardEntry('${data.key}')" style="padding: 4px 10px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold;">編集</button>
+                       <button onclick="deleteBoardEntry('${data.key}')" style="padding: 4px 10px; background: #dc3545; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold;">削除</button>
+                   </div>
+               ` : '';
 
-              // 最新の書き込みを一番上にスマートに追加
-              container.prepend(article);
-          }
-      });
-</script>
-</body>
-</html>
+               article.innerHTML = `
+                   <div class="board-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:5px;">
+                       <span class="board-title" style="font-weight:bold; color:#3e2723;">📌 ${safeTitle}</span>
+                       <span style="font-size:0.7rem; color:#aaa;">${date}</span>
+                   </div>
+                   <div class="board-body" style="padding: 12px 0; color: #444; line-height:1.6; white-space: pre-wrap;">${safeText}</div>
+                   ${adminButtons}
+               `;
+
+               // 最新の書き込みを一番上にスマートに追加
+               container.prepend(article);
+           }
+       });
+
+       // =========================================================
+       // 👑 管理者専用：知恵袋の「編集」ロジック
+       // =========================================================
+       window.editBoardEntry = async (fbKey) => {
+           // モジュール世界の内部から直接Firebaseノードへアクセス
+           const postRef = ref(database, `bbs/${fbKey}`);
+           try {
+               const snapshot = await get(postRef);
+               if (!snapshot.exists()) {
+                   alert("対象のデータがFirebase上に見つかりません。");
+                   return;
+               }
+               const currentData = snapshot.val();
+
+               const newTitle = prompt("新しいタイトルを入力してくださいにゃ：", currentData.title || "");
+               if (newTitle === null) return; // キャンセル時
+
+               const newBody = prompt("新しい本文を入力してくださいにゃ：", currentData.body || currentData.text || "");
+               if (newBody === null) return; // キャンセル時
+
+               // Firebaseのデータを同期更新
+               await set(postRef, {
+                   ...currentData,
+                   title: newTitle.trim() || "無題の知恵",
+                   body: newBody.trim(),
+                   text: newBody.trim(), // 過去互換のため両方に代入
+                   lastEditedAt: Date.now()
+               });
+
+               alert("知恵を修復・修正しました🐾 反映にはモーダルを開き直すかリロードしてください。");
+               if (typeof loadBoardFromServer === 'function') await loadBoardFromServer();
+
+           } catch (error) {
+               console.error("編集エラー:", error);
+               alert("編集内容の書き込みに失敗しました😿");
+           }
+       };
+
+       // =========================================================
+       // 👑 管理者専用：知恵袋の「削除」ロジック
+       // =========================================================
+       window.deleteBoardEntry = async (fbKey) => {
+           if (!confirm("この知恵を完全に削除してもよろしいですか？\n（Firebaseから完全に消去されます）")) {
+               return;
+           }
+
+           const postRef = ref(database, `bbs/${fbKey}`);
+           try {
+               // Firebase上のデータを完全に除去
+               await set(postRef, null);
+
+               // 画面上の該当カードを即座にフェードアウト・消去
+               const postElement = document.getElementById(`board-post-${fbKey}`);
+               if (postElement) {
+                   postElement.remove();
+               }
+               console.log(`🐾 Firebaseから知恵（${fbKey}）を抹消しました`);
+
+               // 万が一、すべての投稿が消えて空っぽになった場合は初期枠を復元
+               const container = document.getElementById('board-posts-container');
+               if (container && container.children.length === 0) {
+                   container.innerHTML = `<div style="text-align:center; color:#8c827a; padding:40px; border:1px dashed #444; border-radius:12px;">まだ知恵がありません🐾</div>`;
+               }
+
+           } catch (error) {
+               console.error("削除エラー:", error);
+               alert("Firebaseからの削除リクエストが拒否されました。");
+           }
+       };
+ </script>
+ </body>
+ </html>
