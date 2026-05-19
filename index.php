@@ -266,6 +266,19 @@ if (session_status() === PHP_SESSION_NONE) {
     /* text-transform: uppercase; は絵文字と日本語が化けるため削除！ */
 }
 
+/* 📂 モーダル（クリック後）の中だけカテゴリー背景を完全透明化（中身も根こそぎ対象） */
+.modal-body .post-category,
+.modal-body .post-category *,
+.modal-content .post-category,
+.modal-content .post-category * {
+    background-color: transparent !important;
+    background: transparent !important;
+    padding-left: 0 !important;  /* バッジ用の余白を削って左端にピタッと合わせる */
+    padding-right: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
 /* 🖋️ 記事タイトル（2行制限を維持しつつ行間最適化） */
 .post-title {
     font-size: 1.1rem;
@@ -394,22 +407,87 @@ if (session_status() === PHP_SESSION_NONE) {
         .footer-links a:hover { opacity: 0.8; text-decoration: underline; }
         footer p { margin: 6px 0; opacity: 0.85; line-height: 1.5; }
 
-        /* 😸 猫の知恵袋 BBS専用スタイル */
-        .board-post {
-            border-bottom: 1px dashed var(--border-color);
-            padding: 14px 0;
-        }
-        .board-post:last-child { border-bottom: none; }
-        .board-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: #8c827a;
-            margin-bottom: 4px;
-        }
-        .board-title { font-weight: 700; font-size: 1.1rem; color: #a26d46; margin-bottom: 4px; }
-        .board-body { font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap; }
+/* 😸 猫の知恵袋 BBS専用スタイル（超高コントラスト・完全固定版） */
 
+.board-post {
+    border: 1px solid #e6dfda;
+    padding: 20px !important;
+    border-radius: 8px !important;
+    margin-bottom: 16px !important;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+/* 🌙 ダークモード時の枠組み設定 */
+body.dark-mode .board-post {
+    background-color: #1a1613 !important; /* 焦げ茶背景 */
+    border: 1px solid #2d2621 !important;
+}
+
+/* サブテキスト（あえて沈ませて、時間に捉われない空気感を演出🐾） */
+.bbs-meta-box {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem !important;
+    margin-bottom: 8px !important;
+}
+.bbs-no-name, .bbs-date { color: #8c827a; }
+body.dark-mode .bbs-no-name, body.dark-mode .bbs-date { color: #8a7e75 !important; }
+
+/* ========================================================
+   😸 タイトルと本文のスタイル（親要素に依存しない絶対適用版）
+   ======================================================== */
+
+/* ☀️ 通常（ライトモード）時の表示スタイル */
+.bbs-post-title {
+    display: block !important;       /* 確実にタイトルだけで1行占有 */
+    font-weight: bold !important;
+    font-size: 0.95rem !important;
+    margin-bottom: 10px !important;  /* タイトルと本文の間の美しい隙間 */
+    color: #3e2723 !important;       /* ライト時は美しい濃い茶色 */
+}
+
+.bbs-post-body {
+    display: block !important;       /* 本文も独立したブロックとして下に配置 */
+    font-size: 0.95rem !important;
+    line-height: 1.75 !important;
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+    color: #444444 !important;       /* ライト時は読みやすい濃いグレー */
+}
+
+/* 🌙 ダークモード時の文字色（最優先で真っ白に強制上書き！） */
+body.dark-mode .bbs-post-title,
+body.dark-mode .bbs-post-body {
+    color: #ffffff !important;       /* ダークモード時はタイトルも本文も純白に */
+}
+
+/* ========================================================
+   🚀 入力欄保護 & 極細スクロールバー（世界観調和版）
+   ======================================================== */
+
+/* 💡 ダークモード時も含め、入力中の文字が消える現象を完全にシャットアウト */
+#board-title-input,
+#board-body-input {
+    background-color: #ffffff !important;
+    color: #222222 !important;       /* 入力欄は常に「白背景に濃い文字」で固定 */
+}
+
+/* 💡 太いデフォルトバーを削ぎ落とし、半透明で背景に溶け込ませる極細バーに変更 */
+#board-posts-container::-webkit-scrollbar {
+    width: 5px !important;           /* 5pxの極細仕様 */
+}
+#board-posts-container::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+#board-posts-container::-webkit-scrollbar-thumb {
+    background: rgba(140, 130, 122, 0.25) !important; /* 限界まで薄くシームレスに */
+    border-radius: 10px !important;
+}
+#board-posts-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(140, 130, 122, 0.5) !important;
+}
 /* ============================================================
    🖼️ 1. ギャラリー一覧（デフォルト・スマホ・iPad）
    ============================================================ */
@@ -790,14 +868,13 @@ const categoryMap = {
                 </div>
             </div>
 
-            <!-- 通常メニュー -->
-            <div class="menu-group">
-                <a onclick="openModal('bgm-modal')">🎸 BGM</a>
-                <a onclick="toggleLanguage()">🌐 自動翻訳切替</a>
-                <a onclick="openModal('memo-modal')">📝 クラウドメモ</a>
-                <a onclick="openModal('secret-modal')">🥸 秘密機能</a>
-            </div>
-
+              <div class="menu-group">
+                 <a href="sketch3d.html" target="_blank">🎨 3Dお絵描き</a>
+                 <a onclick="openModal('bgm-modal')">🎸 BGM</a>
+                 <a onclick="toggleLanguage()">🌐 自動翻訳切替</a>
+                 <a onclick="openModal('memo-modal')">📝 クラウドメモ</a>
+                 <a onclick="openModal('secret-modal')">🥸 秘密機能</a>
+             </div>
         </div>
     </div>
 </div>
@@ -1063,7 +1140,7 @@ const categoryMap = {
                 <option value="special">✨ 特集</option>
             </select>
             <p style="font-size: 0.75rem; font-weight: bold; color: #495057; margin: 0 0 4px 0;">📖 記事本文</p>
-            <textarea id="admin-body-input" placeholder="本文を入力してください..." 
+            <textarea id="admin-body-input" placeholder="本文を入力してください..."
                       style="width:100%; height:150px; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box; font-family: inherit; resize: vertical;"></textarea>
 
             <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem; margin-bottom:15px; cursor:pointer;">
@@ -1255,7 +1332,7 @@ const categoryMap = {
          if (!imgEl) {
              imgEl = document.createElement('img');
              imgEl.id = 'detail-image';
-             imgEl.style = "width: 100%; border-radius: 12px; margin-bottom: 15px; max-height: 250px; object-fit: cover; display: none;";
+             imgEl.style = "width: 100% !important; border-radius: 12px; margin-bottom: 15px; max-height: 400px !important; aspect-ratio: auto !important; object-fit: contain !important; background: #1a1a1a; display: none;";
              const titleEl = document.getElementById('detail-title');
              if (titleEl) {
                  titleEl.parentNode.insertBefore(imgEl, titleEl);
@@ -1269,21 +1346,28 @@ const categoryMap = {
              imgEl.style.display = 'none';
          }
 
-         // 📂 2. 古いドロップダウンを廃止し、カテゴリー名をテキストとしてスマートに上書き
-         const selector = document.getElementById('detail-category-selector');
-         if (selector) {
-             // セレクター要素の構造を「ただの綺麗なテキスト表示」へトランスフォーム
-             selector.style.border = "none";
-             selector.style.background = "transparent";
-             selector.style.pointerEvents = "none";
-             selector.style.appearance = "none";
-             selector.style.padding = "0";
-             selector.style.color = "var(--accent-color)";
-             selector.style.fontWeight = "bold";
-              // 🐾 詳細画面でもしっかり美しい日本語ラベルに翻訳！
-              const detailLabel = categoryMap[p.category] || p.category || "一般";
-              selector.innerHTML = `<span class="detail-cat-badge">🏷️ ${detailLabel}</span>`;
+          // 📂 2. 不正なタグ構造を避けるため古いドロップダウンは完全に非表示化
+          const oldSelector = document.getElementById('detail-category-selector');
+          if (oldSelector) {
+              oldSelector.style.display = 'none';
           }
+
+          // 🏷️ 新しいテキスト表示用のコンテナがなければ、タイトルの直前に動的生成！
+          let catDispEl = document.getElementById('detail-category-display');
+          if (!catDispEl) {
+              catDispEl = document.createElement('div');
+              catDispEl.id = 'detail-category-display';
+              catDispEl.style = "margin-top: 10px; margin-bottom: 5px; font-weight: bold;";
+              const titleEl = document.getElementById('detail-title');
+              if (titleEl) {
+                  // タイトルの前に挿入（これで画像の下、タイトルの上という完璧な並び順になります）
+                  titleEl.parentNode.insertBefore(catDispEl, titleEl);
+              }
+          }
+
+          // 🐾 辞書を通して美しい日本語ラベルをバッジとして書き込み
+         const detailLabel = categoryMap[p.category] || p.category || "一般";
+         catDispEl.innerHTML = `<span class="detail-cat-badge" style="background: transparent; color: #ff9800; padding: 4px 8px 4px 0px; font-size: 0.8rem; font-weight: 700;">${detailLabel}</span>`;
          // ✍ 3. タイトル、日付、本文の書き込み
          const titleTarget = document.getElementById('detail-title');
          const bodyTarget = document.getElementById('detail-body');
@@ -1294,64 +1378,72 @@ const categoryMap = {
              openModal('detail-modal');
          }
      }
-// ----------------------------- 🌛 ダークモード＆管理者長押し (整理版) -----------------------------
+// ----------------------------- 🌛 ダークモード＆管理者長押し (整理版) ------------------->
 let pressTimer;
 
 const dmBtn = document.getElementById('dark-mode-btn');
 if (dmBtn) {
 
-    dmBtn.addEventListener('pointerdown', function (e) {
-        e.preventDefault();
+     dmBtn.addEventListener('pointerdown', function (e) {
+         e.preventDefault();
 
-        pressTimer = setTimeout(() => {
+         pressTimer = setTimeout(() => {
 
-            const pass = prompt("🔑 パスワードを入力してください：");
+             const pass = prompt("🔑 パスワードを入力してください：");
 
-            if (pass === "nekosuke101") {
+             if (pass === "nekosuke101") {
 
-                // 管理者ON
-                db.isAdmin = true;
-                saveToLocalStorage();
+                 // 管理者ON
+                 db.isAdmin = true;
+                 saveToLocalStorage();
 
-                // 画面更新（ここは先にやる）
-                renderArticlesGrid();
+                 // 画面更新（ここは先にやる）
+                 renderArticlesGrid();
 
-                // UI更新は「遅延させてDOM確定後」
-                setTimeout(() => {
-                    const logout = document.getElementById('admin-logout-dynamic');
-                    if (logout) logout.style.display = 'block';
-                }, 0);
+                 // UI更新は「遅延させてDOM確定後」
+                 setTimeout(() => {
+                     const logout = document.getElementById('admin-logout-dynamic');
+                     if (logout) logout.style.display = 'block';
+                 }, 0);
 
-                alert("認証成功：管理者コントロール解放！");
-                openModal('admin-modal');
+                 alert("認証成功：管理者コントロール解放！");
+                 openModal('admin-modal');
 
-            } else if (pass !== null) {
-                alert("パスワードが違います。");
-            }
+             } else if (pass !== null) {
+                 alert("パスワードが違います。");
+             }
 
-        }, 1100);
-    });
+         }, 1100);
+     });
 
-    dmBtn.addEventListener('pointerup', function () {
-        clearTimeout(pressTimer);
-    });
+     dmBtn.addEventListener('pointerup', function () {
+         clearTimeout(pressTimer);
+     });
 
-    dmBtn.addEventListener('pointerleave', function () {
-        clearTimeout(pressTimer);
-    });
+     dmBtn.addEventListener('pointerleave', function () {
+         clearTimeout(pressTimer);
+     });
 
-    dmBtn.addEventListener('click', function () {
+     dmBtn.addEventListener('click', function () {
 
-        const theme =
-            document.body.getAttribute('data-theme') === 'dark'
-                ? 'light'
-                : 'dark';
+         const theme =
+             document.body.getAttribute('data-theme') === 'dark'
+                 ? 'light'
+                 : 'dark';
 
-        document.body.setAttribute('data-theme', theme);
+         document.body.setAttribute('data-theme', theme);
 
-        db.theme = theme;
-        saveToLocalStorage();
-    });
+         /* 💡 【大改造】CSSの「body.dark-mode」という条件と完全に同期させます！
+            これによって、ボタンを押した瞬間にCSS側にもダークモードが100%伝わります */
+         if (theme === 'dark') {
+             document.body.classList.add('dark-mode');
+         } else {
+             document.body.classList.remove('dark-mode');
+         }
+
+         db.theme = theme;
+         saveToLocalStorage();
+     });
 }
 // --- ⚙️ 設定: Firebase BBSパス ---
 // 💡 末尾を articles.json から bbs.json に変更し、メイン記事と分離します
@@ -1418,25 +1510,32 @@ function renderBoard() {
         const safeBody = linkify(escapeHTML(item.body));
 
         // 管理者用のボタン（isAdminがtrueの時だけ表示）
-const adminControls = db.isAdmin ? `
-    <div style="display:flex; gap:10px; margin-top:12px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
-        <button onclick="editBoardEntry('${item.fbKey}')" style="background:#228be6; color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer; font-size:0.75rem;">📝 編集</button>
-        <button onclick="deleteBoardEntry('${item.fbKey}')" style="background:#fa5252; color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer; font-size:0.75rem;">🗑️ 削除</button>
-    </div>` : '';
-        itemDiv.innerHTML = `
-            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#8c827a; margin-bottom:8px;">
-                <span>No.${db.board.length - index} <strong>名無しにゃんこ</strong></span>
-                <span>${item.date || ''}</span>
-            </div>
-            <div style="font-weight:bold; color:#ffcc33; margin-bottom:10px; font-size:1.1rem;">🐾 ${safeTitle}</div>
-            <div style="line-height:1.7; font-size:0.95rem; white-space:pre-wrap; color:var(--text-color, #444); word-break:break-word;">${safeBody}</div>
-            ${adminControls}
-        `;
-        fragment.appendChild(itemDiv);
-    });
-    container.appendChild(fragment);
-}
+        const adminControls = db.isAdmin ? `
+        <div style="display:flex; gap:10px; margin-top:12px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
+            <button onclick="editBoardEntry('${item.fbKey}')" style="background:#228be6; color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer; font-size:0.75rem;">📝 編集</button>
+            <button onclick="deleteBoardEntry('${item.fbKey}')" style="background:#fa5252; color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer; font-size:0.75rem;">🗑️ 削除</button>
+        </div>` : '';
 
+　　　　// dbが未定義のエラーを完全に回避する安全な番号計算
+        const boardLength = (typeof db !== 'undefined' && db.board) ? db.board.length : index + 1;
+        const postNumber = boardLength - index;
+
+// 💡 色の決定権をCSSに100%委ねるため、JSからのカラー指定（style）を完全に撤廃！
+itemDiv.innerHTML = `
+     <div class="bbs-meta-box">
+         <span class="bbs-no-name">No.${data.no || ''} <strong>名無しにゃんこ</strong></span>
+         <span class="bbs-date">${date || data.date || ''}</span>
+     </div>
+
+     <div class="bbs-post-title">${safeTitle}</div>
+     <div class="bbs-post-body">${safeText || safeBody}</div>
+
+     ${typeof adminButtons !== 'undefined' ? adminButtons : ''}
+`;
+         fragment.appendChild(itemDiv);
+     });
+     container.appendChild(fragment);
+} // ⚠️ 関数を締めくくる最後の閉じ括弧です
 /**
  * 📮 新規投稿（ボタンが押せるように修正）
  */
@@ -1465,17 +1564,27 @@ async function submitBoardPost() {
     };
 
 try {
-        // 🌟 修正：不確定な定数（BBS_ENDPOINT）を捨て、正規のアジアRTDBのURLを直接指定します！
+        // 🌟 正規のアジアRTDBのURLへPOST送信
         const res = await fetch('https://alverse-project-default-rtdb.asia-southeast1.firebasedatabase.app/alverse_pro_v3/board.json', {
             method: 'POST',
             body: JSON.stringify(newPost)
         });
         if (!res.ok) throw new Error();
+
+        // 入力欄を綺麗にクリア
         titleIn.value = '';
         bodyIn.value = '';
-        await loadBoardFromServer(); // 投稿後にデータを再取得
-        alert("知恵を共有しました！🐾");
+
+        // 💡 投稿後に最新データを裏で再取得して画面を即座に再レンダリング
+        await loadBoardFromServer();
+
+        // 💡【自動モーダル閉鎖処理】
+        // モーダルを自動で閉じたい場合は、下の3行の先頭にある「//」を消してください🐾
+        // const boardModal = document.getElementById('board-modal-id');
+        // if (boardModal) { boardModal.style.display = 'none'; }
+
     } catch (e) {
+        console.error("送信エラー:", e);
         alert("送信に失敗しました😿 サーバーの状態を確認してください。");
     } finally {
         if (submitBtn) {
@@ -1483,8 +1592,7 @@ try {
             submitBtn.innerText = "知恵を共有する (送信)";
         }
     }
-}
-
+} // ⚠️関数（submitBoardPost）を締めくくる最後の閉じ括弧です！
 // ----------------------------- 🖼️ フォトギャラリー (同期・自動更新版) -----------------------------
 
 // 1. サーバーから画像リストを取得（キャッシュ対策済み）
@@ -2953,136 +3061,141 @@ window.onload = () => {
            });
        };
 
-       // =========================================================
-       // 📋 5. リアルタイム受信：モーダル内のコンテナに流し込む（管理者ボタン対応版🐾）
-       // =========================================================
-       onChildAdded(dbRef, (data) => {
-           const post = data.val();
-           const container = document.getElementById('board-posts-container');
+// =========================================================
+        // 📋 5. リアルタイム受信：モーダル内のコンテナに流し込む（管理者ボタン対応版🐾）
+        // =========================================================
+        onChildAdded(dbRef, (data) => {
+            const post = data.val();
+            const container = document.getElementById('board-posts-container');
 
-           if (container) {
-               // 💡 もし中に「まだ知恵がありません🐾」の初期枠が入っていたらクリア
-               if (container.innerHTML.includes("まだ知恵がありません")) {
-                   container.innerHTML = '';
-               }
+            if (container) {
+                // 💡 もし中に「まだ知恵がありません🐾」の初期枠が入っていたらクリア
+                if (container.innerHTML.includes("まだ知恵がありません")) {
+                    container.innerHTML = '';
+                }
 
-               // すでに同じキーの要素が描画されていたら重複を防ぐためにスキップ
-               if (document.getElementById(`board-post-${data.key}`)) return;
+                // すでに同じキーの要素が描画されていたら重複を防ぐためにスキップ
+                if (document.getElementById(`board-post-${data.key}`)) return;
 
-               const article = document.createElement('article');
-               article.className = 'board-post';
-               article.setAttribute('data-key', data.key);
-               article.id = `board-post-${data.key}`;
+                const article = document.createElement('article');
+                article.className = 'board-post';
+                article.setAttribute('data-key', data.key);
+                article.id = `board-post-${data.key}`;
 
-               const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-               const currentBody = post.body || post.text || "";
-               const safeText = currentBody.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-               const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "今さっき";
+                const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                const currentBody = post.body || post.text || "";
+                const safeText = currentBody.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "今さっき";
 
-               // 👑 管理者ログイン状態を完璧に判定（db.isAdmin を最優先チェック！）
-               const isManager = typeof db !== 'undefined' && db.isAdmin;
+                // 👑 管理者ログイン状態を完璧に判定（db.isAdmin を最優先チェック！）
+                const isManager = typeof db !== 'undefined' && db.isAdmin;
 
-               // 管理者モードのときだけ青（編集）と赤（削除）のボタンを仕込む
-               const adminButtons = isManager ? `
-                   <div class="board-admin-actions" style="margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end;">
-                       <button onclick="editBoardEntry('${data.key}')" style="padding: 4px 10px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold;">編集</button>
-                       <button onclick="deleteBoardEntry('${data.key}')" style="padding: 4px 10px; background: #dc3545; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold;">削除</button>
-                   </div>
-               ` : '';
+                // 管理者モードのときだけ青（編集）と赤（削除）のボタンを仕込む
+                const adminButtons = isManager ? `
+                    <div class="board-admin-actions" style="margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end;">
+                        <button onclick="editBoardEntry('${data.key}')" style="padding: 4px 10px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">編集</button>
+                        <button onclick="deleteBoardEntry('${data.key}')" style="padding: 4px 10px; background: #dc3545; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">削除</button>
+                    </div>
+                ` : '';
 
-               article.innerHTML = `
-                   <div class="board-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:5px;">
-                       <span class="board-title" style="font-weight:bold; color:#3e2723;">📌 ${safeTitle}</span>
-                       <span style="font-size:0.7rem; color:#aaa;">${date}</span>
-                   </div>
-                   <div class="board-body" style="padding: 12px 0; color: #444; line-height:1.6; white-space: pre-wrap;">${safeText}</div>
-                   ${adminButtons}
-               `;
+                // 💡 リアルタイム動的追加側も、余計なインラインカラーを排除してCSSに完全委ねます！
+                article.innerHTML = `
+                    <div class="bbs-meta-box">
+                        <span class="bbs-no-name">No.${data.no || ''} <strong>名無しにゃんこ</strong></span>
+                        <span class="bbs-date">${date || data.date || ''}</span>
+                    </div>
+                    <div class="bbs-post-title">${safeTitle}</div>
+                    <div class="bbs-post-body">${safeText}</div>
+                    ${adminButtons}
+                `;
+                
+                // 最新の書き込みを一番上にスマートに追加
+                container.prepend(article);
+            }
+        });
 
-               // 最新の書き込みを一番上にスマートに追加
-               container.prepend(article);
-           }
-       });
+        // 🚀【新設】ログイン成功時などに外側から知恵袋を強制リフレッシュさせるグローバル司令窓口
+        window.refreshBoardUI = () => {
+            const container = document.getElementById('board-posts-container');
+            if (container) {
+                container.innerHTML = ''; // 一度画面を空にする
+                
+                /* 💡 参照先を「posts」から「board」に修正して一元化！ */
+                const boardRef = ref(dbInstance, "alverse_pro_v3/board");
+                get(boardRef).then((snapshot) => {
+                    if (!snapshot.exists() || Object.keys(snapshot.val()).length === 0) {
+                        container.innerHTML = `<div style="text-align:center; color:#8c827a; padding:40px; border:1px dashed #444; border-radius:12px;">まだ知恵がありません🐾</div>`;
+                    }
+                });
+            }
+        };
 
-       // 🚀【新設】ログイン成功時などに外側から知恵袋を強制リフレッシュさせるグローバル司令窓口
-       window.refreshBoardUI = () => {
-           const container = document.getElementById('board-posts-container');
-           if (container) {
-               container.innerHTML = ''; // 一度画面を空にする
-               // Firebaseからデータを再取得（既存のonChildAddedが再びトリガーされ、最新のisAdminフラグに基づいてボタン付きで再描画されます）
-               const postsRef = ref(dbInstance, "alverse_pro_v3/posts");
-               get(postsRef).then((snapshot) => {
-                   if (!snapshot.exists() || Object.keys(snapshot.val()).length === 0) {
-                       container.innerHTML = `<div style="text-align:center; color:#8c827a; padding:40px; border:1px dashed #444; border-radius:12px;">まだ知恵がありません🐾</div>`;
-                   }
-               });
-           }
-       };
+        // =========================================================
+        // 👑 管理者専用：知恵袋の「編集」ロジック
+        // =========================================================
+        window.editBoardEntry = async (fbKey) => {
+            /* 💡 参照先を「posts」から「board」に修正して一元化！ */
+            const postRef = ref(dbInstance, `alverse_pro_v3/board/${fbKey}`);
+            try {
+                const snapshot = await get(postRef);
+                if (!snapshot.exists()) {
+                    alert("対象のデータがFirebase上に見つかりません。");
+                    return;
+                }
+                const currentData = snapshot.val();
 
-       // =========================================================
-       // 👑 管理者専用：知恵袋の「編集」ロジック
-       // =========================================================
-       window.editBoardEntry = async (fbKey) => {
-           const postRef = ref(dbInstance, `alverse_pro_v3/posts/${fbKey}`);
-           try {
-               const snapshot = await get(postRef);
-               if (!snapshot.exists()) {
-                   alert("対象のデータがFirebase上に見つかりません。");
-                   return;
-               }
-               const currentData = snapshot.val();
+                const newTitle = prompt("新しいタイトルを入力してくださいにゃ：", currentData.title || "");
+                if (newTitle === null) return;
 
-               const newTitle = prompt("新しいタイトルを入力してくださいにゃ：", currentData.title || "");
-               if (newTitle === null) return;
+                const newBody = prompt("新しい本文を入力してくださいにゃ：", currentData.body || currentData.text || "");
+                if (newBody === null) return;
 
-               const newBody = prompt("新しい本文を入力してくださいにゃ：", currentData.body || currentData.text || "");
-               if (newBody === null) return;
+                await set(postRef, {
+                    ...currentData,
+                    title: newTitle.trim() || "無題の知恵",
+                    body: newBody.trim(),
+                    text: newBody.trim(),
+                    lastEditedAt: Date.now()
+                });
 
-               await set(postRef, {
-                   ...currentData,
-                   title: newTitle.trim() || "無題の知恵",
-                   body: newBody.trim(),
-                   text: newBody.trim(),
-                   lastEditedAt: Date.now()
-               });
+                alert("知恵を修復・修正しました🐾");
+                window.refreshBoardUI();
 
-               alert("知恵を修復・修正しました🐾");
-               window.refreshBoardUI();
+            } catch (error) {
+                console.error("編集エラー:", error);
+                alert("編集内容の書き込みに失敗しました😿");
+            }
+        };
 
-           } catch (error) {
-               console.error("編集エラー:", error);
-               alert("編集内容の書き込みに失敗しました😿");
-           }
-       };
+        // =========================================================
+        // 👑 管理者専用：知恵袋の「削除」ロジック
+        // =========================================================
+        window.deleteBoardEntry = async (fbKey) => {
+            if (!confirm("この知恵を完全に削除してもよろしいですか？\n（Firebaseから完全に消去されます）")) {
+                return;
+            }
 
-       // =========================================================
-       // 👑 管理者専用：知恵袋の「削除」ロジック
-       // =========================================================
-       window.deleteBoardEntry = async (fbKey) => {
-           if (!confirm("この知恵を完全に削除してもよろしいですか？\n（Firebaseから完全に消去されます）")) {
-               return;
-           }
+            /* 💡 参照先を「posts」から「board」に修正して一元化！ */
+            const postRef = ref(dbInstance, `alverse_pro_v3/board/${fbKey}`);
+            try {
+                await set(postRef, null);
 
-           const postRef = ref(dbInstance, `alverse_pro_v3/posts/${fbKey}`);
-           try {
-               await set(postRef, null);
+                const postElement = document.getElementById(`board-post-${fbKey}`);
+                if (postElement) {
+                    postElement.remove();
+                }
+                console.log(`🐾 Firebaseから知恵（${fbKey}）を抹消しました`);
 
-               const postElement = document.getElementById(`board-post-${fbKey}`);
-               if (postElement) {
-                   postElement.remove();
-               }
-               console.log(`🐾 Firebaseから知恵（${fbKey}）を抹消しました`);
+                const container = document.getElementById('board-posts-container');
+                if (container && container.children.length === 0) {
+                    container.innerHTML = `<div style="text-align:center; color:#8c827a; padding:40px; border:1px dashed #444; border-radius:12px;">まだ知恵がありません🐾</div>`;
+                }
 
-               const container = document.getElementById('board-posts-container');
-               if (container && container.children.length === 0) {
-                   container.innerHTML = `<div style="text-align:center; color:#8c827a; padding:40px; border:1px dashed #444; border-radius:12px;">まだ知恵がありません🐾</div>`;
-               }
-
-           } catch (error) {
-               console.error("削除エラー:", error);
-               alert("Firebaseからの削除リクエストが拒否されました。");
-           }
-       };
+            } catch (error) {
+                console.error("削除エラー:", error);
+                alert("Firebaseからの削除リクエストが拒否されました。");
+            }
+        };
  </script>
  </body>
  </html>
