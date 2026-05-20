@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Sketch Studio Pro - Save Edition</title>
+    <title>3D Sketch Studio Pro - Focus View Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -12,100 +12,17 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-            background: #f8fafc;
-            font-family: 'Inter', sans-serif;
-        }
-
-        canvas {
-            display: block;
-            outline: none;
-        }
-
-        .no-select {
-            user-select: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 12px;
-            height: 12px;
-            background: #6366f1;
-            cursor: pointer;
-            border-radius: 50%;
-        }
-
-        .color-input-wrapper {
-            position: relative;
-            width: 100%;
-            height: 32px;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 2px solid #e2e8f0;
-            transition: transform 0.2s;
-        }
-
-        .color-input-wrapper:hover {
-            transform: scale(1.02);
-        }
-
-        .color-input-wrapper input[type="color"] {
-            position: absolute;
-            top: -5px;
-            left: -5px;
-            width: calc(100% + 10px);
-            height: calc(100% + 10px);
-            cursor: pointer;
-            border: none;
-            background: none;
-        }
-
-        @keyframes spin-slow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .animate-spin-slow {
-            animation: spin-slow 3s linear infinite;
-        }
-
-        .back-home-btn {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            z-index: 40;
-            padding: 10px 14px;
-            border: none;
-            border-radius: 14px;
-            background: rgba(15, 23, 42, 0.88);
-            color: #fff;
-            font-size: 12px;
-            font-weight: 900;
-            letter-spacing: 0.08em;
-            cursor: pointer;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.18);
-            transition: all 0.2s ease;
-        }
-
-        .back-home-btn:hover {
-            transform: translateY(-1px);
-            opacity: 0.95;
-        }
-
-        @media (max-width: 640px) {
-            .back-home-btn {
-                top: 20px;
-                right: 20px;
-                padding: 9px 12px;
-                font-size: 11px;
-            }
-        }
-
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #f8fafc; font-family: 'Inter', sans-serif; }
+        canvas { display: block; outline: none; }
+        .no-select { user-select: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; background: #6366f1; cursor: pointer; border-radius: 50%; }
+        .color-input-wrapper { position: relative; width: 100%; height: 32px; border-radius: 8px; overflow: hidden; border: 2px solid #e2e8f0; transition: transform 0.2s; }
+        .color-input-wrapper:hover { transform: scale(1.02); }
+        .color-input-wrapper input[type="color"] { position: absolute; top: -5px; left: -5px; width: calc(100% + 10px); height: calc(100% + 10px); cursor: pointer; border: none; background: none; }
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin-slow 3s linear infinite; }
+        .back-home-btn { position: absolute; top: 24px; right: 24px; z-index: 40; padding: 10px 14px; border: none; border-radius: 14px; background: rgba(15, 23, 42, 0.88); color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.08em; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.18); transition: all 0.2s ease; }
+        .back-home-btn:hover { transform: translateY(-1px); opacity: 0.95; }
     </style>
 </head>
 <body>
@@ -113,17 +30,14 @@
 
     <script type="text/babel">
         const { useState, useRef, useEffect } = React;
-        const STORAGE_KEY = "sketch3d_saved_project_v1";
 
         const App = () => {
             const [color, setColor] = useState('#6366f1');
             const [brushSize, setBrushSize] = useState(0.12);
+            const [brushType, setBrushType] = useState('tube'); // 'tube', 'pen', 'pencil'
             const [mode, setMode] = useState('draw');
             const [isDrawing, setIsDrawing] = useState(false);
             const [lineCount, setLineCount] = useState(0);
-
-            const [sidebarOpen, setSidebarOpen] = useState(true);
-            const [bottomMenuOpen, setBottomMenuOpen] = useState(true);
 
             const mountRef = useRef(null);
             const sceneRef = useRef(new THREE.Scene());
@@ -134,470 +48,326 @@
             const strokesRef = useRef([]);
             const currentPathRef = useRef([]);
             const modeRef = useRef('draw');
+            const brushTypeRef = useRef('tube');
             const drawingPlaneRef = useRef(null);
 
             useEffect(() => {
-                modeRef.current = mode;
+                modeRef.current = mode; // Stateのmodeを常にRefに同期
                 if (controlsRef.current) {
                     const isRotateMode = mode === 'rotate';
                     controlsRef.current.enabled = isRotateMode;
                     controlsRef.current.autoRotate = isRotateMode;
-                    controlsRef.current.autoRotateSpeed = 2.0;
+                    if (isRotateMode) {
+                        updateOrbitTarget(); 
+                    }
                     controlsRef.current.update();
                 }
             }, [mode]);
-
             useEffect(() => {
-                if (!mountRef.current) return;
-
-                const width = window.innerWidth;
-                const height = window.innerHeight;
-                const scene = sceneRef.current;
-                scene.background = new THREE.Color(0xf8fafc);
-
-                const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
-                camera.position.set(12, 10, 15);
-                cameraRef.current = camera;
-
-                const renderer = new THREE.WebGLRenderer({
-                    antialias: true,
-                    preserveDrawingBuffer: true
-                });
-                renderer.setSize(width, height);
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                mountRef.current.appendChild(renderer.domElement);
-                rendererRef.current = renderer;
-
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-                scene.add(ambientLight);
-
-                const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
-                dirLight.position.set(10, 20, 10);
-                scene.add(dirLight);
-
-                const grid = new THREE.GridHelper(40, 40, 0xccd6e0, 0xe2e8f0);
-                scene.add(grid);
-
-                const planeGeom = new THREE.PlaneGeometry(2000, 2000);
-                const planeMat = new THREE.MeshBasicMaterial({
-                    visible: false,
-                    side: THREE.DoubleSide
-                });
-                const plane = new THREE.Mesh(planeGeom, planeMat);
-                scene.add(plane);
-                drawingPlaneRef.current = plane;
-
-                const controls = new THREE.OrbitControls(camera, renderer.domElement);
-                controls.enableDamping = true;
-                controls.dampingFactor = 0.05;
-                controls.enabled = (modeRef.current === 'rotate');
-                controls.autoRotate = (modeRef.current === 'rotate');
-                controls.target.set(0, 0, 0);
-                controlsRef.current = controls;
-
-                const animate = () => {
-                    requestAnimationFrame(animate);
-
-                    if (controlsRef.current) {
-                        controlsRef.current.update();
-                    }
-
-                    if (modeRef.current === 'draw' && cameraRef.current) {
-                        plane.quaternion.copy(cameraRef.current.quaternion);
-                        const offset = new THREE.Vector3(0, 0, -10).applyQuaternion(cameraRef.current.quaternion);
-                        plane.position.copy(cameraRef.current.position).add(offset);
-                    }
-
-                    renderer.render(scene, camera);
-                };
-                animate();
-
-                const handleResize = () => {
-                    if (!cameraRef.current || !rendererRef.current) return;
-                    cameraRef.current.aspect = window.innerWidth / window.innerHeight;
-                    cameraRef.current.updateProjectionMatrix();
-                    rendererRef.current.setSize(window.innerWidth, window.innerHeight);
-                };
-
-                window.addEventListener('resize', handleResize);
-
-                return () => {
-                    window.removeEventListener('resize', handleResize);
-                    if (rendererRef.current && mountRef.current && renderer.domElement.parentNode === mountRef.current) {
-                        mountRef.current.removeChild(renderer.domElement);
-                    }
-                };
-            }, []);
-
-            useEffect(() => {
-                if (window.lucide) {
-                    lucide.createIcons();
-                }
-            }, [sidebarOpen, bottomMenuOpen, mode, lineCount, color]);
-
-            const getMouse3D = (event) => {
-                if (!rendererRef.current || !cameraRef.current || !drawingPlaneRef.current) return null;
-
-                const rect = rendererRef.current.domElement.getBoundingClientRect();
-                const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-                const raycaster = new THREE.Raycaster();
-                raycaster.setFromCamera({ x, y }, cameraRef.current);
-
-                const intersects = raycaster.intersectObject(drawingPlaneRef.current);
-                return intersects.length > 0 ? intersects[0].point : null;
-            };
-
-            const buildStrokeMesh = (stroke) => {
-                if (!stroke || !stroke.points || stroke.points.length < 2) return null;
-
-                const points = stroke.points.map(p => new THREE.Vector3(p.x, p.y, p.z));
-                const curve = new THREE.CatmullRomCurve3(points);
-                const geometry = new THREE.TubeGeometry(
-                    curve,
-                    Math.max(points.length * 2, 8),
-                    stroke.brushSize,
-                    8,
-                    false
-                );
-                const material = new THREE.MeshPhongMaterial({
-                    color: stroke.color,
-                    shininess: 80
-                });
-
-                return new THREE.Mesh(geometry, material);
-            };
+                brushTypeRef.current = brushType;
+            }, [brushType]);
 
             const updateOrbitTarget = () => {
                 if (!controlsRef.current) return;
-
                 if (drawingLinesRef.current.length === 0) {
                     controlsRef.current.target.set(0, 0, 0);
                     controlsRef.current.update();
                     return;
                 }
-
                 const box = new THREE.Box3();
-                drawingLinesRef.current.forEach(line => {
-                    box.expandByObject(line);
-                });
-
+                drawingLinesRef.current.forEach(line => box.expandByObject(line));
                 const center = new THREE.Vector3();
                 box.getCenter(center);
-
                 controlsRef.current.target.copy(center);
                 controlsRef.current.update();
             };
 
-            const startDrawing = (e) => {
-                if (mode !== 'draw' || e.button !== 0) return;
+            useEffect(() => {
+                const width = window.innerWidth, height = window.innerHeight;
+                const scene = sceneRef.current;
+                scene.background = new THREE.Color(0xf8fafc);
+                const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+                camera.position.set(12, 10, 15);
+                cameraRef.current = camera;
+                const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+                renderer.setSize(width, height);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                mountRef.current.appendChild(renderer.domElement);
+                rendererRef.current = renderer;
+                scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+                const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+                dirLight.position.set(10, 20, 10);
+                scene.add(dirLight);
+                scene.add(new THREE.GridHelper(40, 40, 0xccd6e0, 0xe2e8f0));
+                const plane = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide }));
+                scene.add(plane);
+                drawingPlaneRef.current = plane;
+                const controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enabled = (modeRef.current === 'rotate');
+                controls.autoRotate = (modeRef.current === 'rotate');
 
-                const point = getMouse3D(e);
-                if (point) {
-                    setIsDrawing(true);
-                    currentPathRef.current = [point];
-                }
-            };
+                controlsRef.current = controls;                
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.05;
+                controlsRef.current = controls;
 
-            const draw = (e) => {
-                if (!isDrawing) return;
-
-                const newPoint = getMouse3D(e);
-                if (!newPoint) return;
-
-                const lastPoint = currentPathRef.current[currentPathRef.current.length - 1];
-                if (newPoint.distanceTo(lastPoint) < 0.05) return;
-
-                currentPathRef.current.push(newPoint);
-
-                if (currentPathRef.current.length > 1) {
-                    if (drawingLinesRef.current.tempLine) {
-                        sceneRef.current.remove(drawingLinesRef.current.tempLine);
+                const animate = () => {
+                    requestAnimationFrame(animate);
+                    if (controlsRef.current) controlsRef.current.update();
+                    if (modeRef.current !== 'rotate' && cameraRef.current) {
+                        plane.quaternion.copy(cameraRef.current.quaternion);
+                        const offset = new THREE.Vector3(0, 0, -10).applyQuaternion(cameraRef.current.quaternion);
+                        plane.position.copy(cameraRef.current.position).add(offset);
                     }
+                    renderer.render(scene, camera);
+                };
+                animate();
+                const handleResize = () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                };
+                window.addEventListener('resize', handleResize);
+                return () => window.removeEventListener('resize', handleResize);
+            }, []);
 
-                    const curve = new THREE.CatmullRomCurve3(currentPathRef.current);
-                    const geometry = new THREE.TubeGeometry(
-                        curve,
-                        currentPathRef.current.length * 2,
-                        brushSize,
-                        8,
-                        false
-                    );
-                    const material = new THREE.MeshPhongMaterial({ color, shininess: 80 });
-                    const mesh = new THREE.Mesh(geometry, material);
+            useEffect(() => { if (window.lucide) lucide.createIcons(); }, [mode, lineCount, color, brushType]);
 
-                    sceneRef.current.add(mesh);
-                    drawingLinesRef.current.tempLine = mesh;
-                }
+            const getMouse3D = (event) => {
+                const rect = rendererRef.current.domElement.getBoundingClientRect();
+                const x = ((event.clientX - rect.left) / rect.width) * 2 - 1, y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                const raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera({ x, y }, cameraRef.current);
+                const intersects = raycaster.intersectObject(drawingPlaneRef.current);
+                return intersects.length > 0 ? intersects[0].point : null;
             };
 
-            const endDrawing = () => {
+            const createPenGeometry = (points, size) => {
+                const geometry = new THREE.BufferGeometry();
+                const vertices = [];
+                const right = new THREE.Vector3(1, 0, 0).applyQuaternion(drawingPlaneRef.current.quaternion).normalize();
+
+                for (let i = 0; i < points.length; i++) {
+                    const p = points[i];
+                    const vLeft = new THREE.Vector3().copy(p).addScaledVector(right, -size);
+                    const vRight = new THREE.Vector3().copy(p).addScaledVector(right, size);
+                    vertices.push(vLeft.x, vLeft.y, vLeft.z);
+                    vertices.push(vRight.x, vRight.y, vRight.z);
+                }
+
+                const indices = [];
+                for (let i = 0; i < points.length - 1; i++) {
+                    const next = i + 1;
+                    indices.push(i * 2, i * 2 + 1, next * 2);
+                    indices.push(i * 2 + 1, next * 2 + 1, next * 2);
+                }
+
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                geometry.setIndex(indices);
+                geometry.computeVertexNormals();
+                return geometry;
+            };
+
+            const createPencilGeometry = (points) => {
+                const geometry = new THREE.BufferGeometry();
+                const vertices = [];
+                points.forEach(p => {
+                    vertices.push(p.x, p.y, p.z);
+                });
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                return geometry;
+            };
+
+const executeFill = (clickPoint) => {
+    const lineStrokes = strokesRef.current.filter(s => !s.isFill);
+    if (lineStrokes.length === 0) return;
+
+    // 【修正】クリック位置に最も近いストロークを探す
+    let targetStroke = null;
+    let minDistance = Infinity;
+
+    lineStrokes.forEach(stroke => {
+        // ストロークの平均中心点を計算
+        const avgPos = stroke.points.reduce((acc, p) => ({
+            x: acc.x + p.x, 
+            y: acc.y + p.y, 
+            z: acc.z + p.z
+        }), {x:0, y:0, z:0});
+        
+        avgPos.x /= stroke.points.length;
+        avgPos.y /= stroke.points.length;
+        avgPos.z /= stroke.points.length;
+
+        // クリック地点との距離を計算
+        const dist = clickPoint.distanceTo(new THREE.Vector3(avgPos.x, avgPos.y, avgPos.z));
+        
+        // より近いものがあれば更新
+        if (dist < minDistance) {
+            minDistance = dist;
+            targetStroke = stroke;
+        }
+    });
+
+    if (!targetStroke) return;
+
+    // 以下、塗りつぶし処理（変更なし）
+    const planeMatrix = new THREE.Matrix4().getInverse(drawingPlaneRef.current.matrixWorld);
+    const localPoints = targetStroke.points.map(p => new THREE.Vector3(p.x, p.y, p.z).applyMatrix4(planeMatrix));
+    
+    const shape = new THREE.Shape();
+    shape.moveTo(localPoints[0].x, localPoints[0].y);
+    localPoints.slice(1).forEach(p => shape.lineTo(p.x, p.y));
+    shape.closePath();
+    
+    const fillMesh = new THREE.Mesh(
+        new THREE.ShapeGeometry(shape), 
+        new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+    );
+    
+    fillMesh.applyMatrix4(drawingPlaneRef.current.matrixWorld);
+    sceneRef.current.add(fillMesh);
+    drawingLinesRef.current.push(fillMesh);
+    
+    strokesRef.current.push({ 
+        isFill: true, 
+        color, 
+        planeMatrixWorld: drawingPlaneRef.current.matrixWorld.toArray(), 
+        localPoints: localPoints.map(p => ({ x: p.x, y: p.y })), 
+        points: targetStroke.points 
+    });
+    
+    setLineCount(drawingLinesRef.current.length);
+    updateOrbitTarget();
+};
+            const handleMouseDown = (e) => {
+                const point = getMouse3D(e);
+                if (!point) return;
+                
+                // modeRef.current を直接参照して、Reactのレンダリング待ちを回避
+                if (modeRef.current === 'draw') { 
+                    setIsDrawing(true); 
+                    currentPathRef.current = [point]; 
+                }
+                else if (modeRef.current === 'fill') {
+                    executeFill(point);
+                }
+            };
+            const handleMouseMove = (e) => {
+                if (!isDrawing) return;
+                const newPoint = getMouse3D(e);
+                if (!newPoint || newPoint.distanceTo(currentPathRef.current[currentPathRef.current.length - 1]) < 0.05) return;
+                currentPathRef.current.push(newPoint);
+                if (drawingLinesRef.current.tempLine) sceneRef.current.remove(drawingLinesRef.current.tempLine);
+
+                let mesh;
+                if (brushTypeRef.current === 'tube') {
+                    const curve = new THREE.CatmullRomCurve3(currentPathRef.current);
+                    mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, currentPathRef.current.length * 2, brushSize, 8, false), new THREE.MeshPhongMaterial({ color, shininess: 80 }));
+                } else if (brushTypeRef.current === 'pen') {
+                    const geo = createPenGeometry(currentPathRef.current, brushSize);
+                    mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide }));
+                } else {
+                    const geo = createPencilGeometry(currentPathRef.current);
+                    mesh = new THREE.Line(geo, new THREE.LineBasicMaterial({ color, linewidth: 1 }));
+                }
+
+                sceneRef.current.add(mesh);
+                drawingLinesRef.current.tempLine = mesh;
+            };
+
+            const handleMouseUp = () => {
                 if (!isDrawing) return;
                 setIsDrawing(false);
-
                 if (drawingLinesRef.current.tempLine) {
-                    const finalMesh = drawingLinesRef.current.tempLine;
-                    drawingLinesRef.current.push(finalMesh);
+                    drawingLinesRef.current.push(drawingLinesRef.current.tempLine);
                     drawingLinesRef.current.tempLine = null;
-
-                    const strokeData = {
-                        color,
-                        brushSize,
-                        points: currentPathRef.current.map(p => ({
-                            x: p.x,
-                            y: p.y,
-                            z: p.z
-                        }))
-                    };
-
-                    strokesRef.current.push(strokeData);
+                    strokesRef.current.push({ isFill: false, color, brushSize, brushType: brushTypeRef.current, points: currentPathRef.current.map(p => ({ x: p.x, y: p.y, z: p.z })) });
                     setLineCount(drawingLinesRef.current.length);
-                    updateOrbitTarget();
+                    updateOrbitTarget(); 
                 }
-
                 currentPathRef.current = [];
             };
 
             const undo = () => {
-                const lastMesh = drawingLinesRef.current.pop();
-                if (lastMesh) {
-                    sceneRef.current.remove(lastMesh);
-                    strokesRef.current.pop();
-                    setLineCount(drawingLinesRef.current.length);
-                    updateOrbitTarget();
-                }
-            };
-
-            const clear = () => {
-                drawingLinesRef.current.forEach(line => sceneRef.current.remove(line));
-                drawingLinesRef.current = [];
-                strokesRef.current = [];
-
-                if (drawingLinesRef.current.tempLine) {
-                    sceneRef.current.remove(drawingLinesRef.current.tempLine);
-                    drawingLinesRef.current.tempLine = null;
-                }
-
-                setLineCount(0);
-                updateOrbitTarget();
-            };
-
-            const saveProject = () => {
-                const payload = {
-                    savedAt: new Date().toISOString(),
-                    strokes: strokesRef.current
-                };
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-                alert("作品を保存しました");
-            };
-
-            const loadProject = () => {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (!raw) {
-                    alert("保存された作品がありません");
-                    return;
-                }
-
-                try {
-                    const parsed = JSON.parse(raw);
-                    const strokes = Array.isArray(parsed.strokes) ? parsed.strokes : [];
-
-                    drawingLinesRef.current.forEach(line => sceneRef.current.remove(line));
-                    drawingLinesRef.current = [];
-                    strokesRef.current = [];
-
-                    strokes.forEach(stroke => {
-                        const mesh = buildStrokeMesh(stroke);
-                        if (mesh) {
-                            sceneRef.current.add(mesh);
-                            drawingLinesRef.current.push(mesh);
-                            strokesRef.current.push(stroke);
-                        }
-                    });
-
-                    if (drawingLinesRef.current.tempLine) {
-                        sceneRef.current.remove(drawingLinesRef.current.tempLine);
-                        drawingLinesRef.current.tempLine = null;
-                    }
-
-                    setLineCount(drawingLinesRef.current.length);
-                    updateOrbitTarget();
-                    alert("作品を読み込みました");
-                } catch (error) {
-                    console.error(error);
-                    alert("作品の読み込みに失敗しました");
-                }
+                const last = drawingLinesRef.current.pop();
+                if (last) { sceneRef.current.remove(last); strokesRef.current.pop(); setLineCount(drawingLinesRef.current.length); updateOrbitTarget(); }
             };
 
             const savePNG = () => {
-                if (!rendererRef.current) return;
-
                 const link = document.createElement("a");
                 link.href = rendererRef.current.domElement.toDataURL("image/png");
-                link.download = `3d-sketch-${Date.now()}.png`;
+                link.download = `hero-sketch-${Date.now()}.png`;
                 link.click();
             };
 
             return (
                 <div className="relative h-screen w-screen overflow-hidden bg-slate-50 no-select">
-
-                    <button
-                        onClick={() => window.location.href = 'index.html'}
-                        className="back-home-btn"
-                    >
-                        ← AIverseに戻る
-                    </button>
-
-                    <div className="absolute top-6 left-6 z-30 pointer-events-none flex items-center gap-3">
-                        <div className="bg-slate-900 text-white px-3 py-1 rounded-lg font-black text-lg shadow-xl pointer-events-auto">
-                            3D
-                        </div>
-                        <h1 className={`text-slate-800 font-bold tracking-tight transition-all duration-500 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}>
-                            Sketch Studio
-                        </h1>
+                    <button onClick={() => window.location.href = 'index.html'} className="back-home-btn">← AIverseに戻る</button>
+                    <div className="absolute top-6 left-6 z-30 flex items-center gap-3">
+                        <div className="bg-slate-900 text-white px-3 py-1 rounded-lg font-black text-lg shadow-xl">3D</div>
+                        <h1 className="text-slate-800 font-bold">Sketch Studio</h1>
                     </div>
 
-                    <button
-                        onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className={`absolute top-24 left-6 z-40 p-2.5 bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 rounded-full shadow-lg transition-all duration-300 ${sidebarOpen ? 'translate-x-[220px]' : 'translate-x-0'}`}
-                    >
-                        <i data-lucide={sidebarOpen ? "chevron-left" : "settings"} className="w-5 h-5"></i>
-                    </button>
-
-                    <div className={`absolute top-24 left-6 w-56 bg-white/80 backdrop-blur-md border border-slate-200/50 rounded-3xl p-6 z-30 shadow-xl transition-all duration-300 origin-left ${sidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 pointer-events-none'}`}>
+                    <div className="absolute top-24 left-6 w-56 bg-white/80 backdrop-blur-md border rounded-3xl p-6 z-30 shadow-xl">
                         <div className="space-y-6">
+                            {/* 🖌️ 上部は TUBE と PEN のみに戻しました */}
                             <div>
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
-                                    Brush Size
-                                </label>
-                                <input
-                                    type="range"
-                                    min="0.02"
-                                    max="0.6"
-                                    step="0.01"
-                                    value={brushSize}
-                                    onChange={(e) => setBrushSize(parseFloat(e.target.value))}
-                                    className="w-full h-1 bg-slate-200 rounded-full appearance-none cursor-pointer accent-indigo-600"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
-                                    Pick Color
-                                </label>
-                                <div className="color-input-wrapper mb-3 shadow-inner" style={{ backgroundColor: color }}>
-                                    <input
-                                        type="color"
-                                        value={color}
-                                        onChange={(e) => setColor(e.target.value)}
-                                    />
-                                </div>
-
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
-                                    Presets
-                                </label>
-                                <div className="grid grid-cols-4 gap-2">
-                                    {['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6', '#0f172a', '#ffffff'].map(c => (
-                                        <button
-                                            key={c}
-                                            onClick={() => setColor(c)}
-                                            className={`h-6 rounded-md border-2 transition-all ${color === c ? 'border-slate-800 scale-110 shadow-sm' : 'border-transparent opacity-60'}`}
-                                            style={{ backgroundColor: c }}
-                                        />
-                                    ))}
+                                <label className="text-[10px] font-black text-slate-400 uppercase block mb-2">Brush Type</label>
+                                <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
+                                    <button onClick={() => setBrushType('tube')} className={`py-1.5 rounded-lg text-[10px] font-black tracking-wider transition-all ${brushType === 'tube' ? 'bg-slate-900 text-white shadow' : 'text-slate-400 hover:text-slate-600'}`}>TUBE</button>
+                                    <button onClick={() => setBrushType('pen')} className={`py-1.5 rounded-lg text-[10px] font-black tracking-wider transition-all ${brushType === 'pen' ? 'bg-slate-900 text-white shadow' : 'text-slate-400 hover:text-slate-600'}`}>PEN</button>
                                 </div>
                             </div>
 
-                            <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
-                                <button
-                                    onClick={undo}
-                                    disabled={lineCount === 0}
-                                    className="flex items-center justify-center gap-2 py-2 text-slate-500 rounded-xl text-[10px] font-black tracking-widest hover:bg-slate-100 disabled:opacity-20 transition-colors uppercase"
-                                >
-                                    <i data-lucide="rotate-ccw" className="w-3.5 h-3.5"></i>
-                                    Undo
-                                </button>
+                            <div className={brushType === 'pencil' ? 'opacity-30 pointer-events-none transition-opacity' : 'transition-opacity'}>
+                                <label className="text-[10px] font-black text-slate-400 uppercase block mb-2">Brush Size</label>
+                                <input type="range" min="0.02" max="0.6" step="0.01" value={brushSize} onChange={(e) => setBrushSize(parseFloat(e.target.value))} className="w-full h-1 bg-slate-200 rounded-full appearance-none cursor-pointer" />
+                            </div>
+                            
+                            <div><label className="text-[10px] font-black text-slate-400 uppercase block mb-2">Pick Color</label>
+                            <div className="color-input-wrapper mb-3" style={{ backgroundColor: color }}><input type="color" value={color} onChange={(e) => setColor(e.target.value)} /></div>
+                            <div className="grid grid-cols-4 gap-2">
+                                {['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6', '#0f172a', '#ffffff'].map(c => (
+                                    <button key={c} onClick={() => setColor(c)} className={`h-6 rounded-md border-2 ${color === c ? 'border-slate-800 scale-110' : 'border-transparent opacity-60'}`} style={{ backgroundColor: c }} />
+                                ))}
+                            </div></div>
 
-                                <button
-                                    onClick={clear}
-                                    className="flex items-center justify-center gap-2 py-2 text-slate-500 rounded-xl text-[10px] font-black tracking-widest hover:bg-red-50 hover:text-red-500 transition-colors uppercase"
+                            <div className="pt-4 border-t flex flex-col gap-2">
+                                {/* ✏️ PENCILボタンをここに独立して配置 */}
+                                <button 
+                                    onClick={() => setBrushType('pencil')} 
+                                    className={`py-2 rounded-xl text-[10px] font-black tracking-widest transition-all flex items-center justify-center gap-2 border ${brushType === 'pencil' ? 'bg-slate-800 text-white border-transparent shadow-md' : 'text-slate-500 border-slate-200 hover:bg-slate-100'}`}
                                 >
-                                    <i data-lucide="trash" className="w-3.5 h-3.5"></i>
-                                    Clear
+                                    <i data-lucide="pencil" className="w-3 h-3"></i> PENCIL
                                 </button>
-
-                                <button
-                                    onClick={saveProject}
-                                    className="flex items-center justify-center gap-2 py-2 text-slate-500 rounded-xl text-[10px] font-black tracking-widest hover:bg-emerald-50 hover:text-emerald-600 transition-colors uppercase"
-                                >
-                                    <i data-lucide="save" className="w-3.5 h-3.5"></i>
-                                    Save
-                                </button>
-
-                                <button
-                                    onClick={loadProject}
-                                    className="flex items-center justify-center gap-2 py-2 text-slate-500 rounded-xl text-[10px] font-black tracking-widest hover:bg-indigo-50 hover:text-indigo-600 transition-colors uppercase"
-                                >
-                                    <i data-lucide="folder-open" className="w-3.5 h-3.5"></i>
-                                    Load
-                                </button>
-
-                                <button
-                                    onClick={savePNG}
-                                    className="flex items-center justify-center gap-2 py-2 text-slate-500 rounded-xl text-[10px] font-black tracking-widest hover:bg-amber-50 hover:text-amber-600 transition-colors uppercase"
-                                >
-                                    <i data-lucide="image-down" className="w-3.5 h-3.5"></i>
-                                    PNG
-                                </button>
+                                
+                                <button onClick={undo} className="py-2 text-slate-500 rounded-xl text-[10px] font-black tracking-widest hover:bg-slate-100 transition-colors mt-2">UNDO</button>
+                                <button onClick={() => {drawingLinesRef.current.forEach(l => sceneRef.current.remove(l)); drawingLinesRef.current=[]; strokesRef.current=[]; setLineCount(0); updateOrbitTarget();}} className="py-2 text-slate-500 rounded-xl text-[10px] font-black tracking-widest hover:bg-red-50 hover:text-red-500 transition-colors">CLEAR</button>
+                                <button onClick={savePNG} className="py-2 text-slate-500 rounded-xl text-[10px] font-black tracking-widest hover:bg-amber-50 hover:text-amber-600 transition-colors">PNG</button>
                             </div>
                         </div>
                     </div>
 
-                    <button
-                        onClick={() => setBottomMenuOpen(!bottomMenuOpen)}
-                        className={`absolute bottom-8 left-1/2 -translate-x-1/2 z-40 p-2 text-slate-400 hover:text-indigo-600 transition-all duration-300 ${bottomMenuOpen ? 'translate-y-[-60px]' : 'translate-y-0'}`}
-                    >
-                        <i data-lucide={bottomMenuOpen ? "chevron-down" : "layout-grid"} className="w-6 h-6"></i>
-                    </button>
-
-                    <div className={`absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex bg-slate-900/90 backdrop-blur-lg p-1.5 rounded-3xl shadow-2xl border border-white/5 transition-all duration-300 ${bottomMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}>
-                        <button
-                            onClick={() => setMode('draw')}
-                            className={`flex items-center gap-3 px-8 py-3 rounded-2xl transition-all text-xs font-black tracking-widest ${mode === 'draw' ? 'bg-white text-slate-900 shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                        >
-                            <i data-lucide="pen-tool" className="w-4 h-4"></i>
-                            DRAW
+                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex bg-slate-900/90 backdrop-blur-lg p-1.5 rounded-3xl shadow-2xl">
+                        <button onClick={() => setMode('draw')} className={`flex items-center gap-3 px-6 py-3 rounded-2xl text-xs font-black transition-all ${mode === 'draw' ? 'bg-white text-slate-900 shadow-lg' : 'text-slate-400 hover:text-white'}`}>
+                            <i data-lucide="pen-tool" className="w-4 h-4"></i>DRAW
                         </button>
-
-                        <button
-                            onClick={() => setMode('rotate')}
-                            className={`flex items-center gap-3 px-8 py-3 rounded-2xl transition-all text-xs font-black tracking-widest ${mode === 'rotate' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-400 hover:text-white'}`}
-                        >
-                            <i data-lucide="refresh-cw" className={`w-4 h-4 ${mode === 'rotate' ? 'animate-spin-slow' : ''}`}></i>
-                            VIEW
+                        <button onClick={() => setMode('rotate')} className={`flex items-center gap-3 px-6 py-3 rounded-2xl text-xs font-black transition-all ${mode === 'rotate' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>
+                            <i data-lucide="refresh-cw" className={`w-4 h-4 ${mode === 'rotate' ? 'animate-spin-slow' : ''}`}></i>VIEW
+                        </button>
+                        <button onClick={() => setMode('fill')} className={`flex items-center gap-3 px-6 py-3 rounded-2xl text-xs font-black transition-all ${mode === 'fill' ? 'bg-white text-slate-900 shadow-lg' : 'text-slate-400 hover:text-white'}`}>
+                            🪣 FILL
                         </button>
                     </div>
 
-                    <div
-                        className={`w-full h-full ${mode === 'draw' ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'}`}
-                        onMouseDown={startDrawing}
-                        onMouseMove={draw}
-                        onMouseUp={endDrawing}
-                        onMouseLeave={endDrawing}
-                    >
+                    <div className={`w-full h-full ${mode === 'draw' ? 'cursor-crosshair' : mode === 'fill' ? 'cursor-copy' : 'cursor-grab'}`} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
                         <div ref={mountRef} className="w-full h-full" />
                     </div>
-
-                    <div className="absolute top-6 right-6 z-20 text-[10px] font-black text-slate-400 tracking-widest uppercase bg-white/30 px-3 py-1 rounded-full backdrop-blur-sm">
-                        Objects: {lineCount.toString().padStart(3, '0')}
-                    </div>
+                    <div className="absolute top-6 right-6 z-20 text-[10px] font-black text-slate-400 tracking-widest uppercase bg-white/30 px-3 py-1 rounded-full">Objects: {lineCount.toString().padStart(3, '0')}</div>
                 </div>
             );
         };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
