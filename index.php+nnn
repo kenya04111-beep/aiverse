@@ -792,6 +792,7 @@ body.dark-mode .bbs-post-body {
 
 </style>
 
+
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 </head>
@@ -1304,7 +1305,10 @@ const endIndex =
              card.onclick = () => showArticleDetail(p.id);
 
              const fallbackImg = 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=600&q=80';
-             const imageUrl = p.image || fallbackImg;
+const imageUrl =
+    p.imageUrl ||
+    p.image ||
+    fallbackImg;
 
              // 👑 管理者なら「公開状態バッジ」と「編集・削除ボタン」を表示
              const isManager = typeof db !== 'undefined' && db.isAdmin;
@@ -1752,7 +1756,7 @@ async function removeGalleryImage(index) {
             const response = await fetch('delete_gallery.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+                body: JSON.stringify({ 
                     index: index,
                     filename: filename,
                     file: filename // 念のため別名でも仕込んでおくお守り
@@ -2429,7 +2433,7 @@ window.toggleGearMenu = function(e) {
     if (!menu) return;
 
     // 現在の style.display または クラス名 から開閉状態を判定
-    const isHidden = menu.style.display === 'none' ||
+    const isHidden = menu.style.display === 'none' || 
                      (!menu.classList.contains('show') && !menu.classList.contains('open') && menu.style.display !== 'block');
 
     if (isHidden) {
@@ -2983,15 +2987,16 @@ const playlistRef = ref(
                   }
               }
 
-if (targetKey) {
-    // ✏️ 既存記事の上書き修正（すでに定義済みの articlesRef からパスを安全に生成）
-    await set(ref(dbInstance, `aiverse_pro_v3/articles/${targetKey}`), postData);
-    console.log(`🔥 Firebase上の記事 [${postData.id}] を完全更新しました🐾`);
-} else {
-    // ➕ 新規記事のプッシュ追加
-    await push(articlesRef, postData);
-    console.log("🔥 Firebaseへ新しい記事を永続保存しました🐾");
-}
+              if (targetKey) {
+                  // ✏️ 既存記事の上書き修正
+                  await set(ref(dbInstance, `aiverse_pro_v3/articles/${targetKey}`), postData);
+                  console.log(`🔥 Firebase上の記事 [${postData.id}] を完全更新しました🐾`);
+              } else {
+                  // ➕ 新規記事のプッシュ追加
+                  await push(articlesRef, postData);
+                  console.log("🔥 Firebaseへ新しい記事を永続保存しました🐾");
+              }
+
               // 保存完了後にローカルデータを再取得してグリッドをリフレッシュ
               await window.loadArticlesFromFirebase();
 
@@ -3032,7 +3037,7 @@ if (targetKey) {
                   const data = snapshot.val();
                   for (const key in data) {
                       if (data[key] && String(data[key].id) === String(id)) {
-                          await set(ref(dbInstance, `alverse_pro_v3/articles/${key}`), null); // 抹消！
+                          await set(ref(dbInstance, `aiverse_pro_v3/articles/${key}`), null); // 抹消！
                           console.log(`🐾 Firebaseから記事キー [${key}] を消去しました`);
                           break;
                       }

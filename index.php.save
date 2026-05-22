@@ -1,15 +1,9 @@
-<?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-// 判定処理...
-?>
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐶 AIverse</title>
+    <title>🐶 Alverse</title>
     <link rel="icon" href="data:,">
     <style>
         /* 🎨 カラーパレットシステム (キャットコア & ダーク対応) */
@@ -346,63 +340,40 @@ if (session_status() === PHP_SESSION_NONE) {
             transform: scale(1.05);
         }
 
-/* 🧱 モーダルウィンドウ共通 */
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
+        /* 🧱 モーダルウィンドウ共通 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-bg);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+            padding: 16px;
+        }
+        .modal-content {
+            background: var(--card-bg);
+            padding: 28px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 620px;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            animation: modalUp 0.25s ease-out;
+        }
+        .modal-close {
+            position: absolute;
+            top: 16px; right: 16px;
+            background: none; border: none;
+            font-size: 1.6rem; color: var(--text-color);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .modal-close:hover { transform: rotate(90deg); }
 
-    background: var(--modal-bg);
-    z-index: 10000;
-
-    justify-content: center;
-    align-items: center;
-
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-
-    padding: 16px;
-}
-
-/* 📦 モーダル本体 */
-.modal-content {
-    background: var(--card-bg);
-
-    padding: 28px;
-    border-radius: 20px;
-
-    width: 100%;
-    max-width: 620px;
-    max-height: 85vh;
-
-    overflow-y: auto;
-    position: relative;
-
-    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-
-    animation: fadeIn 0.3s ease-out;
-}
-
-/* ❌ 閉じるボタン */
-.modal-close {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-
-    background: none;
-    border: none;
-
-    font-size: 1.6rem;
-    color: var(--text-color);
-
-    cursor: pointer;
-
-    transition: transform 0.2s ease;
-}
-
-.modal-close:hover {
-    transform: rotate(90deg);
-}
         /* 👣 フッターデザイン (AdSense＆完全一直線並び) */
         footer {
             background: var(--header-bg);
@@ -790,35 +761,88 @@ body.dark-mode .bbs-post-body {
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* --- 📝 メモ帳・モーダルの設定 --- */
+        .modal-content {
+            animation: fadeIn 0.3s ease-out; /* memo-openと共通なのでfadeInに統合可能です */
+        }
+
+        /* --- 🐾 掲示板（猫の知恵袋）の設定 --- */
+        .board-post {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            /* 投稿が読み込まれた時に fadeIn を適用 */
+            animation: fadeIn 0.4s ease forwards;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        /* ホバー時に少しだけ浮き上がり、背景を少し明るくする演出 */
+        .board-post:hover {
+            transform: scale(1.01);
+            background: rgba(255, 255, 255, 0.05);
+        }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
+<script type="module" src="main.js"></script>
 </head>
 <body>
 <script>
+// ==================================================
+// 【1. インポートエリア】
+// ==================================================
+import { initializeApp } from "firebase/app";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getDatabase, ref as dbRef, push } from "firebase/database";
+
+// ==================================================
+// 【2. Firebase初期化エリア】
+// ==================================================
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    // 他の設定値...
+};
+
+const app = initializeApp(firebaseConfig);
+const dbInstance = getDatabase(app);
+
+// ==================================================
+// 【3. アプリの状態管理 (AppState)】
+// ==================================================
 function initAppState() {
-  window.AppState = window.AppState || {};
+    window.AppState = window.AppState || {};
 
-  window.AppState.db ??= null;
-  window.AppState.posts ??= [];
-  window.AppState.board ??= [];
-  window.AppState.gallery ??= [];
+    // DBインスタンスをAppStateに保存（これで他の関数からアクセス可能！）
+    window.AppState.db = dbInstance;
 
-  window.AppState.currentPage ??= 1;
-  window.AppState.perPage ??= 10;
+    window.AppState.posts ??= [];
+    window.AppState.board ??= [];
+    window.AppState.gallery ??= [];
 
-  window.AppState.runtime ??= {
-    isGearOpen: false,
-    scrollLock: false,
-    dbReady: false
-  };
+    window.AppState.currentPage ??= 1;
+    window.AppState.perPage ??= 10;
+
+    window.AppState.runtime ??= {
+        isGearOpen: false,
+        scrollLock: false,
+        dbReady: true // 初期化完了
+    };
 }
 
 initAppState();
 
+// ==================================================
+// 【4. 各機能（関数）】
+// ==================================================
+async function uploadImage(input) {
+    // ここに先ほどのアップロード処理を記述します
+    console.log("アップロード機能が動いています");
+}
 // 31種のカテゴリースラッグを美しい日本語に変換するマスター辞書🐾（ここに完全統合！）
-const categoryMap = {
+window.categoryMap = {
     news: "📢 ニュース", ent: "🎭 エンタメ", game: "🎮 ゲーム", anime: "🎨 アニメ・漫画",
     movie: "🎬 映画・ドラマ", music: "🎵 音楽", science: "🧪 科学", space: "🚀 宇宙",
     tech: "💻 テクノロジー", ai: "🤖 AI", math: "📐 数学", phi: "📜 哲学・思想",
@@ -830,11 +854,10 @@ const categoryMap = {
 };
 </script>
 
-
 <header>
     <!-- ロゴ：クリックでリロード、ホバー時に少し動く -->
     <div class="logo" onclick="location.reload()" title="AIverse ホームへ">
-        <span class="logo-icon">🐶</span> AIverse
+        <span class="logo-icon">🐶</span> Alverse
     </div>
 
 <!-- 検索バー：中央配置で視認性を向上 -->
@@ -970,6 +993,14 @@ const categoryMap = {
         <button class="simple-x-btn" onclick="closeGalleryZoom(event)">×</button>
     </div>
 </div>
+<div id="gallery-zoom-modal" class="custom-zoom-overlay" onclick="closeGalleryZoom(event)">
+    <div class="zoom-card" onclick="event.stopPropagation()">
+        <img id="zoomed-image" src="" alt="拡大画像">
+
+        <button class="simple-x-btn" onclick="closeGalleryZoom(event)">×</button>
+    </div>
+</div>
+
 <div id="memo-modal" class="modal">
     <div class="modal-content" style="position: relative; overflow: hidden;">
         <!-- 右上の閉じるボタン -->
@@ -1162,7 +1193,7 @@ const categoryMap = {
     <div class="modal-content">
         <button class="modal-close" onclick="closeModal('privacy-modal')">×</button>
         <h2>プライバシーポリシー</h2>
-        <p>当サイト「AIverse」は、Cookieを利用して最適化された広告を配信しますが、これらはブラウザ設定から無効化可能です。個人情報は厳重に保護されます。</p>
+        <p>当サイト「Alverse」は、Cookieを利用して最適化された広告を配信しますが、これらはブラウザ設定から無効化可能です。個人情報は厳重に保護されます。</p>
     </div>
 </div>
 
@@ -1180,7 +1211,7 @@ const categoryMap = {
 <script>
 
    // ----------------------------- 🗄️ データ構造 (初期値) -----------------------------
-    const INITIAL_AIVERSE_DB = {
+    const INITIAL_ALVERSE_DB = {
         isAdmin: false,
         theme: 'light',
         posts: [
@@ -1189,7 +1220,7 @@ const categoryMap = {
             { id: 3, title: "太陽光を120%増幅させるレンズパネル", category: "グリーンエネルギー", body: "窓に貼り付けるだけで、外部から入る昼光の明るさを全方位に反射・倍加させ、暗い部屋を一瞬でぽかぽかの快適空間に変える省エネフィルム技術。", image: "https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=600&q=80", date: "2026-05-03", public: true }
         ],
         board: [
-            { id: 1, title: "AIverse掲示板へようこそ！", body: "自由にお使いいただけるBBSです！なんでも書き込んでいってくださいにゃ。😸", date: "2026-05-07 00:00" }
+            { id: 1, title: "Alverse掲示板へようこそ！", body: "自由にお使いいただけるBBSです！なんでも書き込んでいってくださいにゃ。😸", date: "2026-05-07 00:00" }
         ],
         gallery: [],
         memo: "",
@@ -1199,96 +1230,52 @@ const categoryMap = {
         activePlaylistIdx: 0
     };
 
-// クッキー削除に耐えるlocalStorage保存
-let db =
-    JSON.parse(localStorage.getItem('aiverse_database_engine_v3'))
-    || INITIAL_AIVERSE_DB;
+    // クッキー削除に耐えるlocalStorage保存 (現状維持)
+    let db = JSON.parse(localStorage.getItem('alverse_database_engine_v3')) || INITIAL_ALVERSE_DB;
 
-// 🌟 AppStateと同期
-window.AppState.db = db;
-
-// 🌟 runtime安全生成
-window.AppState.runtime ??= {};
-
-// 🌟 起動完了フラグ
-window.AppState.runtime.dbReady = true;
-
-function saveToLocalStorage() {
-
-    try {
-
-        localStorage.setItem(
-            'aiverse_database_engine_v3',
-            JSON.stringify(db)
-        );
-
-        // 🌟 AppState側も同期
-        window.AppState.db = db;
-
-    } catch (e) {
-
-        alert(
-            "⚠️ ストレージ容量上限を超えました。ギャラリー画像を削除してください。"
-        );
-    }
-}
-// ----------------------------- 📰 記事・検索・ページネーション制御 -----------------------------
-let computedPosts = [];
-
-function onSearchChange() {
-    AppState.currentPage = 1;
-    renderArticlesGrid();
-}
-
-function renderArticlesGrid() {
-
-    const searchBar = document.getElementById('search-bar');
-    const grid = document.getElementById('mainGrid');
-
-    if (!grid || !searchBar) return;
-
-    const query = searchBar.value.toLowerCase().trim();
-
-    // 初期化
-    grid.innerHTML = '';
-
-    // 💡 db.posts が未定義や object 形式でも安全に配列化
-    const postsArray = db.posts
-        ? (Array.isArray(db.posts) ? db.posts : Object.values(db.posts))
-        : [];
-
-    // 🧹 固定サンプル除外
-    computedPosts = postsArray.filter(p => {
-
-        if (!p || !p.title || !p.body) return false;
-
-        if (
-            p.title.includes("埃を極限まで吸い寄せる") ||
-            p.title.includes("免疫が再起動する") ||
-            p.title.includes("太陽光を120%増幅")
-        ) {
-            return false;
+    function saveToLocalStorage() {
+        try {
+            localStorage.setItem('alverse_database_engine_v3', JSON.stringify(db));
+        } catch (e) {
+            alert("⚠️ ストレージ容量上限を超えました。ギャラリー画像を削除してください。");
         }
+    }
 
-        const matchesQuery =
-            p.title.toLowerCase().includes(query) ||
-            p.body.toLowerCase().includes(query) ||
-            (p.category && p.category.toLowerCase().includes(query));
+// ----------------------------- 📰 記事・検索・ページネーション制御 -----------------------------
+     let currentPage = 1;
+     const postsPerPage = 10;
+     let computedPosts = [];
 
-        return matchesQuery &&
-            (p.public || (typeof db !== 'undefined' && db.isAdmin));
-    });
+     function onSearchChange() {
+         currentPage = 1;
+         renderArticlesGrid();
+     }
 
-        // 🕒 新しい投稿が常に先頭（左上）に並ぶように日付・ID順でスマートにソート
+     function renderArticlesGrid() {
+         const query = document.getElementById('search-bar').value.toLowerCase().trim();
+         const grid = document.getElementById('mainGrid');
+         if (!grid) return;
+         grid.innerHTML = '';
+
+         // 💡 db.posts が未定義、またはオブジェクト形式だった場合でも安全に配列化
+         const postsArray = db.posts ? (Array.isArray(db.posts) ? db.posts : Object.values(db.posts)) : [];
+
+         // 🧹 固定サンプル（ダミー記事）のIDや特定の固定文字を完全に除外して、本物の投稿だけにする安全弁
+         computedPosts = postsArray.filter(p => {
+             if (!p || !p.title || !p.body) return false;
+             // 固定ダミー記事のタイトルが入っていたらここで弾いて完全に抹消する
+             if (p.title.includes("埃を極限まで吸い寄せる") || p.title.includes("免疫が再起動する") || p.title.includes("太陽光を120%増幅")) return false;
+
+             const matchesQuery = p.title.toLowerCase().includes(query) || p.body.toLowerCase().includes(query) || (p.category && p.category.toLowerCase().includes(query));
+             return matchesQuery && (p.public || (typeof db !== 'undefined' && db.isAdmin));
+         });
+
+         // 🕒 新しい投稿が常に先頭（左上）に並ぶように日付・ID順でスマートにソート
          computedPosts.sort((a, b) => b.id - a.id);
 
-const totalPages = Math.ceil(computedPosts.length / AppState.perPage);
-
-const startIndex =
-    (AppState.currentPage - 1) * AppState.perPage;
-
-const endIndex =
-    startIndex + AppState.perPage;
+         const totalPages = Math.ceil(computedPosts.length / postsPerPage);
+         const startIndex = (currentPage - 1) * postsPerPage;
+         const endIndex = startIndex + postsPerPage;
          const pageSelection = computedPosts.slice(startIndex, endIndex);
 
          if (pageSelection.length === 0) {
@@ -1336,41 +1323,25 @@ const endIndex =
          buildPaginationControls(totalPages);
      }
 
-function buildPaginationControls(totalPages) {
-    const pagBox = document.getElementById('pagination');
+     function buildPaginationControls(totalPages) {
+         const pagBox = document.getElementById('pagination');
+         if (!pagBox) return;
+         pagBox.innerHTML = '';
+         if (totalPages <= 1) return;
 
-    if (!pagBox) return;
+         for (let i = 1; i <= totalPages; i++) {
+             const btn = document.createElement('button');
+             btn.innerText = i;
+             btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+             btn.onclick = () => {
+                 currentPage = i;
+                 renderArticlesGrid();
+                 window.scrollTo({ top: 0, behavior: 'smooth' });
+             };
+             pagBox.appendChild(btn);
+         }
+     }
 
-    pagBox.innerHTML = '';
-
-    // 1ページしかない場合は非表示
-    if (totalPages <= 1) return;
-
-    for (let i = 1; i <= totalPages; i++) {
-
-        const btn = document.createElement('button');
-
-        btn.innerText = i;
-
-        btn.className =
-            `page-btn ${i === AppState.currentPage ? 'active' : ''}`;
-
-        btn.onclick = () => {
-
-            AppState.currentPage = i;
-
-            renderArticlesGrid();
-
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-
-        };
-
-        pagBox.appendChild(btn);
-    }
-}
      // 記事の詳細表示
      let currentDetailArticleId = null;
      function showArticleDetail(id) {
@@ -1432,9 +1403,7 @@ function buildPaginationControls(totalPages) {
              openModal('detail-modal');
          }
      }
-
 // ----------------------------- 🌛 ダークモード＆管理者長押し (整理版) ------------------->
-
 let pressTimer;
 
 const dmBtn = document.getElementById('dark-mode-btn');
@@ -1501,10 +1470,9 @@ if (dmBtn) {
          saveToLocalStorage();
      });
 }
-
 // --- ⚙️ 設定: Firebase BBSパス ---
-const BBS_ENDPOINT = 'https://alverse-project-default-rtdb.firebaseio.com/aiverse_pro_v3/board.json';
-
+// 💡 末尾を articles.json から bbs.json に変更し、メイン記事と分離します
+const BBS_ENDPOINT = './bbs.json';
 // --- 🛡️ セキュリティ & ユーティリティ ---
 function escapeHTML(str) {
     if (!str) return '';
@@ -1534,7 +1502,7 @@ async function loadBoardFromServer() {
     }
 
     try {
-        const response = await fetch(BBS_ENDPOINT + '?t=' + new Date().getTime());
+        const response = await fetch(BBS_ENDPOINT);
         if (!response.ok) throw new Error(`Network response was not ok (status: ${response.status})`);
 
         const data = await response.json();
@@ -1545,8 +1513,9 @@ async function loadBoardFromServer() {
             return;
         }
 
-// dataが存在すれば、Object.valuesで中身だけを取り出して配列化し、ソートする
-db.board = data ? Object.entries(data).map(([key, val]) => ({ ...val, id: key })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)) : [];
+        // データの同期とソート
+        db.board = Array.isArray(data) ? data.sort((a, b) => (b.id || 0) - (a.id || 0)) : [];
+
         console.log("🐾 掲示板データを同期しました:", db.board);
 
         // 描画を実行
@@ -1559,7 +1528,6 @@ db.board = data ? Object.entries(data).map(([key, val]) => ({ ...val, id: key })
         }
     }
 }
-
 /**
  * 🎨 掲示板のレンダリング（見た目を作る）
  */
@@ -1618,7 +1586,63 @@ function renderBoard() {
 
     container.appendChild(fragment);
 }
+/**
+ * 📮 新規投稿（ボタンが押せるように修正）
+ */
+async function submitBoardPost() {
+    const titleIn = document.getElementById('board-title-input');
+    const bodyIn = document.getElementById('board-body-input');
+    const submitBtn = document.querySelector('.board-submit-btn');
 
+    if (!titleIn || !bodyIn) return;
+
+    const titleVal = titleIn.value.trim();
+    const bodyVal = bodyIn.value.trim();
+
+    if (titleVal.length < 1 || bodyVal.length < 1) return alert("内容を入力してくださいにゃ。");
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "🐾 送信中...";
+    }
+
+    const newPost = {
+        title: titleVal,
+        body: bodyVal,
+        date: new Date().toLocaleString('ja-JP'),
+        timestamp: Date.now()
+    };
+
+try {
+        // 🌟 正規のアジアRTDBのURLへPOST送信
+        const res = await fetch('https://alverse-project-default-rtdb.asia-southeast1.firebasedatabase.app/alverse_pro_v3/board.json', {
+            method: 'POST',
+            body: JSON.stringify(newPost)
+        });
+        if (!res.ok) throw new Error();
+
+        // 入力欄を綺麗にクリア
+        titleIn.value = '';
+        bodyIn.value = '';
+
+        // 💡 投稿後に最新データを裏で再取得して画面を即座に再レンダリング
+        await loadBoardFromServer();
+
+        // 💡【自動モーダル閉鎖処理】
+        // モーダルを自動で閉じたい場合は、下の3行の先頭にある「//」を消してください🐾
+        // const boardModal = document.getElementById('board-modal-id');
+        // if (boardModal) { boardModal.style.display = 'none'; }
+
+    } catch (e) {
+        console.error("送信エラー:", e);
+        alert("送信に失敗しました😿 サーバーの状態を確認してください。");
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "知恵を共有する (送信)";
+        }
+    }
+} // ⚠️関数（submitBoardPost）を締めくくる最後の閉じ括弧です！
 // ----------------------------- 🖼️ フォトギャラリー (同期・自動更新版) -----------------------------
 
 // 1. サーバーから画像リストを取得（キャッシュ対策済み）
@@ -1709,19 +1733,17 @@ async function uploadImage(input) {
         // 2. 公開用ダウンロードURLの取得
         const downloadURL = await getDownloadURL(snapshot.ref);
 
-// 3. Realtime DatabaseへURLと情報を保存
-const db = window.FirebaseServices.db;
+        // 3. Realtime DatabaseへURLと情報を保存
+        // ※ データベースのパスは必要に応じて調整してください
+        const db = getDatabase();
+        const galleryListRef = dbRef(db, 'alverse_pro_v3/gallery');
 
-const galleryListRef = ref(
-    db,
-'aiverse_pro_v3/gallery'
-);
+        await push(galleryListRef, {
+            url: downloadURL,
+            name: file.name,
+            uploadedAt: Date.now()
+        });
 
-await push(galleryListRef, {
-    url: downloadURL,
-    name: file.name,
-    uploadedAt: Date.now()
-});
         // 成功通知と再読み込み
         alert("アップロード成功しました！✨");
         if (typeof loadGalleryFromFirebase === 'function') {
@@ -1733,7 +1755,6 @@ await push(galleryListRef, {
         alert("アップロードに失敗しました。ルール設定を確認してください。");
     }
 }
-
 // 5. 削除機能（サーバー同期・ファイル名＆インデックス両方送信版🐾）
 async function removeGalleryImage(index) {
     // 💡 安全装置：対象の画像データを特定し、ファイル名を抜き出す
@@ -1752,7 +1773,7 @@ async function removeGalleryImage(index) {
             const response = await fetch('delete_gallery.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+                body: JSON.stringify({ 
                     index: index,
                     filename: filename,
                     file: filename // 念のため別名でも仕込んでおくお守り
@@ -1774,7 +1795,6 @@ async function removeGalleryImage(index) {
         }
     }
 }
-
     // 最後に：ページ読み込み時に実行
     loadServerGallery();
 
@@ -1790,7 +1810,7 @@ async function removeGalleryImage(index) {
     async function old_loadBgmFromServer() {
         try {
 // 互換性の高いルートでFirebaseから直接データを1撃で引っ張る
-const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
+const snapshot = await get(ref(db, "alverse_pro_v3/playlist")); // 👈 sなしのplaylistにする！
              if (snapshot.exists()) {
                  const data = snapshot.val();
                 // [0, 1] の配列・オブジェクト構造を安全に展開
@@ -1815,7 +1835,6 @@ const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
             initBgmPanel();
         }
     }
-
 // 🌟 1. パネル初期化の窓口化
     window.initBgmPanel = function() {
         const selector = document.getElementById('playlist-selector');
@@ -1830,7 +1849,6 @@ const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
         });
         window.renderBgmTracks(); // 窓口化した関数を呼び出す
     }
-
 // 🎵 追加ボタンの未定義エラーを直す関数
     window.addNewTrack = async function() {
         const input = document.querySelector('input[placeholder*="YouTube動画URL"]');
@@ -1852,6 +1870,7 @@ const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
 
         window.renderBgmTracks(); // 画面を再描画
 
+// 🔥 Firebase（sなしのplaylist部屋）に正しい親子構造で上書き保存！
 // 🚀 開通したモジュール世界の窓口へ、安全にデータを届ける！
         if (typeof window.saveBgmToFirebase === 'function') {
             await window.saveBgmToFirebase(db.playlists);
@@ -1892,7 +1911,6 @@ const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
             await window.saveBgmToFirebase(db.playlists);
         }
     };
-
     // 🌟 2. トラック描画の窓口化
     window.renderBgmTracks = function() {
         const container = document.getElementById('bgm-tracks-list');
@@ -1948,7 +1966,6 @@ const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
         activeTrackIdx = (activeTrackIdx + 1) % pl.tracks.length;
         window.triggerTrackPlay(pl.tracks[activeTrackIdx].id, activeTrackIdx);
     }
-
 // 🌟 5. YouTube APIから100%確実に見つけさせるためのプレイヤー生成窓口
     window.onYouTubeIframeAPIReady = function() {
         console.log("🎬 onYouTubeIframeAPIReady が正常にトリガーされました🐾");
@@ -1994,7 +2011,6 @@ const snapshot = await get(ref(db, "aiverse_pro_v3/playlist"));
         console.log("💡 すでにYouTube APIのロードが完了しているのを発見！手動で初期化します🐾");
         window.onYouTubeIframeAPIReady();
     }
-
 // ----------------------------- 🥸 秘密機能 (現状維持) -----------------------------
     function executeStabilizerScan() {
         const logBox = document.getElementById('stabilizer-log');
@@ -2090,10 +2106,8 @@ async function savePostFromAdmin() {
     if (typeof closeModal === 'function') closeModal('admin-modal');
     if (typeof clearAdminForm === 'function') clearAdminForm();
 }
-
 // 管理者メニューの表示状態を更新する関数（HTML完全連動版）
 function updateAdminUI() {
-
      // 💡 ケニアさんが統合してくれたHTMLのグループID（admin-menu-section）を直接探します
      const adminMenuSection = document.getElementById('admin-menu-section');
 
@@ -2119,7 +2133,6 @@ function updateAdminUI() {
          }
      }
 }
-
 // ページ読み込み完了時に実行して、ログイン状態を復元する
 window.addEventListener('load', updateAdminUI);
   function editArticle(id) {
@@ -2185,10 +2198,9 @@ document.addEventListener('click', function(e) {
         if (menu.style) menu.style.display = 'none'; // 👈 ここも安全に閉じる
     }
 });
-
   // ----------------------------- 言語アシスタント -----------------------------
   function toggleLanguage() {
-  alert("Aiverseは標準ブラウザ翻訳に対応する...");
+    alert("Alverseは標準ブラウザ翻訳に対応する「多言語アシスト仕様」で組まれています。日本語・英語以外のデバイスからも美しく表示されます。");
 }
 
 // ----------------------------- モーダル開閉 (完全版) -----------------------------
@@ -2227,7 +2239,6 @@ function openNewPost() {
     // HTML側の <div id="admin-modal"> を開くように指定
     openModal('admin-modal');
 }
-
 // 文字列を安全に変換する関数
 function escapeHTML(str) {
     if (!str) return "";
@@ -2239,7 +2250,6 @@ function escapeHTML(str) {
         '"': '&quot;'
     }[m]));
 }
-
 // =========================================================
 // 😸 猫の知恵袋 管理者用機能（Firebase直結版）
 // =========================================================
@@ -2251,9 +2261,9 @@ async function editBoardEntry(id, currentTitle, currentBody) {
     if (newBody === null) return;
 
     try {
-
+        // 1. Firebaseの特定のパスを指定（前回のコードの dbInstance を使用）
         // id は Firebaseのキー（fbKey）をそのまま使ってください
-const postRef = ref(dbInstance, `aiverse_pro_v3/board/${id}`);
+        const postRef = ref(dbInstance, `alverse_pro_v3/board/${id}`);
 
         // 2. サーバー（PHP）への送信の代わりに、直接Firebaseを更新
         await update(postRef, {
@@ -2273,7 +2283,6 @@ const postRef = ref(dbInstance, `aiverse_pro_v3/board/${id}`);
         alert("Firebaseへの書き込みに失敗しました😿：" + e.message);
     }
 }
-
 // =========================================================
 // 💾 バックアップ ＆ 🌐 サーバー共有システム
 // =========================================================
@@ -2429,7 +2438,7 @@ window.toggleGearMenu = function(e) {
     if (!menu) return;
 
     // 現在の style.display または クラス名 から開閉状態を判定
-    const isHidden = menu.style.display === 'none' ||
+    const isHidden = menu.style.display === 'none' || 
                      (!menu.classList.contains('show') && !menu.classList.contains('open') && menu.style.display !== 'block');
 
     if (isHidden) {
@@ -2464,7 +2473,6 @@ document.addEventListener('click', function(e) {
     menu.style.display = 'none';
     console.log("🌌 外側クリックでメニューを閉じました🐾");
 });
-
 // ---------------------------------------------------------
 // 🌌 モーダル制御
 // ---------------------------------------------------------
@@ -2535,65 +2543,44 @@ function toggleSecretMode() {
 // 🚪 ログアウト（データベース内フラグ完全初期化版）
 // =========================================================
 function logoutAdmin() {
-    const ok = confirm("管理者モードを終了しますか？🐾");
-    if (!ok) return;
+     const ok = confirm("管理者モードを終了しますか？🐾");
+     if (!ok) return;
 
-    // 1. JavaScriptメモリ上のフラグを落とす
-    if (typeof db !== 'undefined') {
-        db.isAdmin = false;
-    }
+     // 1. JavaScriptメモリ上のフラグを落とす
+     if (typeof db !== 'undefined') {
+         db.isAdmin = false;
+     }
 
-    // 2. 【本丸】localStorage内の巨大データ（aiverse_database_engine_v3）を安全に書き換える
-    try {
-        const dbKey = 'aiverse_database_engine_v3';
-        const rawData = localStorage.getItem(dbKey);
+     // 2. 【本丸】localStorage内の巨大データ（alverse_database_engine_v3）を安全に書き換える
+     try {
+         const dbKey = 'alverse_database_engine_v3';
+         const rawData = localStorage.getItem(dbKey);
 
-        if (rawData) {
-            // データを一度パースしてオブジェクトに戻す
-            const dataObj = JSON.parse(rawData);
+         if (rawData) {
+             // データを一度パースしてオブジェクトに戻す
+             const dataObj = JSON.parse(rawData);
 
-            // オブジェクトの中の管理者フラグを「確実にfalse」にする
-            dataObj.isAdmin = false;
+             // オブジェクトの中の管理者フラグを「確実にfalse」にする
+             dataObj.isAdmin = false;
 
-            // 綺麗にしたデータをもう一度文字列に戻してローカルストレージに上書き保存
-            localStorage.setItem(dbKey, JSON.stringify(dataObj));
-            console.log("✅ ローカルストレージ内のADMIN権限を完全に消去しました");
-        }
+             // 綺麗にしたデータをもう一度文字列に戻してローカルストレージに上書き保存
+             localStorage.setItem(dbKey, JSON.stringify(dataObj));
+             console.log("✅ ローカルストレージ内のADMIN権限を完全に消去しました");
+         }
 
-        // 以前の古いフラグも念のため綺麗に掃除
-        localStorage.removeItem('aiverse_admin');
+         // 以前の古いフラグも念のため綺麗に掃除
+         localStorage.removeItem('aiverse_admin');
 
-    } catch (e) {
-        console.warn("localStorageの書き換えでブロックが発生しましたが、処理を続行します:", e);
-    }
+     } catch (e) {
+         console.warn("localStorageの書き換えでブロックが発生しましたが、処理を続行します:", e);
+     }
 
-    // =========================================================
-    // ✨【追加】Firebaseからも確実にサインアウトする
-    // =========================================================
-    if (typeof firebase !== 'undefined' && firebase.auth) {
-        firebase.auth().signOut().then(() => {
-            console.log("🔥 Firebase Authのサインアウトに成功しました");
-            executeFinalRedirect();
-        }).catch((error) => {
-            console.error("Firebaseサインアウトエラー:", error);
-            // エラーが出ても処理が止まらないようにリダイレクトは走らせる
-            executeFinalRedirect();
-        });
-    } else {
-        // Firebaseが読み込まれていない環境（ローカルテスト等）でも安全に動くように
-        executeFinalRedirect();
-    }
+     // 3. 画面のDOM書き換え（showToast）を避けて、安全にポップアップ通知
+     alert("🚪 ログアウトしました");
 
-    // ログアウト完了のアラートと画面リフレッシュをまとめた関数
-    function executeFinalRedirect() {
-        // 3. 画面のDOM書き換え（showToast）を避けて、安全にポップアップ通知
-        alert("🚪 ログアウトしました");
-
-        // 4. まっさらな状態でトップページへ強制遷移（UIの完全初期化）
-        window.location.replace(window.location.href);
-    }
+     // 4. まっさらな状態でトップページへ強制遷移（UIの完全初期化）
+     window.location.replace(window.location.href);
 }
-
 // =========================================================
 // 🍞 トースト通知
 // =========================================================
@@ -2655,7 +2642,6 @@ function showToast(message = "") {
 async function loadAllArticles() {
     console.log("loadAllArticles OK");
 }
-
 // =========================================================
 // 🚀 自動復元（整理版）
 // =========================================================
@@ -2688,7 +2674,6 @@ window.addEventListener('load', () => {
         }, 100);
     }
 });
-
 // --- ここから追加：カテゴリーマスターリスト ---
 const AIVERSE_CATEGORIES = [
     { id: "news", label: "📢 ニュース" },
@@ -2771,7 +2756,6 @@ function setupDraftSystem() {
           console.warn("localStorageからの初期読み込みがブロックされました:", e);
       }
 }
-
 // =========================================================
 // 👁️ プレビュー描画（安全ガード追加版）
 // =========================================================
@@ -2811,7 +2795,6 @@ function updateAdminPreview() {
         </div>
     `;
 }
-
 // 💾 下書き保存ロジック
 function saveDraft() {
     const draft = {
@@ -2823,7 +2806,6 @@ function saveDraft() {
     };
     localStorage.setItem('aiverse_post_draft', JSON.stringify(draft));
 }
-
 // 📥 下書き復元ロジック（セキュリティエラー完全回避版）
 function loadDraft() {
     try {
@@ -2845,7 +2827,6 @@ function loadDraft() {
         console.warn("localStorageからの下書き復元がブロックされました（処理は安全に続行されます）:", e);
     }
 }
-
 // ---------------------------------------------------------
 // 🚀 起動処理 (window.onload)
 // 📌 頭とお尻を完全に一本化して、ここで一気にシステムを起動させます！
@@ -2894,34 +2875,13 @@ window.onload = () => {
 </script>
 
 <script type="module">
-
 // =========================================================
 // 🔥 ここから先は隔離された「Firebase v10」の最強モジュール世界！
 // =========================================================
-// 1. Firebaseの読み込み
-import {
-    initializeApp,
-    getApp,
-    getApps
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+     // 1. Firebaseの読み込み
+     import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+     import { getDatabase, ref, push, onChildAdded, serverTimestamp, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-import {
-    getDatabase,
-    ref,
-    push,
-    onChildAdded,
-    serverTimestamp,
-    get,
-    set
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-// 🖼️ Firebase Storage追加
-import {
-    getStorage,
-    ref as storageRef,
-    uploadBytes,
-    getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
      // 2. Firebaseの設定
      const firebaseConfig = {
          apiKey: "AIzaSyDbw7xkeplmYAE80JcrTIf1qkRpZsDTwXM",
@@ -2933,39 +2893,15 @@ import {
          appId: "1:870564638397:web:d372f90b2b150e095791d4"
      };
 
-// 3. 重複起動防止を施した初期化
-const app = !getApps().length
-    ? initializeApp(firebaseConfig)
-    : getApp();
+     // 3. 重複起動防止を施した初期化
+     const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+     const dbInstance = getDatabase(app);
+     const dbRef = ref(dbInstance, "alverse_pro_v3/posts");
+      // =========================================================
+      // 📰 メイン記事：Firebase永続化・同期システム 🚀
+      // =========================================================
+      const articlesRef = ref(dbInstance, "alverse_pro_v3/articles");
 
-// 🌍 Firebase共通サービスをグローバル化
-window.FirebaseServices = {
-    db: getDatabase(app),
-    storage: getStorage(app)
-};
-
-// 個別参照
-const dbInstance = window.FirebaseServices.db;
-
-// 🌐 通常script側からも使えるように公開
-window.dbInstance = dbInstance;
-
-// 😸 掲示板
-const boardRef = ref(
-    dbInstance,
-    "aiverse_pro_v3/board"
-);
-// 📰 メイン記事
-const articlesRef = ref(
-    dbInstance,
-    "aiverse_pro_v3/articles"
-);
-
-// 🎵 BGM
-const playlistRef = ref(
-    dbInstance,
-    "aiverse_pro_v3/playlist"
-);
       // 💾 1. 管理者画面から送られてきた記事をFirebaseへ保存（新規・上書き両対応）
       window.saveArticleToFirebase = async function(postData) {
           try {
@@ -2983,15 +2919,16 @@ const playlistRef = ref(
                   }
               }
 
-if (targetKey) {
-    // ✏️ 既存記事の上書き修正（すでに定義済みの articlesRef からパスを安全に生成）
-    await set(ref(dbInstance, `aiverse_pro_v3/articles/${targetKey}`), postData);
-    console.log(`🔥 Firebase上の記事 [${postData.id}] を完全更新しました🐾`);
-} else {
-    // ➕ 新規記事のプッシュ追加
-    await push(articlesRef, postData);
-    console.log("🔥 Firebaseへ新しい記事を永続保存しました🐾");
-}
+              if (targetKey) {
+                  // ✏️ 既存記事の上書き修正
+                  await set(ref(dbInstance, `alverse_pro_v3/articles/${targetKey}`), postData);
+                  console.log(`🔥 Firebase上の記事 [${postData.id}] を完全更新しました🐾`);
+              } else {
+                  // ➕ 新規記事のプッシュ追加
+                  await push(articlesRef, postData);
+                  console.log("🔥 Firebaseへ新しい記事を永続保存しました🐾");
+              }
+
               // 保存完了後にローカルデータを再取得してグリッドをリフレッシュ
               await window.loadArticlesFromFirebase();
 
@@ -3066,7 +3003,6 @@ if (targetKey) {
       requestAnimationFrame(() => {
           window.loadArticlesFromFirebase();
       });
-
      // 🚀 本物のFirebase宇宙へ、データを絶対セーブする窓口
      window.saveBgmToFirebase = async function(playlistsData) {
          try {
@@ -3074,12 +3010,11 @@ if (targetKey) {
                  console.error("Firebaseのデータベースインスタンスがありません🐾");
                  return;
              }
-
              // 配列の空要素（null）を綺麗に掃除してから保存する安全弁付き
              const cleanData = Array.isArray(playlistsData) ? playlistsData.filter(item => item !== null) : playlistsData;
 
              // 🔥 正しいインスタンスとパスで一撃上書き！
-             await set(ref(dbInstance, "aiverse_pro_v3/playlist"), cleanData);
+             await set(ref(dbInstance, "alverse_pro_v3/playlist"), cleanData);
              console.log("🔥 本物のFirebase(v10)へのデータ保存に完全成功しました！🐾");
          } catch (e) {
              console.error("Firebaseへのセーブ中にエラーが発生しましたにゃ:", e);
@@ -3089,7 +3024,7 @@ if (targetKey) {
      // ☁️ サーバーからデータを引っ張ってくる窓口
      window.loadBgmFromServer = async () => {
          try {
-                 const snapshot = await get(ref(dbInstance, "aiverse_pro_v3/playlist"));
+             const snapshot = await get(ref(dbInstance, "alverse_pro_v3/playlist"));
              if (snapshot.exists()) {
                  const data = snapshot.val();
 
@@ -3133,7 +3068,7 @@ if (targetKey) {
           }
 
            // 🚀 SDKでの push 送信
-           push(boardRef, {
+           push(dbRef, {
                title: title,
                text: body,   // 💡 既存のリアルタイム受信用（text）
                body: body,   // 💡 管理者機能・REST API読み込みとの互換用（body）を追加！
@@ -3149,45 +3084,32 @@ if (targetKey) {
            });
        };
 
-        // =========================================================
+// =========================================================
         // 📋 5. リアルタイム受信：モーダル内のコンテナに流し込む（管理者ボタン対応版🐾）
         // =========================================================
+        onChildAdded(dbRef, (data) => {
+            const post = data.val();
+            const container = document.getElementById('board-posts-container');
 
-onChildAdded(boardRef, (data) => {
-    const post = data.val();
-    const container = document.getElementById('board-posts-container');
+            if (container) {
+                // 💡 もし中に「まだ知恵がありません🐾」の初期枠が入っていたらクリア
+                if (container.innerHTML.includes("まだ知恵がありません")) {
+                    container.innerHTML = '';
+                }
 
-    if (container) {
+                // すでに同じキーの要素が描画されていたら重複を防ぐためにスキップ
+                if (document.getElementById(`board-post-${data.key}`)) return;
 
-        if (container.innerHTML.includes("まだ知恵がありません")) {
-            container.innerHTML = '';
-        }
+                const article = document.createElement('article');
+                article.className = 'board-post';
+                article.setAttribute('data-key', data.key);
+                article.id = `board-post-${data.key}`;
 
-        if (document.getElementById(`board-post-${data.key}`)) return;
+                const safeTitle = (post.title || "無題").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                const currentBody = post.body || post.text || "";
+                const safeText = currentBody.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                const date = post.timestamp ? new Date(post.timestamp).toLocaleString('ja-JP') : "今さっき";
 
-        const article = document.createElement('article');
-
-        article.className = 'board-post';
-        article.setAttribute('data-key', data.key);
-        article.id = `board-post-${data.key}`;
-
-        const safeTitle =
-            (post.title || "無題")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-
-        const currentBody =
-            post.body || post.text || "";
-
-        const safeText =
-            currentBody
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-
-        const date =
-            post.timestamp
-            ? new Date(post.timestamp).toLocaleString('ja-JP')
-            : "今さっき";
                 // 👑 管理者ログイン状態を完璧に判定（db.isAdmin を最優先チェック！）
                 const isManager = typeof db !== 'undefined' && db.isAdmin;
 
@@ -3209,7 +3131,7 @@ onChildAdded(boardRef, (data) => {
                     <div class="bbs-post-body">${safeText}</div>
                     ${adminButtons}
                 `;
-
+                
                 // 最新の書き込みを一番上にスマートに追加
                 container.prepend(article);
             }
@@ -3220,9 +3142,9 @@ onChildAdded(boardRef, (data) => {
             const container = document.getElementById('board-posts-container');
             if (container) {
                 container.innerHTML = ''; // 一度画面を空にする
-
+                
                 /* 💡 参照先を「posts」から「board」に修正して一元化！ */
-                const boardRef = ref(dbInstance, "aiverse_pro_v3/board");
+                const boardRef = ref(dbInstance, "alverse_pro_v3/board");
                 get(boardRef).then((snapshot) => {
                     if (!snapshot.exists() || Object.keys(snapshot.val()).length === 0) {
                         container.innerHTML = `<div style="text-align:center; color:#8c827a; padding:40px; border:1px dashed #444; border-radius:12px;">まだ知恵がありません🐾</div>`;
@@ -3236,7 +3158,7 @@ onChildAdded(boardRef, (data) => {
         // =========================================================
         window.editBoardEntry = async (fbKey) => {
             /* 💡 参照先を「posts」から「board」に修正して一元化！ */
-                const postRef = ref(dbInstance, `aiverse_pro_v3/board/${fbKey}`);
+            const postRef = ref(dbInstance, `alverse_pro_v3/board/${fbKey}`);
             try {
                 const snapshot = await get(postRef);
                 if (!snapshot.exists()) {
@@ -3277,7 +3199,7 @@ onChildAdded(boardRef, (data) => {
             }
 
             /* 💡 参照先を「posts」から「board」に修正して一元化！ */
-                const postRef = ref(dbInstance, `aiverse_pro_v3/board/${fbKey}`);
+            const postRef = ref(dbInstance, `alverse_pro_v3/board/${fbKey}`);
             try {
                 await set(postRef, null);
 
